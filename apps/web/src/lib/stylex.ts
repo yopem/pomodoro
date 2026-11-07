@@ -7,6 +7,7 @@ import type { CSSProperties } from "react"
 
 import * as stylex from "@stylexjs/stylex"
 import { clsx } from "clsx"
+import { z } from "zod"
 
 export type StyleXStyle = StyleXArray<
   | null
@@ -26,21 +27,28 @@ type CallbackOf<Value> = Value extends (
   ? (...args: Arguments) => Result
   : never
 
+const stringSchema = z.string()
+
+const numberSchema = z.union([
+  z.number(),
+  z.nan(),
+  z.literal([Infinity, -Infinity]),
+])
+
+const callbackSchema = z.function()
+
 export function isString<Value>(value: Value): value is Extract<Value, string> {
-  // oxlint-disable-next-line quality/no-runtime-typeof -- SAFETY: primitive string check preserves the component's string-or-callback prop contract.
-  return typeof value === "string"
+  return stringSchema.safeParse(value).success
 }
 
 export function isNumber<Value>(value: Value): value is Extract<Value, number> {
-  // oxlint-disable-next-line quality/no-runtime-typeof -- SAFETY: primitive number check preserves the input size contract.
-  return typeof value === "number"
+  return numberSchema.safeParse(value).success
 }
 
 export function isCallback<Value>(
   value: Value,
 ): value is Value & CallbackOf<Value> {
-  // oxlint-disable-next-line quality/no-runtime-typeof -- SAFETY: callback unions require callable discrimination to preserve the public prop contract.
-  return typeof value === "function"
+  return callbackSchema.safeParse(value).success
 }
 
 interface MergeableProps {
@@ -113,7 +121,6 @@ export function mergeStylexProps(
 }
 
 export interface StyleXProps {
-  /** The component applies these StyleX styles after its defaults and variants. */
   xstyle?: StyleXStyle
 }
 
