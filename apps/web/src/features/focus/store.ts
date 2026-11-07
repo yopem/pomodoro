@@ -393,7 +393,6 @@ export async function importBackup(input: {
   let parsed: unknown
 
   try {
-    // Backup JSON keeps the last duplicate key. Rust rejects duplicate fields.
     parsed = JSON.parse(input.text)
   } catch {
     throw new Error("Backup is not valid JSON")
@@ -686,7 +685,7 @@ async function finishElapsedTimer() {
 
     if (completion && key === activeKey) deliverCompletion(completion)
   } catch {
-    // The store exposes the error and retains the last durable workspace.
+    return
   } finally {
     completing = false
   }
