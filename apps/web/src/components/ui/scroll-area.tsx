@@ -17,7 +17,11 @@ const styles = stylex.create({
   viewport: {
     blockSize: "100%",
     maxBlockSize: "inherit",
+    minInlineSize: 0,
+    border: 0,
     borderRadius: "inherit",
+    margin: 0,
+    padding: 0,
     outline: "none",
     transitionProperty: "box-shadow",
     ":focus-visible": {
@@ -110,9 +114,7 @@ export function ScrollArea({
         )}
         aria-label={label}
         data-slot="scroll-area-viewport"
-        // Base UI sets role="presentation"; a labeled scroll viewport needs a non-landmark role.
-        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
-        render={<div role="group" />}
+        render={<fieldset />}
         tabIndex={0}
       >
         <ScrollAreaPrimitive.Content
