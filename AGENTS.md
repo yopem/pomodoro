@@ -5,7 +5,7 @@
 | Runtime | Pinned Bun; ESM |
 | Package model | Bun workspaces; Turborepo tasks |
 | Backend | Rust, Axum, JSON HTTP, and utoipa OpenAPI |
-| Validation | Rust boundary validation and Zod for frontend; QA execution requires approval |
+| Validation | Rust boundary validation and Zod; lint, format, and typecheck by default; other QA needs approval |
 | Tooling | Native `bun lint`, `bun fmt`, `bun check`; `bunfig.toml` |
 | Deployment | Rust API and Bun web SSR containers; separate processes behind one origin |
 | Additional apps | React desktop with GPUIX, mobile with Expo, extension with WXT |
@@ -271,9 +271,8 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
 - Limit each suppression to the exact rule and one affected line. Add a nearby
   comment that explains why the exception is necessary. Do not use file-wide,
   block-wide, or rule-free disable comments.
-- During an approved lint run, rerun the affected lint command after the change
-  and confirm that the exception is still required and other checks pass.
-  Follow the Validation workflow for execution approval.
+- Rerun the affected lint command after the change. Confirm that the exception
+  is still required and the other checks pass.
 
 ### Workspace tasks and cache safety
 
@@ -295,12 +294,11 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
   Do not put credentials in task logs or publicly shared cache artifacts.
 - Preserve required framework and StyleX build plugins. Bun manages the CLI
   process; it does not make every Vite plugin a Bun bundler plugin.
-- Use Bun's staged lint and format support only when hooks are requested.
-  Preserve existing hooks and partially staged changes. Staged checks do not
-  replace CI workspace checks. Do not add Husky or lint-staged by default.
-- CI runs lint, format checks, `bun check`, and required builds. Follow the
-  Validation workflow for local execution approval, including type-aware lint
-  and commands that enable typechecking indirectly.
+- Use Lefthook for staged and push checks as specified in Git hooks. Preserve
+  existing hooks and partially staged changes. CI still runs workspace checks.
+- CI runs lint, format checks, `bun check`, and required builds. Run relevant
+  lint, format, and typecheck commands locally by default, including type-aware
+  lint and commands that enable typechecking indirectly.
 
 ### Command patterns
 
@@ -334,9 +332,9 @@ cargo build --workspace --locked
 ```
 
 Do not define an aggregate root `check` script that hides native `bun check`.
-Keep `typecheck` as the script name. CI owns aggregate check and typecheck
-execution unless the user explicitly requests a local run. Do not invoke
-restricted checks indirectly through Turbo, hooks, or `--check` build flags.
+Keep `typecheck` as the script name. Run lint, format, and typecheck locally by
+default. CI and Lefthook also run these checks. Do not run builds or other
+restricted operations indirectly without the required approval.
 
 After pulling dependency changes, run `bun install` to apply the lockfile and
 workspace patches. Confirm the target before migrations, seeds, or deployment.
@@ -981,9 +979,10 @@ Shared frontend packages never import Rust server implementation or secrets.
 - Use Google Analytics 4 and Umami through one analytics module in the web
   app. Do not call `gtag` or `umami` from components.
 - Configure both providers through `.env` and the public client config:
-  `VITE_ANALYTICS_ENABLED`, `VITE_GA_MEASUREMENT_ID`,
-  `VITE_UMAMI_SCRIPT_URL`, and `VITE_UMAMI_WEBSITE_ID`. Use the project's
-  public prefix if it differs. These IDs are public, not secrets.
+  `PUBLIC_ANALYTICS_ENABLED`, `PUBLIC_GA_MEASUREMENT_ID`,
+  `PUBLIC_UMAMI_SCRIPT_URL`, and `PUBLIC_UMAMI_WEBSITE_ID`. Configure Vite's
+  `envPrefix` as `PUBLIC_`. Expose only public values with this prefix. These
+  IDs are public, not secrets.
 - Load a provider only when its ID is present and analytics is enabled. Do not
   fail the app when a value is absent. Disable analytics in tests and local
   development unless explicitly enabled.
@@ -1154,6 +1153,37 @@ Add Polar only when a requested feature needs payments or subscriptions.
 - Keep deployment credentials and Alchemy state out of git. Follow the existing
   environment isolation and deployment approval rules before a live deploy.
 
+## Git hooks
+
+- Install a pinned Lefthook version and keep its configuration in the root
+  `lefthook.yml`. Use Lefthook as the Git hook manager. Preserve existing hook
+  behavior when migrating it.
+- On `pre-commit`, lint and check formatting for every applicable staged file.
+  Use the staged snapshot, not unstaged edits. Typecheck the full owning
+  projects and affected dependents so the staged changes are covered with
+  their real project configuration. Do not pass individual files to a
+  project-based typechecker as a substitute for project checking.
+- On `pre-push` to `origin`, run lint, format checks, and typechecks for the
+  full repository at each distinct pushed ref tip. Check the actual pushed
+  commits, not just the current working tree. Detect `origin` from the Git
+  hook's remote name or matching URL. Handle new branches, multiple refs, and
+  tags that point to commits; a deletion-only push has no snapshot to check.
+  Report unsupported refs instead of claiming that they passed.
+- Run checks against isolated snapshots or an equivalent safe method. Preserve
+  the index, unstaged and partially staged edits, untracked files, and pushed
+  commits. Use formatter check mode; do not rewrite files during a push. If a
+  commit hook applies fixes, protect partially staged changes and stage only
+  intended fixes. Do not silently add unrelated changes.
+- Route each file to the applicable tools. Handle added, changed, renamed, and
+  deleted paths; never pass deleted paths as existing files. Report unsupported
+  files that require checks and unavailable tool capabilities instead of
+  claiming coverage. A failed check blocks the commit or push. Keep full CI
+  checks enabled.
+- Run lint, format, and typecheck locally by default as well as in hooks.
+  Other QA follows the approval rules in Validation workflow.
+- Use Bun checks for the frontend and Rustfmt, Clippy, and Cargo checks for
+  Rust. Cover both workspaces when a shared change affects them.
+
 ## Validation workflow
 
 ### Implementation first; QA execution later
@@ -1176,15 +1206,16 @@ Add Polar only when a requested feature needs payments or subscriptions.
 - Do not start QA automatically when implementation ends. Leave the checklist
   ready for a separate QA pass. Run it only when the user requests QA or
   explicitly includes verification in the task.
-- Existing CI checks stay enabled. Check and typecheck execution stays in CI
-  unless the user explicitly requests local execution. Do not invoke prohibited
-  checks indirectly through scripts, hooks, builds, or other tools.
+- Run relevant lint, format, and typecheck commands by default after changes.
+  Fix failures and rerun the affected commands. Preserve unrelated changes
+  when formatting. Keep CI and Lefthook checks enabled.
 - Review the changed source and instructions for consistency without running
   the application. Written plans and source review do not prove runtime success.
-- These rules control when validation runs. Verification requirements elsewhere
-  in this document define cases to record in `QA.md`, not permission to run them
-  during implementation. This includes browser, API, build, lint, format,
-  typecheck, import-boundary, and deployment checks.
+- Run lint, format, and typecheck without separate approval, including during
+  implementation. Other verification requirements define cases to record in
+  `QA.md`, not permission to run them during implementation. This includes
+  browser, API, build, import-boundary, and deployment checks. A check script
+  that also runs restricted work needs approval for that work.
 
 ### Required detail in `QA.md`
 
@@ -1288,7 +1319,8 @@ applicable category into concrete cases with the details required above.
 - **Build and release:** applicable existing build, lint, format, typecheck,
   import-boundary, and focused regression commands; dependency and runtime
   compatibility; generated assets; environment bindings; deployment smoke
-  checks; and rollback prerequisites. Identify commands that require approval.
+  checks; and rollback prerequisites. Identify commands that require approval;
+  lint, format, and typecheck do not require separate approval.
 
 ### Separate QA execution pass
 
@@ -1305,9 +1337,9 @@ applicable category into concrete cases with the details required above.
   never an unrelated whole-project suite. Create focused tests only on explicit
   request. Keep new tests, fixtures, and artifacts local and ignored unless
   the user explicitly asks to commit them. Do not install test libraries.
-- A general QA request does not authorize separately restricted local check or
-  typecheck commands, production changes, deployment, or destructive operations.
-  Obtain explicit approval for these actions before execution.
+- A general QA request does not authorize production changes, deployment, or
+  destructive operations. Obtain explicit approval for these actions before
+  execution.
 - Record actual results and inspect evidence before marking cases passed.
   Report failed, blocked, and unrun cases by ID. Never describe implementation
   completion as QA completion when cases remain pending.
