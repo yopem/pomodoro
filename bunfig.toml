@@ -46,22 +46,11 @@ ignorePatterns = [
 newlinesBetween = true
 groups = [
   "type-import",
-  [
-    "value-builtin",
-    "value-external",
-  ],
+  ["value-builtin", "value-external"],
   "type-internal",
   "value-internal",
-  [
-    "type-parent",
-    "type-sibling",
-    "type-index",
-  ],
-  [
-    "value-parent",
-    "value-sibling",
-    "value-index",
-  ],
+  ["type-parent", "type-sibling", "type-index"],
+  ["value-parent", "value-sibling", "value-index"],
   "unknown",
 ]
 
@@ -69,7 +58,14 @@ groups = [
 # Keep the shared Yopem rule semantics in Bun's native engine.
 flavor = "oxlint"
 plugins = [
+  "react",
+  "jsx-a11y",
+  "react-perf",
+  "import",
+  "promise",
   "eslint-plugin-oxfmt",
+  { "name" = "yopem-ui", "specifier" = "@yopem-ui/oxlint-plugin" },
+  { "name" = "react-hooks-js", "specifier" = "eslint-plugin-react-hooks" },
   { "name" = "effect", "specifier" = "@yopem/eslint-plugin/effect" },
   { "name" = "quality", "specifier" = "@yopem/eslint-plugin/quality" },
   { "name" = "react-doctor", "specifier" = "@yopem/eslint-plugin/react-doctor" },
@@ -116,6 +112,41 @@ ignorePatterns = [
 "correctness" = "error"
 
 [lint.rules]
+"react-doctor/tanstack-start-get-mutation" = "warn"
+"react-doctor/tanstack-start-loader-parallel-fetch" = "warn"
+"react-doctor/tanstack-start-missing-head-content" = "warn"
+"react-doctor/tanstack-start-missing-scripts" = "warn"
+"react-doctor/tanstack-start-no-anchor-element" = "warn"
+"react-doctor/tanstack-start-no-dynamic-server-fn-import" = "error"
+"react-doctor/tanstack-start-no-navigate-in-render" = "warn"
+"react-doctor/tanstack-start-no-secrets-in-loader" = "error"
+"react-doctor/tanstack-start-no-use-server-in-handler" = "error"
+"react-doctor/tanstack-start-no-useeffect-fetch" = "warn"
+"react-doctor/tanstack-start-redirect-in-try-catch" = "warn"
+"react-doctor/tanstack-start-route-property-order" = "error"
+"react-doctor/tanstack-start-server-fn-method-order" = "error"
+"react-doctor/tanstack-start-server-fn-validate-input" = "warn"
+"react-hooks-js/rules-of-hooks" = "error"
+"react-hooks-js/exhaustive-deps" = "warn"
+"react-hooks-js/static-components" = "error"
+"react-hooks-js/use-memo" = "error"
+"react-hooks-js/preserve-manual-memoization" = "error"
+"react-hooks-js/incompatible-library" = "warn"
+"react-hooks-js/immutability" = "error"
+"react-hooks-js/globals" = "error"
+"react-hooks-js/refs" = "error"
+"react-hooks-js/set-state-in-effect" = "error"
+"react-hooks-js/error-boundaries" = "error"
+"react-hooks-js/purity" = "error"
+"react-hooks-js/set-state-in-render" = "error"
+"react-hooks-js/unsupported-syntax" = "warn"
+"react-hooks-js/config" = "error"
+"react-hooks-js/gating" = "error"
+"yopem-ui/prefer-layout-primitives" = "error"
+"yopem-ui/no-restyle" = "error"
+"yopem-ui/enforce-styling-methods" = "error"
+"yopem-ui/static-stylex" = "error"
+"yopem-ui/no-raw-stylex-colors" = "error"
 "effect/no-manual-effect-error-tag" = "error"
 "effect/no-manual-tag-comparison" = "error"
 "effect/no-manual-tagged-construction" = "error"
@@ -787,18 +818,7 @@ ignorePatterns = [
 "require-yield" = "error"
 "no-restricted-imports" = [
   "error",
-  { "paths" = [
-    { "name" = "react", "importNames" = [
-      "useEffect",
-      "useCallback",
-      "useMemo",
-    ], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." },
-  ], "patterns" = [
-    { "group" = [
-      "../**",
-      "**/../**",
-    ], "message" = "Use canonical imports instead of parent-relative paths." },
-  ] },
+  { "paths" = [{ "name" = "react", "importNames" = ["useEffect", "useCallback", "useMemo"], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." }], "patterns" = [{ "group" = ["../**", "**/../**"], "message" = "Use canonical imports instead of parent-relative paths." }, { "group" = ["@pomodoro/server", "@pomodoro/server/**", "@server", "@server/**", "**/apps/server/**"], "message" = "Keep Rust server code out of frontend imports." }] },
 ]
 "stylistic/require-readable-spacing" = "error"
 "typescript/adjacent-overload-signatures" = "error"
@@ -882,47 +902,7 @@ files = ["packages/notes/src/**/*.ts"]
 [lint.overrides.rules]
 "no-restricted-imports" = [
   "error",
-  { "paths" = [
-    { "name" = "react", "importNames" = [
-      "useEffect",
-      "useCallback",
-      "useMemo",
-    ], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." },
-  ], "patterns" = [
-    { "group" = [
-      "node:*",
-      "bun",
-      "react",
-      "react/**",
-      "@gpuix/**",
-      "@still-notes/env",
-      "@still-notes/env/**",
-      "@still-notes/desktop",
-      "@still-notes/desktop/**",
-      "fs",
-      "fs/*",
-      "path",
-      "path/*",
-      "os",
-      "crypto",
-      "child_process",
-      "worker_threads",
-      "net",
-      "tls",
-      "http",
-      "https",
-      "dns",
-      "stream",
-      "zlib",
-      "vm",
-      "module",
-      "sqlite",
-    ], "message" = "Keep shared note contracts platform-neutral." },
-    { "group" = [
-      "../**",
-      "**/../**",
-    ], "message" = "Use canonical imports instead of parent-relative paths." },
-  ] },
+  { "paths" = [{ "name" = "react", "importNames" = ["useEffect", "useCallback", "useMemo"], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." }], "patterns" = [{ "group" = ["node:*", "bun", "react", "react/**", "@gpuix/**", "@pomodoro/env", "@pomodoro/env/**", "@pomodoro/desktop", "@pomodoro/desktop/**", "fs", "fs/*", "path", "path/*", "os", "crypto", "child_process", "worker_threads", "net", "tls", "http", "https", "dns", "stream", "zlib", "vm", "module", "sqlite"], "message" = "Keep shared note contracts platform-neutral." }, { "group" = ["../**", "**/../**"], "message" = "Use canonical imports instead of parent-relative paths." }, { "group" = ["@pomodoro/server", "@pomodoro/server/**", "@server", "@server/**", "**/apps/server/**"], "message" = "Keep Rust server code out of frontend imports." }] },
 ]
 "no-restricted-globals" = [
   "error",
@@ -949,26 +929,7 @@ files = [
 [lint.overrides.rules]
 "no-restricted-imports" = [
   "error",
-  { "paths" = [
-    { "name" = "react", "importNames" = [
-      "useEffect",
-      "useCallback",
-      "useMemo",
-    ], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." },
-  ], "patterns" = [
-    { "group" = [
-      "react",
-      "react/**",
-      "@gpuix/**",
-      "@/components/**",
-      "@/features/*/components/**",
-      "@/app",
-    ], "message" = "Keep domain services independent of native UI." },
-    { "group" = [
-      "../**",
-      "**/../**",
-    ], "message" = "Use canonical imports instead of parent-relative paths." },
-  ] },
+  { "paths" = [{ "name" = "react", "importNames" = ["useEffect", "useCallback", "useMemo"], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." }], "patterns" = [{ "group" = ["react", "react/**", "@gpuix/**", "@/components/**", "@/features/*/components/**", "@/app"], "message" = "Keep domain services independent of native UI." }, { "group" = ["../**", "**/../**"], "message" = "Use canonical imports instead of parent-relative paths." }, { "group" = ["@pomodoro/server", "@pomodoro/server/**", "@server", "@server/**", "**/apps/server/**"], "message" = "Keep Rust server code out of frontend imports." }] },
 ]
 
 [[lint.overrides]]
@@ -976,20 +937,47 @@ files = ["apps/desktop/src/platform/**/*.ts"]
 [lint.overrides.rules]
 "no-restricted-imports" = [
   "error",
-  { "paths" = [
-    { "name" = "react", "importNames" = [
-      "useEffect",
-      "useCallback",
-      "useMemo",
-    ], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." },
-  ], "patterns" = [
-    { "group" = [
-      "@/features/**",
-      "@/app",
-    ], "message" = "Platform adapters must not import feature implementations." },
-    { "group" = [
-      "../**",
-      "**/../**",
-    ], "message" = "Use canonical imports instead of parent-relative paths." },
-  ] },
+  { "paths" = [{ "name" = "react", "importNames" = ["useEffect", "useCallback", "useMemo"], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." }], "patterns" = [{ "group" = ["@/features/**", "@/app"], "message" = "Platform adapters must not import feature implementations." }, { "group" = ["../**", "**/../**"], "message" = "Use canonical imports instead of parent-relative paths." }, { "group" = ["@pomodoro/server", "@pomodoro/server/**", "@server", "@server/**", "**/apps/server/**"], "message" = "Keep Rust server code out of frontend imports." }] },
 ]
+
+[[lint.overrides]]
+files = ["apps/web/src/components/ui/**/*.{ts,tsx,js,jsx}"]
+rules = { "yopem-ui/enforce-styling-methods" = "off", "yopem-ui/no-restyle" = "off", "yopem-ui/prefer-layout-primitives" = "off", "yopem-ui/static-stylex" = "off", "yopem-ui/no-raw-stylex-colors" = "off" }
+
+[[lint.overrides]]
+files = ["apps/web/src/routes/__root.tsx"]
+rules = { "yopem-ui/prefer-layout-primitives" = "off" }
+
+[[lint.overrides]]
+files = ["apps/web/src/**/*.{ts,tsx,js,jsx}"]
+[lint.overrides.rules]
+"no-restricted-imports" = [
+  "error",
+  { "paths" = [{ "name" = "react", "importNames" = ["useEffect", "useCallback", "useMemo"], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." }], "patterns" = [{ "group" = ["../**", "**/../**"], "message" = "Use canonical imports instead of parent-relative paths." }, { "group" = ["@pomodoro/server", "@pomodoro/server/**", "@server", "@server/**", "**/apps/server/**"], "message" = "Keep Rust server code out of frontend imports." }, { "group" = ["node:*", "node:*/**", "bun", "bun:*", "bun:*/**", "assert", "assert/**", "async_hooks", "buffer", "child_process", "cluster", "console", "constants", "crypto", "dgram", "diagnostics_channel", "dns", "dns/**", "domain", "events", "fs", "fs/**", "http", "http2", "https", "module", "net", "os", "path", "path/**", "perf_hooks", "process", "punycode", "querystring", "readline", "readline/**", "repl", "sqlite", "stream", "stream/**", "string_decoder", "sys", "timers", "timers/**", "tls", "trace_events", "tty", "url", "util", "util/**", "v8", "vm", "wasi", "worker_threads", "zlib", "@/server", "@/server/**", "**/server", "**/server.*", "**/server/**", "@server", "@server/**", "@pomodoro/server", "@pomodoro/server/**", "**/*.server", "**/*.server.*"], "message" = "Keep server code out of browser code." }] },
+]
+"no-restricted-globals" = [
+  "error",
+  "Bun",
+  "process",
+  "Buffer",
+  "require",
+  "__dirname",
+  "__filename",
+]
+"no-restricted-properties" = [
+  "error",
+  { "object" = "globalThis", "property" = "Bun" },
+  { "object" = "globalThis", "property" = "process" },
+  { "object" = "globalThis", "property" = "Buffer" },
+  { "object" = "globalThis", "property" = "require" },
+]
+
+[[lint.overrides]]
+files = ["apps/web/src/**/*.server.{ts,tsx,js,jsx}"]
+[lint.overrides.rules]
+"no-restricted-imports" = [
+  "error",
+  { "paths" = [{ "name" = "react", "importNames" = ["useEffect", "useCallback", "useMemo"], "message" = "Use derived values, event handlers, framework APIs, and React Compiler." }], "patterns" = [{ "group" = ["../**", "**/../**"], "message" = "Use canonical imports instead of parent-relative paths." }, { "group" = ["@pomodoro/server", "@pomodoro/server/**", "@server", "@server/**", "**/apps/server/**"], "message" = "Keep Rust server code out of frontend imports." }] },
+]
+"no-restricted-globals" = "off"
+"no-restricted-properties" = "off"

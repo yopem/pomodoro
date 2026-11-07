@@ -1,0 +1,13 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "globalDependencies": ["bunfig.toml", "bun-toolchain.json", "tsconfig.json"],
+  "tasks": {
+    "dev": { "cache": false, "persistent": true },
+    "build": { "dependsOn": ["^build"], "cache": false },
+    "lint": { "cache": false },
+    "lint:fix": { "cache": false },
+    "format:check": { "cache": false },
+    "format:write": { "cache": false },
+    "typecheck": { "cache": false }
+  }
+}

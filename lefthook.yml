@@ -1,0 +1,25 @@
+pre-commit:
+  parallel: false
+  commands:
+    format:
+      glob: "*.{css,html,js,json,md,mjs,toml,ts,tsx,yml}"
+      run: bun fmt --no-script --check --staged
+    lint:
+      glob: "*.{js,mjs,ts,tsx}"
+      run: bun lint --no-script --staged
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: bun run typecheck
+
+pre-push:
+  parallel: false
+  commands:
+    format:
+      glob: "*.{css,html,js,json,md,mjs,toml,ts,tsx,yml}"
+      run: bun fmt --no-script --check {push_files}
+    lint:
+      glob: "*.{js,mjs,ts,tsx}"
+      run: bun lint --no-script {push_files}
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: bun run typecheck
