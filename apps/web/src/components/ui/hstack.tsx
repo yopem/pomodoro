@@ -1,11 +1,13 @@
 "use client"
 
-import type { StyleXComponentProps } from "@/lib/stylex"
 import type { ComponentPropsWithoutRef, RefAttributes } from "react"
+
+import * as stylex from "@stylexjs/stylex"
+
+import type { StyleXComponentProps } from "@/lib/stylex"
 
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
-import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
   root: {
@@ -14,14 +16,18 @@ const styles = stylex.create({
     flexDirection: "row",
     gap: `calc(${tokens["--spacing"]} * 4)`,
   },
+  wrap: { flexWrap: "wrap" },
 })
 
 type HStackElementProps = ComponentPropsWithoutRef<"div"> &
   RefAttributes<HTMLDivElement>
 
-export type HStackProps = StyleXComponentProps<HStackElementProps>
+export type HStackProps = StyleXComponentProps<HStackElementProps> & {
+  wrap?: boolean
+}
 
 export function HStack({
+  wrap = false,
   xstyle: consumerXstyle,
   className,
   ref,
@@ -33,7 +39,10 @@ export function HStack({
   return (
     <div
       data-slot="hstack"
-      {...mergeStylexProps(stylexProps(className, styles.root, xstyle), props)}
+      {...mergeStylexProps(
+        stylexProps(className, styles.root, wrap && styles.wrap, xstyle),
+        props,
+      )}
       ref={ref}
     />
   )
