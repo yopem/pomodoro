@@ -1,8 +1,9 @@
 "use client"
 
+import { Form as FormPrimitive } from "@base-ui/react/form"
+
 import type { StyleXComponentProps } from "@/lib/stylex"
 
-import { Form as FormPrimitive } from "@base-ui/react/form"
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 
 export function Form({

@@ -1,19 +1,15 @@
 "use client"
 
-import type { StyleXComponentProps } from "@/lib/stylex"
-import type { StyleXProps } from "@/lib/stylex"
 import type { RefAttributes } from "react"
 
 import { Input as InputPrimitive } from "@base-ui/react/input"
-import {
-  isCallback,
-  isNumber,
-  isString,
-  stylexProps,
-} from "@/lib/stylex"
-import { themeMarker, tokens } from "@/styles/tokens.stylex"
 import * as stylex from "@stylexjs/stylex"
 import { clsx } from "clsx"
+
+import type { StyleXComponentProps, StyleXProps } from "@/lib/stylex"
+
+import { isCallback, isNumber, isString, stylexProps } from "@/lib/stylex"
+import { themeMarker, tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
   control: {

@@ -1,10 +1,12 @@
-import type { StyleXComponentProps } from "@/lib/stylex"
 import type { ComponentPropsWithRef } from "react"
+
+import * as stylex from "@stylexjs/stylex"
+import { ChevronDownIcon } from "lucide-react"
+
+import type { StyleXComponentProps } from "@/lib/stylex"
 
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
-import * as stylex from "@stylexjs/stylex"
-import { ChevronDownIcon } from "lucide-react"
 
 const styles = stylex.create({
   control: {

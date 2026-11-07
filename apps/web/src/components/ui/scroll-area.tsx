@@ -1,11 +1,12 @@
 "use client"
 
+import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area"
+import * as stylex from "@stylexjs/stylex"
+
 import type { StyleXComponentProps } from "@/lib/stylex"
 
-import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area"
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
-import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
   root: {

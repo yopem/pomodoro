@@ -1,12 +1,13 @@
 "use client"
 
-import type { StyleXComponentProps } from "@/lib/stylex"
-
 import { mergeProps } from "@base-ui/react/merge-props"
 import { useRender } from "@base-ui/react/use-render"
+import * as stylex from "@stylexjs/stylex"
+
+import type { StyleXComponentProps } from "@/lib/stylex"
+
 import { stylexProps } from "@/lib/stylex"
 import { themeMarker, tokens } from "@/styles/tokens.stylex"
-import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
   card: {

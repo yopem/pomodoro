@@ -1,9 +1,11 @@
-import type { StyleXComponentProps } from "@/lib/stylex"
 import type { ComponentProps } from "react"
 
-import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import * as stylex from "@stylexjs/stylex"
 import { Loader2Icon } from "lucide-react"
+
+import type { StyleXComponentProps } from "@/lib/stylex"
+
+import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 
 const spin = stylex.keyframes({
   to: { transform: "rotate(360deg)" },

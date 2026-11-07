@@ -1,11 +1,12 @@
 "use client"
 
+import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
+import * as stylex from "@stylexjs/stylex"
+
 import type { StyleXComponentProps } from "@/lib/stylex"
 
-import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
-import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
   root: {

@@ -1,11 +1,12 @@
 "use client"
 
+import { Switch as SwitchPrimitive } from "@base-ui/react/switch"
+import * as stylex from "@stylexjs/stylex"
+
 import type { StyleXComponentProps } from "@/lib/stylex"
 
-import { Switch as SwitchPrimitive } from "@base-ui/react/switch"
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
-import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
   root: {

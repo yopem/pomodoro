@@ -1,11 +1,13 @@
 "use client"
 
-import type { StyleXComponentProps } from "@/lib/stylex"
 import type { ComponentPropsWithoutRef, RefAttributes } from "react"
+
+import * as stylex from "@stylexjs/stylex"
+
+import type { StyleXComponentProps } from "@/lib/stylex"
 
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
-import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
   root: {

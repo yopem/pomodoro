@@ -1,16 +1,17 @@
 "use client"
 
-import type { StyleXComponentProps } from "@/lib/stylex"
-import type { StyleXProps } from "@/lib/stylex"
 import type { ButtonHTMLAttributes } from "react"
 
 import { mergeProps } from "@base-ui/react/merge-props"
 import { useRender } from "@base-ui/react/use-render"
+import * as stylex from "@stylexjs/stylex"
+import { clsx } from "clsx"
+
+import type { StyleXComponentProps, StyleXProps } from "@/lib/stylex"
+
 import { Spinner } from "@/components/ui/spinner"
 import { stylexProps } from "@/lib/stylex"
 import { themeMarker, tokens } from "@/styles/tokens.stylex"
-import * as stylex from "@stylexjs/stylex"
-import { clsx } from "clsx"
 
 const styles = stylex.create({
   root: {
