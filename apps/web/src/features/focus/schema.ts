@@ -94,7 +94,7 @@ export const settingsSchema = z.strictObject({
 export const timerSchema = z
   .strictObject({
     phase: z.enum(["focus", "short_break", "long_break"]),
-    remaining_seconds: count,
+    remaining_seconds: z.number().min(0).max(10_800),
     deadline_ms: timestamp.nullable(),
     run_id: id.nullable(),
     started_at_ms: timestamp.nullable(),
@@ -145,6 +145,23 @@ export const workspaceSchema = z
       ctx.addIssue({
         code: "custom",
         message: "Active timer ID already belongs to a session",
+      })
+    }
+
+    const phaseMinutes = {
+      focus: workspace.settings.focus_minutes,
+      short_break: workspace.settings.short_minutes,
+      long_break: workspace.settings.long_minutes,
+    }
+
+    if (
+      workspace.timer.remaining_seconds >
+      phaseMinutes[workspace.timer.phase] * 60
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["timer", "remaining_seconds"],
+        message: "Remaining time exceeds the phase length",
       })
     }
 
