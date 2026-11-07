@@ -1,6 +1,9 @@
 import "@/styles/styles.css"
+import * as stylex from "@stylexjs/stylex"
+
+import { AppShell } from "@/components/app-shell"
 import { stylexProps } from "@/lib/stylex"
-import { lightTheme, rootStyles, themeMarker } from "@/styles/tokens.stylex"
+import { lightTheme, rootStyles, themeMarker, tokens } from "@/styles/tokens.stylex"
 import type { QueryClient } from "@tanstack/react-query"
 import type { ReactNode } from "react"
 
@@ -40,15 +43,22 @@ export function RootContent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <a href="#main">Skip to content</a>
-      <Outlet />
+      <a href="#main" {...stylex.props(styles.skipLink)}>Skip to content</a>
+      <AppShell>
+        <Outlet />
+      </AppShell>
     </QueryClientProvider>
   )
 }
 
 export function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-type="software" data-theme="light" {...stylexProps(undefined, themeMarker, lightTheme, rootStyles.html)}>
+    <html
+      lang="en"
+      data-type="software"
+      data-theme="light"
+      {...stylexProps(undefined, themeMarker, lightTheme, rootStyles.html)}
+    >
       <head>
         <HeadContent />
       </head>
@@ -69,6 +79,19 @@ export function RouteError() {
     </main>
   )
 }
+
+const styles = stylex.create({
+  skipLink: {
+    position: "fixed",
+    insetBlockStart: 12,
+    insetInlineStart: 12,
+    zIndex: 100,
+    padding: 12,
+    backgroundColor: tokens["--background"],
+    color: tokens["--foreground"],
+    transform: { default: "translateY(-200%)", ":focus": "translateY(0)" },
+  },
+})
 
 export function RouteNotFound() {
   return (
