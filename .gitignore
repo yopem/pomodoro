@@ -11,3 +11,4 @@ qa-artifacts/
 **/dist/
 **/build/
 *.tsbuildinfo
+target/
