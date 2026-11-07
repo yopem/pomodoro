@@ -3,7 +3,25 @@
   "files": {
     "src/styles/tokens.stylex.ts": "sha256-v0oyn4Lsvj6ZMTGYe8znLPGakRUXmSJJojrJTDMjo8c=",
     "src/styles/styles.css": "sha256-W+n/klEwEi8WY9kboN21wS6tmCZS07WKla+L95B9yh0=",
-    "src/lib/stylex.ts": "sha256-LGorihfdgskJvXQf5t2vxeGrxBP+OwYH1DnBu+oS5n4="
+    "src/lib/stylex.ts": "sha256-LGorihfdgskJvXQf5t2vxeGrxBP+OwYH1DnBu+oS5n4=",
+    "src/components/ui/spinner.tsx": "sha256-T0eCM24+s0MPpT34tct0ek8T0H3bBDrEtpAbiEf/SNs=",
+    "src/components/ui/button.tsx": "sha256-nSWMVw4sdhrymBjAKo7Oz2KaHSUoAK3TzsrxavwPepk=",
+    "src/components/ui/stack.tsx": "sha256-65SWRy2zih+K2fXtv9fbCOFvm5Hxa6xEDE6GPOXS/YQ=",
+    "src/components/ui/hstack.tsx": "sha256-YO8pNSZBsbdaO6d7wfBRMVSC45DDXhW7eOAZ7h9uca4=",
+    "src/components/ui/heading.tsx": "sha256-kxESb2k05hYtBbZOKEkNwlwJo25TDp050e1XZsL4cRI=",
+    "src/components/ui/text.tsx": "sha256-4NaWNCrzBWtzyrdhnfz7BOdz1CNtsk29jDd2wLW0318=",
+    "src/components/ui/input.tsx": "sha256-RfJu5VGEtri9G/sxb3+b935d//e4Zbjbrqb09z3TWOw=",
+    "src/components/ui/textarea.tsx": "sha256-/I7AD+ASSrZ13JZhhm4M62h2jrN9oGpULzSsP5tXEfM=",
+    "src/components/ui/field.tsx": "sha256-4UwOJx5maabIVa05ohRxdGiDU9+rxAEGv2JiWNEpJmw=",
+    "src/components/ui/form.tsx": "sha256-0NU4W7A3e2oUjQIDed+vbr38UmlhmJoaym33jElSiJg=",
+    "src/components/ui/scroll-area.tsx": "sha256-kYttxQBakcLZKAxoqTGtl4OpL3A7Bga1KKSAeddyygs=",
+    "src/components/ui/dialog.tsx": "sha256-nTacuU6XwjvFF25OkPrTlMdelCGQwBv8dMzSu+BjD8E=",
+    "src/components/ui/switch.tsx": "sha256-+LGj2quNLUOX992wZTVfU0M5nYLCdwni6p8gBUiHVIQ=",
+    "src/components/ui/native-select.tsx": "sha256-/aF7MumOd2tEqVCgsPSEVOAANMkXJd/PfDAalT6tAz4=",
+    "src/components/ui/card.tsx": "sha256-toDVclk6CMDYWAva7MKDDL6PwLOaHz4KsyURTmWe5Y0=",
+    "src/components/ui/table.tsx": "sha256-i+GkutIrBVajBTE+uEdEEIsv0fFlzVOlqOArik/0bIQ=",
+    "src/components/ui/badge.tsx": "sha256-GorCtM1RmHqVx56naOrUwOGLb2HWHuKkvPGjtCetTjE=",
+    "src/components/ui/progress.tsx": "sha256-AqygKtMkp7k+Sf9fWKvcWiyNFa/v3xgV1D64amrIL44="
   },
   "paths": {
     "ui": "src/components/ui",
@@ -14,7 +32,6 @@
     "theme": "src/themes"
   },
   "sourceRoot": "src",
-  "importPrefix": "@",
   "provenance": {
     "src/styles/tokens.stylex.ts": {
       "registryUrl": "https://ui.yopem.com/r",
@@ -36,6 +53,133 @@
         "base": "0.1.0"
       },
       "target": "@/lib/stylex.ts"
+    },
+    "src/components/ui/spinner.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "spinner": "0.1.0"
+      },
+      "target": "@/components/ui/spinner.tsx"
+    },
+    "src/components/ui/button.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "button": "0.1.0"
+      },
+      "target": "@/components/ui/button.tsx"
+    },
+    "src/components/ui/stack.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "stack": "0.1.0"
+      },
+      "target": "@/components/ui/stack.tsx"
+    },
+    "src/components/ui/hstack.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "hstack": "0.1.0"
+      },
+      "target": "@/components/ui/hstack.tsx"
+    },
+    "src/components/ui/heading.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "heading": "0.1.0"
+      },
+      "target": "@/components/ui/heading.tsx"
+    },
+    "src/components/ui/text.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "text": "0.1.0"
+      },
+      "target": "@/components/ui/text.tsx"
+    },
+    "src/components/ui/input.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "input": "0.1.0"
+      },
+      "target": "@/components/ui/input.tsx"
+    },
+    "src/components/ui/textarea.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "textarea": "0.1.0"
+      },
+      "target": "@/components/ui/textarea.tsx"
+    },
+    "src/components/ui/field.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "field": "0.1.0"
+      },
+      "target": "@/components/ui/field.tsx"
+    },
+    "src/components/ui/form.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "form": "0.1.0"
+      },
+      "target": "@/components/ui/form.tsx"
+    },
+    "src/components/ui/scroll-area.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "scroll-area": "0.1.0"
+      },
+      "target": "@/components/ui/scroll-area.tsx"
+    },
+    "src/components/ui/dialog.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "dialog": "0.1.0"
+      },
+      "target": "@/components/ui/dialog.tsx"
+    },
+    "src/components/ui/switch.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "switch": "0.1.0"
+      },
+      "target": "@/components/ui/switch.tsx"
+    },
+    "src/components/ui/native-select.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "native-select": "0.1.0"
+      },
+      "target": "@/components/ui/native-select.tsx"
+    },
+    "src/components/ui/card.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "card": "0.1.0"
+      },
+      "target": "@/components/ui/card.tsx"
+    },
+    "src/components/ui/table.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "table": "0.1.0"
+      },
+      "target": "@/components/ui/table.tsx"
+    },
+    "src/components/ui/badge.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "badge": "0.1.0"
+      },
+      "target": "@/components/ui/badge.tsx"
+    },
+    "src/components/ui/progress.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "progress": "0.1.0"
+      },
+      "target": "@/components/ui/progress.tsx"
     }
-  }
+  },
+  "importPrefix": "@"
 }
