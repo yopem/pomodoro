@@ -1,3 +1,6 @@
+import "@/styles/styles.css"
+import { stylexProps } from "@/lib/stylex"
+import { lightTheme, rootStyles, themeMarker } from "@/styles/tokens.stylex"
 import type { QueryClient } from "@tanstack/react-query"
 import type { ReactNode } from "react"
 
@@ -45,11 +48,11 @@ export function RootContent() {
 
 export function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" data-type="software">
+    <html lang="en" data-type="software" data-theme="light" {...stylexProps(undefined, themeMarker, lightTheme, rootStyles.html)}>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body {...stylexProps(undefined, rootStyles.body)}>
         {children}
         <Scripts />
       </body>

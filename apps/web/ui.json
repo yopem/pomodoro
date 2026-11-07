@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "files": {
+    "src/styles/tokens.stylex.ts": "sha256-v0oyn4Lsvj6ZMTGYe8znLPGakRUXmSJJojrJTDMjo8c=",
+    "src/styles/styles.css": "sha256-W+n/klEwEi8WY9kboN21wS6tmCZS07WKla+L95B9yh0=",
+    "src/lib/stylex.ts": "sha256-LGorihfdgskJvXQf5t2vxeGrxBP+OwYH1DnBu+oS5n4="
+  },
+  "paths": {
+    "ui": "src/components/ui",
+    "components": "src/components",
+    "hooks": "src/hooks",
+    "lib": "src/lib",
+    "styles": "src/styles",
+    "theme": "src/themes"
+  },
+  "sourceRoot": "src",
+  "importPrefix": "@",
+  "provenance": {
+    "src/styles/tokens.stylex.ts": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "base": "0.1.0"
+      },
+      "target": "@/styles/tokens.stylex.ts"
+    },
+    "src/styles/styles.css": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "base": "0.1.0"
+      },
+      "target": "@/styles/styles.css"
+    },
+    "src/lib/stylex.ts": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "base": "0.1.0"
+      },
+      "target": "@/lib/stylex.ts"
+    }
+  }
+}
