@@ -1,0 +1,5 @@
+{
+  "extends": "@yopem/typescript-config/base",
+  "compilerOptions": { "lib": ["ESNext", "WebWorker"], "types": [] },
+  "include": ["sw.ts"]
+}
