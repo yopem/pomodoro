@@ -1,4 +1,5 @@
 interface ImportMetaEnv {
+  readonly PROD: boolean
   readonly PUBLIC_ORIGIN?: string
   readonly PUBLIC_ANALYTICS_ENABLED?: string
   readonly PUBLIC_GA_MEASUREMENT_ID?: string

@@ -6,6 +6,7 @@ const optionalText = z.preprocess(
 )
 
 const publicConfigSchema = z.object({
+  isProduction: z.boolean(),
   publicOrigin: z.preprocess(
     (value) => (value === "" ? undefined : value),
     z.url().optional(),
@@ -20,6 +21,7 @@ const publicConfigSchema = z.object({
 })
 
 export const publicConfig = publicConfigSchema.parse({
+  isProduction: import.meta.env.PROD,
   publicOrigin: import.meta.env.PUBLIC_ORIGIN,
   analyticsEnabled: import.meta.env.PUBLIC_ANALYTICS_ENABLED,
   gaMeasurementId: import.meta.env.PUBLIC_GA_MEASUREMENT_ID,
