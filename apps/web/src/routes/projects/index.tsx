@@ -3,7 +3,7 @@ import type { ChangeEvent, FormEvent } from "react"
 import { useForm } from "@tanstack/react-form"
 import { createFileRoute } from "@tanstack/react-router"
 import { ArchiveIcon, FolderIcon, PencilIcon, PlusIcon } from "lucide-react"
-import { useState } from "react"
+import { startTransition, useActionState, useState } from "react"
 import { z } from "zod"
 
 import type { Project, Workspace } from "@/features/focus/schema"
@@ -48,7 +48,6 @@ export function ProjectsRoute() {
   const { workspace, hydrated } = useFocusSnapshot((value) => value)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Project | null>(null)
-  const [actionError, setActionError] = useState<string | null>(null)
 
   const [events] = useState(function createProjectEvents() {
     function add() {
@@ -76,11 +75,6 @@ export function ProjectsRoute() {
             <PlusIcon size={18} aria-hidden="true" /> Add project
           </Button>
         </HStack>
-        {actionError && (
-          <Text role="alert" xstyle={appStyles.error}>
-            {actionError}
-          </Text>
-        )}
         {workspace.projects.length === 0 ? (
           <Stack xstyle={emptyStyles}>
             <FolderIcon size={32} aria-hidden="true" />
@@ -117,7 +111,6 @@ export function ProjectsRoute() {
                   tasks={tasks}
                   onEdit={setEditing}
                   onOpenChange={setOpen}
-                  onError={setActionError}
                 />
               )
             })}
@@ -150,10 +143,6 @@ async function removeProject(id: string, workspace: Workspace) {
   await deleteProject({ id, expected, expected_workspace: workspace })
 }
 
-interface ProjectCardAction {
-  action: "edit" | "archive"
-}
-
 export function ProjectCard({
   project,
   workspace,
@@ -161,7 +150,6 @@ export function ProjectCard({
   tasks,
   onEdit,
   onOpenChange,
-  onError,
 }: {
   project: Project
   workspace: Workspace
@@ -169,45 +157,39 @@ export function ProjectCard({
   tasks: number
   onEdit: (project: Project) => void
   onOpenChange: (open: boolean) => void
-  onError: (error: string | null) => void
 }) {
-  const defaultAction: ProjectCardAction = { action: "edit" }
-
-  const form = useForm({
-    defaultValues: {},
-    onSubmitMeta: defaultAction,
-    onSubmit: async ({ meta }) => {
-      if (meta.action === "edit") {
+  const [error, dispatch, pending] = useActionState(
+    async (_previous: string | null, action: "edit" | "archive") => {
+      if (action === "edit") {
         onEdit(project)
         onOpenChange(true)
 
-        return
+        return null
       }
-
-      onError(null)
 
       try {
         await saveProject({
           expected: project,
           project: { ...project, archived: !project.archived },
         })
+
+        return null
       } catch (cause) {
-        onError(
-          cause instanceof Error
-            ? cause.message
-            : "The project could not be saved",
-        )
+        return cause instanceof Error
+          ? cause.message
+          : "The project could not be saved"
       }
     },
-  })
+    null,
+  )
 
   const [events] = useState(function createProjectCardEvents() {
     function edit() {
-      void form.handleSubmit({ action: "edit" })
+      startTransition(() => dispatch("edit"))
     }
 
     function archive() {
-      void form.handleSubmit({ action: "archive" })
+      startTransition(() => dispatch("archive"))
     }
 
     return { edit, archive }
@@ -228,10 +210,20 @@ export function ProjectCard({
         </Text>
       </HStack>
       <HStack xstyle={appStyles.row}>
-        <Button variant="outline" size="sm" onClick={events.edit}>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={pending}
+          onClick={events.edit}
+        >
           <PencilIcon size={16} aria-hidden="true" /> Edit
         </Button>
-        <Button variant="ghost" size="sm" onClick={events.archive}>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={pending}
+          onClick={events.archive}
+        >
           <ArchiveIcon size={16} aria-hidden="true" />{" "}
           {project.archived ? "Restore" : "Archive"}
         </Button>
@@ -245,6 +237,11 @@ export function ProjectCard({
           Delete
         </ConfirmAction>
       </HStack>
+      {error && (
+        <Text role="alert" xstyle={appStyles.error}>
+          {error}
+        </Text>
+      )}
     </Stack>
   )
 }
