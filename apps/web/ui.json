@@ -21,7 +21,8 @@
     "src/components/ui/card.tsx": "sha256-toDVclk6CMDYWAva7MKDDL6PwLOaHz4KsyURTmWe5Y0=",
     "src/components/ui/table.tsx": "sha256-i+GkutIrBVajBTE+uEdEEIsv0fFlzVOlqOArik/0bIQ=",
     "src/components/ui/badge.tsx": "sha256-GorCtM1RmHqVx56naOrUwOGLb2HWHuKkvPGjtCetTjE=",
-    "src/components/ui/progress.tsx": "sha256-AqygKtMkp7k+Sf9fWKvcWiyNFa/v3xgV1D64amrIL44="
+    "src/components/ui/progress.tsx": "sha256-AqygKtMkp7k+Sf9fWKvcWiyNFa/v3xgV1D64amrIL44=",
+    "src/components/ui/box.tsx": "sha256-vs8HOoMQVGKD0dKszbR21yUWKdoQyumByKiyLqxusCU="
   },
   "paths": {
     "ui": "src/components/ui",
@@ -179,6 +180,13 @@
         "progress": "0.1.0"
       },
       "target": "@/components/ui/progress.tsx"
+    },
+    "src/components/ui/box.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "box": "0.1.0"
+      },
+      "target": "@/components/ui/box.tsx"
     }
   },
   "importPrefix": "@"
