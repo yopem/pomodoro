@@ -10,8 +10,8 @@
     "lint:fix": "bun lint --no-script --fix",
     "format:check": "bun fmt --no-script --check",
     "format:write": "bun fmt --no-script",
-    "typecheck": "tsr generate && bun check --no-script -p tsconfig.json && bun check --no-script -p tsconfig.tools.json",
-    "routes:generate": "tsr generate"
+    "typecheck": "bun run routes:generate && bun check --no-script -p tsconfig.json && bun check --no-script -p tsconfig.tools.json",
+    "routes:generate": "bun scripts/generate-routes.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -31,7 +31,7 @@
     "@rolldown/plugin-babel": "^0.2.4",
     "@stylexjs/babel-plugin": "^0.19.0",
     "@stylexjs/postcss-plugin": "^0.19.0",
-    "@tanstack/router-cli": "^1.167.46",
+    "@tanstack/router-generator": "^1.167.46",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
