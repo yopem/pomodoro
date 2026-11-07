@@ -746,3 +746,54 @@ Timer pause precision and numeric backup compatibility map to QA-027.
 
 Partition load privacy maps to QA-028. Restore identity and stale-render races
 map to QA-029. Existing ordinary stale-write coverage remains QA-009 and QA-017.
+
+### [ ] QA-030 — P1 — Automatic backup storage stays bounded
+
+- **Scope:** `apps/web/src/features/focus/store.ts`; task clearing, conflict
+  replacement, and backup restore; isolated guest browser storage.
+- **Purpose:** Repeated workspace replacements must not keep an unlimited
+  sequence of full copies until the browser quota blocks normal work.
+- **Prerequisites:** Shared setup, an isolated empty guest workspace, no active
+  timer, and browser QA approval. Save original project storage first.
+- **Inputs:** Five tasks named `QA-backup-1` through `QA-backup-5`, estimate 1.
+  The ordinary recovery key is `pomodoro:workspace:guest:backup`.
+- **Steps:** 1. Add the first task. 2. Mark it Complete. 3. Click Clear
+  completed, then Remove tasks. 4. Repeat for the other four tasks. 5. Inspect
+  the guest workspace and all keys with its backup prefix. 6. Repeat an approved
+  backup restore twice using the same isolated file.
+- **Expected results:** New writes use one ordinary backup key per partition,
+  not a UUID-named copy for each action. Its value is the last workspace before
+  replacement. The primary workspace contains the requested result. Existing
+  unrelated keys are not deleted. No history record is added or removed by task
+  clearing or backup retention itself.
+- **Evidence:** Save sanitized key counts and primary/backup values under
+  `qa-artifacts/QA-030/`. Inspect the last task copy and replacement result.
+- **Cleanup:** Restore the saved isolated workspace and recovery keys. Remove
+  only keys and records created for this case.
+- **Status:** Pending. No browser operations have run.
+
+### [ ] QA-031 — P1 — Corrupt recovery keeps one retained copy
+
+- **Scope:** Focus store and Settings backup recovery; route `/settings`;
+  isolated guest browser storage. No database is needed.
+- **Purpose:** Retain unreadable data without an unlimited sequence of copies
+  when the user repeats an explicit recovery.
+- **Prerequisites:** Shared setup, approved browser QA, a valid isolated backup
+  file, and the original guest storage saved outside browser storage.
+- **Inputs:** Malformed guest value `{"schema_version":`; recovery key
+  `pomodoro:workspace:guest:corrupt`.
+- **Steps:** 1. Put the malformed value in the isolated guest key and reload. 2.
+  In Settings, select the valid backup and explicitly choose corrupt-data
+  recovery. 3. Confirm replacement. 4. Repeat the corruption and recovery. 5.
+  Inspect the primary value and all guest corrupt-recovery keys.
+- **Expected results:** One corrupt-recovery key holds the most recent raw
+  malformed value. The primary value is the validated restored workspace.
+  Ordinary restore cannot bypass corrupt recovery confirmation. Existing
+  unrelated storage remains unchanged. Failed writes retain the old primary.
+- **Evidence:** Save sanitized key counts, recovery text, and restored backup
+  under `qa-artifacts/QA-031/`. Inspect the exact malformed text and result.
+- **Cleanup:** Restore the original isolated values. Remove only case keys.
+- **Status:** Pending. No browser operations have run.
+
+Bounded local backup retention maps to QA-030 and QA-031. Quota failure and
+no-erasure behavior remain covered by QA-005.

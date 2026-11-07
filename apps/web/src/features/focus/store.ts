@@ -319,10 +319,7 @@ export async function setActiveWorkspace(input: {
         expected !== undefined &&
         JSON.stringify(stored) !== JSON.stringify(incoming)
       ) {
-        window.localStorage.setItem(
-          `${key}:backup:${crypto.randomUUID()}`,
-          JSON.stringify(stored),
-        )
+        window.localStorage.setItem(`${key}:backup`, JSON.stringify(stored))
       }
 
       if (incoming && (!stored || expected !== undefined))
@@ -378,10 +375,7 @@ export async function replaceActiveWorkspace(input: {
   await mutate((current) => {
     if (JSON.stringify(current) !== JSON.stringify(expected))
       throw new Error("Workspace changed before replacement")
-    window.localStorage.setItem(
-      `${activeKey}:backup:${crypto.randomUUID()}`,
-      JSON.stringify(current),
-    )
+    window.localStorage.setItem(`${activeKey}:backup`, JSON.stringify(current))
     Object.assign(current, replacement)
   })
 }
@@ -435,7 +429,7 @@ export async function importBackup(input: {
     if (corrupt) {
       if (expected !== null || raw === null)
         throw new Error("Confirm recovery of the corrupt workspace")
-      const recoveryKey = `${key}:corrupt:${crypto.randomUUID()}`
+      const recoveryKey = `${key}:corrupt`
       window.localStorage.setItem(recoveryKey, raw)
     } else if (
       expected === null ||
@@ -444,7 +438,7 @@ export async function importBackup(input: {
     ) {
       throw new Error("Workspace changed before backup restore")
     } else if (raw !== null) {
-      window.localStorage.setItem(`${key}:backup:${crypto.randomUUID()}`, raw)
+      window.localStorage.setItem(`${key}:backup`, raw)
     }
 
     window.localStorage.setItem(key, serializeWorkspace(workspace))
