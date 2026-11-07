@@ -1,12 +1,12 @@
 {
   "extends": "@yopem/typescript-config/react",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] },
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "types": ["vite/client"],
-  
-  "noEmit": true,
-  "allowImportingTsExtensions": true
-},
-  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts"]
+    "noEmit": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

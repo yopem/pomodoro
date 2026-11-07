@@ -20,9 +20,9 @@ const publicConfigSchema = z.object({
 })
 
 export const publicConfig = publicConfigSchema.parse({
-  publicOrigin: import.meta.env.VITE_PUBLIC_ORIGIN,
-  analyticsEnabled: import.meta.env.VITE_ANALYTICS_ENABLED,
-  gaMeasurementId: import.meta.env.VITE_GA_MEASUREMENT_ID,
-  umamiScriptUrl: import.meta.env.VITE_UMAMI_SCRIPT_URL,
-  umamiWebsiteId: import.meta.env.VITE_UMAMI_WEBSITE_ID,
+  publicOrigin: import.meta.env.PUBLIC_ORIGIN,
+  analyticsEnabled: import.meta.env.PUBLIC_ANALYTICS_ENABLED,
+  gaMeasurementId: import.meta.env.PUBLIC_GA_MEASUREMENT_ID,
+  umamiScriptUrl: import.meta.env.PUBLIC_UMAMI_SCRIPT_URL,
+  umamiWebsiteId: import.meta.env.PUBLIC_UMAMI_WEBSITE_ID,
 })

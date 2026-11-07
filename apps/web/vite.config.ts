@@ -37,14 +37,15 @@ if (typeof stylexPostcss?.postcssPlugin !== "string") {
 }
 
 export default defineConfig({
+  envPrefix: "PUBLIC_",
   server: {
     host: "127.0.0.1",
-    port: 3000,
+    port: 13001,
     strictPort: true,
     proxy: {
-      "/api": "http://127.0.0.1:4000",
-      "/auth": "http://127.0.0.1:4000",
-      "/openapi.json": "http://127.0.0.1:4000",
+      "/api": "http://127.0.0.1:18001",
+      "/auth": "http://127.0.0.1:18001",
+      "/openapi.json": "http://127.0.0.1:18001",
     },
   },
   resolve: { tsconfigPaths: true, alias: { "@": source } },
