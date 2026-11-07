@@ -797,3 +797,54 @@ map to QA-029. Existing ordinary stale-write coverage remains QA-009 and QA-017.
 
 Bounded local backup retention maps to QA-030 and QA-031. Quota failure and
 no-erasure behavior remain covered by QA-005.
+
+### [ ] QA-032 — P1 — Text uses valid Unicode on both boundaries
+
+- **Scope:** Frontend focus schemas and Rust workspace DTOs; guest backup
+  restore and future workspace HTTP writes. No production records are used.
+- **Purpose:** A browser must not accept isolated UTF-16 surrogates that the
+  canonical Rust string representation cannot accept.
+- **Prerequisites:** Shared setup, a valid isolated backup, existing data saved
+  for comparison, and approval for the separate runtime QA pass.
+- **Inputs:** A valid emoji title `Focus 🙂`; JSON text escapes `\ud800` and
+  `\udc00` as isolated surrogate values in a title, note, or historical project
+  name. Keep every other field from a known valid backup.
+- **Steps:** 1. Restore the valid emoji backup and confirm its exact text. 2.
+  Attempt each malformed-text backup through Settings. 3. Compare stored data
+  after each rejection. 4. After workspace HTTP exists, send the same malformed
+  texts using its documented contract and inspect the response.
+- **Expected results:** Valid Unicode survives storage and round trips. Each
+  isolated surrogate is rejected before a browser store write; existing data
+  remains unchanged. Rust rejects malformed Unicode at JSON decoding. Neither
+  side silently replaces text with the replacement character.
+- **Evidence:** Save sanitized source JSON, errors, and before/after backups
+  under `qa-artifacts/QA-032/`. Inspect text bytes and unchanged records.
+- **Cleanup:** Restore the saved isolated data and remove fixture files.
+- **Status:** Pending. HTTP execution is blocked until handlers exist.
+
+### [ ] QA-033 — P1 — Raw duplicate keys have an explicit parser policy
+
+- **Scope:** Settings backup import and Rust workspace HTTP decoding.
+- **Purpose:** Keep parser behavior explicit without a second handwritten JSON
+  parser. Stored objects and generated client requests use unique keys.
+- **Prerequisites:** Shared setup, a valid isolated backup, original data saved,
+  runtime QA approval, and completed HTTP handlers for that part.
+- **Inputs:** In a valid backup, replace its single schema version field with
+  `"schema_version":0,"schema_version":1`. Reverse these two fields for the
+  rejected input. Do not change other fields.
+- **Steps:** 1. Restore the first file with explicit confirmation. 2. Export it
+  again and inspect its single schema version field. 3. Attempt the reversed
+  file and compare stored data. 4. Once HTTP exists, repeat raw duplicate fields
+  through the actual documented request body.
+- **Expected results:** Backup JSON uses the last duplicate value, then
+  validates that one object before storage. The first input normalizes to
+  version 1; the reversed input is rejected without mutation. Exported JSON
+  contains one key. Rust HTTP requests reject duplicate DTO fields rather than
+  choosing one. Generated browser requests never contain duplicates.
+- **Evidence:** Save source files, normalized export, and rejected request
+  responses under `qa-artifacts/QA-033/`. Inspect the canonical stored object.
+- **Cleanup:** Restore isolated data and remove case files only.
+- **Status:** Pending. HTTP execution is blocked until handlers exist.
+
+Unicode representation maps to QA-032. JSON parser policy maps to QA-033; strict
+DTO limits, normalization, and reference checks remain QA-023.

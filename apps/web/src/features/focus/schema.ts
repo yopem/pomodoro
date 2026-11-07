@@ -6,9 +6,13 @@ const count = z.number().int().min(0).max(4_294_967_295)
 
 const estimate = z.number().int().min(1).max(10_000)
 
-const title = z.string().trim().min(1).max(500)
+const text = z
+  .string()
+  .refine((value) => value.isWellFormed(), "Use valid Unicode text")
 
-const note = z.string().max(10_000)
+const title = text.trim().min(1).max(500)
+
+const note = text.max(10_000)
 
 const timestamp = z
   .number()
@@ -63,7 +67,7 @@ export const sessionSchema = z.strictObject({
   task_id: id.nullable(),
   task_title: title,
   project_id: id.nullable(),
-  project_name: z.string().max(500),
+  project_name: text.max(500),
   started_at_ms: timestamp,
   duration_seconds: count.min(1),
   completed: z.boolean(),

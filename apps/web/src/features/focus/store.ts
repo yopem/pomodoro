@@ -393,6 +393,7 @@ export async function importBackup(input: {
   let parsed: unknown
 
   try {
+    // Backup JSON keeps the last duplicate key. Rust rejects duplicate fields.
     parsed = JSON.parse(input.text)
   } catch {
     throw new Error("Backup is not valid JSON")
