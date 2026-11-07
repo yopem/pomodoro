@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+!.env.example
+docs/
+qa-artifacts/
+.taste-skill/
+.tanstack/
+.turbo/
+**/routeTree.gen.ts
+**/dist/
+**/build/
+*.tsbuildinfo
