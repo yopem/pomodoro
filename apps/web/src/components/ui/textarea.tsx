@@ -1,14 +1,15 @@
 "use client"
 
-import type { StyleXComponentProps } from "@/lib/stylex"
-import type { StyleXProps } from "@/lib/stylex"
 import type { ComponentPropsWithoutRef, RefAttributes } from "react"
 
 import { Field as FieldPrimitive } from "@base-ui/react/field"
 import { mergeProps } from "@base-ui/react/merge-props"
+import * as stylex from "@stylexjs/stylex"
+
+import type { StyleXComponentProps, StyleXProps } from "@/lib/stylex"
+
 import { isString, stylexProps } from "@/lib/stylex"
 import { themeMarker, tokens } from "@/styles/tokens.stylex"
-import * as stylex from "@stylexjs/stylex"
 
 const styles = stylex.create({
   control: {
@@ -95,9 +96,6 @@ export function Textarea({
   const props = restProps
   const xstyle = consumerXstyle
 
-  const sizeStyle =
-    size === "sm" ? styles.small : size === "lg" ? styles.large : null
-
   const wrapperClassName = isString(className) ? className : undefined
 
   return (
@@ -121,7 +119,12 @@ export function Textarea({
           <textarea
             data-slot="textarea"
             {...mergeProps(
-              stylex.props(styles.textarea, sizeStyle, xstyle),
+              stylex.props(
+                styles.textarea,
+                size === "sm" && styles.small,
+                size === "lg" && styles.large,
+                xstyle,
+              ),
               props,
             )}
           />
