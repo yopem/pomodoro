@@ -1,0 +1,480 @@
+import * as stylex from "@stylexjs/stylex"
+import { Link } from "@tanstack/react-router"
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+} from "lucide-react"
+import { startTransition, useActionState, useState } from "react"
+
+import type { Task, Workspace } from "@/features/focus/schema"
+
+import { Box } from "@/components/ui/box"
+import { Button } from "@/components/ui/button"
+import { Heading } from "@/components/ui/heading"
+import { HStack } from "@/components/ui/hstack"
+import { Stack } from "@/components/ui/stack"
+import { Text } from "@/components/ui/text"
+import {
+  deleteTask,
+  reorderTasks,
+  replaceActiveWorkspace,
+  saveTask,
+  selectTask,
+} from "@/features/focus/store"
+import { TaskForm } from "@/features/tasks/components/task-form"
+import { ConfirmAction } from "@/features/timer/components/confirm-action"
+import { appStyles } from "@/styles/app.stylex"
+import { tokens } from "@/styles/tokens.stylex"
+
+const styles = stylex.create({
+  list: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    listStyle: "none",
+    margin: 0,
+    padding: 0,
+  },
+  task: {
+    borderColor: tokens["--border"],
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderRadius: tokens["--radius-md"],
+    padding: 16,
+    minInlineSize: 0,
+  },
+  selected: { borderColor: tokens["--success-foreground"] },
+  title: { overflowWrap: "anywhere", fontWeight: 600 },
+  completed: {
+    textDecorationLine: "line-through",
+    color: tokens["--muted-foreground"],
+  },
+  note: { whiteSpace: "pre-wrap", overflowWrap: "anywhere" },
+})
+
+type Confirmation =
+  { kind: "delete"; task: Task } | { kind: "completed" | "actual" | "all" }
+
+interface TaskConfirmation {
+  request: Confirmation
+  workspace: Workspace
+}
+
+type TaskRowAction = "complete" | "select" | "edit" | "up" | "down" | "remove"
+
+export function TaskRow({
+  task,
+  index,
+  workspace,
+  busy,
+  onEdit,
+  onConfirm,
+}: {
+  task: Task
+  index: number
+  workspace: Workspace
+  busy: boolean
+  onEdit: (task: Task) => void
+  onConfirm: (confirmation: TaskConfirmation) => void
+}) {
+  const selectedTaskId = workspace.timer.selected_task_id
+  const taskCount = workspace.tasks.length
+
+  const [error, dispatch, pending] = useActionState(
+    async (_previous: string | null, action: TaskRowAction) => {
+      try {
+        if (action === "complete") {
+          await saveTask({
+            task: { ...task, completed: !task.completed },
+            expected: task,
+          })
+        } else if (action === "select") {
+          await selectTask({ id: task.id === selectedTaskId ? null : task.id })
+        } else if (action === "edit") {
+          onEdit(task)
+        } else if (action === "remove") {
+          onConfirm({ request: { kind: "delete", task }, workspace })
+        } else {
+          const expected = workspace.tasks.map((item) => item.id)
+          const ids = [...expected]
+          const destination = index + (action === "up" ? -1 : 1)
+          const current = ids[index]
+          const other = ids[destination]
+
+          if (current === undefined || other === undefined) return null
+          ids[index] = other
+          ids[destination] = current
+          await reorderTasks({ ids, expected })
+        }
+
+        return null
+      } catch (cause) {
+        return cause instanceof Error
+          ? cause.message
+          : "The task could not be updated"
+      }
+    },
+    null,
+  )
+
+  const [events] = useState(function createTaskRowEvents() {
+    function toggleCompleted() {
+      startTransition(() => dispatch("complete"))
+    }
+
+    function toggleSelected() {
+      startTransition(() => dispatch("select"))
+    }
+
+    function edit() {
+      startTransition(() => dispatch("edit"))
+    }
+
+    function moveUp() {
+      startTransition(() => dispatch("up"))
+    }
+
+    function moveDown() {
+      startTransition(() => dispatch("down"))
+    }
+
+    function remove() {
+      startTransition(() => dispatch("remove"))
+    }
+
+    return { toggleCompleted, toggleSelected, edit, moveUp, moveDown, remove }
+  })
+
+  const disabled = busy || pending
+
+  return (
+    <Box
+      render={
+        <li
+          {...stylex.props(
+            styles.task,
+            task.id === selectedTaskId && styles.selected,
+          )}
+        />
+      }
+    >
+      <Stack xstyle={appStyles.compact}>
+        <HStack xstyle={appStyles.spread}>
+          <Box>
+            <Box
+              render={
+                <span
+                  {...stylex.props(
+                    styles.title,
+                    task.completed && styles.completed,
+                  )}
+                />
+              }
+            >
+              {task.title}
+            </Box>
+            {task.id === selectedTaskId && (
+              <Box render={<span />}> · Selected</Box>
+            )}
+          </Box>
+          <Text xstyle={appStyles.small}>
+            {task.actual} / {task.estimate} sessions
+          </Text>
+        </HStack>
+        {task.note && (
+          <Box render={<p {...stylex.props(styles.note)} />}>{task.note}</Box>
+        )}
+        <HStack xstyle={appStyles.row}>
+          <Button
+            variant={task.completed ? "secondary" : "outline"}
+            size="xl"
+            disabled={disabled}
+            onClick={events.toggleCompleted}
+          >
+            {task.completed ? "Mark incomplete" : "Complete"}
+          </Button>
+          {(!task.completed || task.id === selectedTaskId) && (
+            <Button
+              variant={task.id === selectedTaskId ? "secondary" : "ghost"}
+              size="xl"
+              disabled={disabled}
+              onClick={events.toggleSelected}
+            >
+              {task.id === selectedTaskId ? "Deselect" : "Select"}
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon-xl"
+            disabled={disabled}
+            aria-label={`Edit ${task.title}`}
+            onClick={events.edit}
+          >
+            <PencilIcon size={16} aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xl"
+            disabled={disabled || index === 0}
+            aria-label={`Move ${task.title} up`}
+            onClick={events.moveUp}
+          >
+            <ArrowUpIcon size={16} aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xl"
+            disabled={disabled || index === taskCount - 1}
+            aria-label={`Move ${task.title} down`}
+            onClick={events.moveDown}
+          >
+            <ArrowDownIcon size={16} aria-hidden="true" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xl"
+            disabled={disabled}
+            aria-label={`Delete ${task.title}`}
+            onClick={events.remove}
+          >
+            <TrashIcon size={16} aria-hidden="true" />
+          </Button>
+        </HStack>
+        {error && (
+          <Text role="alert" xstyle={appStyles.error}>
+            {error}
+          </Text>
+        )}
+      </Stack>
+    </Box>
+  )
+}
+
+export function TaskList({ workspace }: { workspace: Workspace }) {
+  const [editing, setEditing] = useState<Task | "new" | null>(null)
+
+  const [confirmation, setConfirmation] = useState<TaskConfirmation | null>(
+    null,
+  )
+
+  const [hidden, setHidden] = useState(false)
+  const { tasks } = workspace
+
+  const [error, dispatch, busy] = useActionState(
+    async (
+      _previous: string | null,
+      action: "completed" | "actual" | "all" | "confirm",
+    ) => {
+      if (action !== "confirm") {
+        setConfirmation({ request: { kind: action }, workspace })
+
+        return null
+      }
+
+      if (!confirmation) return null
+      const { request, workspace: original } = confirmation
+      setConfirmation(null)
+
+      try {
+        if (request.kind === "delete") {
+          await deleteTask({ id: request.task.id, expected: request.task })
+        } else {
+          const next = structuredClone(original)
+
+          if (request.kind === "actual") {
+            next.tasks = next.tasks.map((task) => ({ ...task, actual: 0 }))
+          } else {
+            const removedIds = new Set(
+              next.tasks
+                .filter((task) => request.kind === "all" || task.completed)
+                .map((task) => task.id),
+            )
+
+            if (
+              next.timer.run_id &&
+              next.timer.selected_task_id &&
+              removedIds.has(next.timer.selected_task_id)
+            ) {
+              throw new Error("Reset or finish the selected task timer first")
+            }
+
+            next.tasks = next.tasks.filter((task) => !removedIds.has(task.id))
+
+            if (
+              next.timer.selected_task_id &&
+              removedIds.has(next.timer.selected_task_id)
+            )
+              next.timer.selected_task_id = null
+          }
+
+          await replaceActiveWorkspace({ expected: original, workspace: next })
+        }
+
+        return null
+      } catch (cause) {
+        return cause instanceof Error ? cause.message : "Could not update tasks"
+      }
+    },
+    null,
+  )
+
+  const [events] = useState(function createTaskListEvents() {
+    function toggleHidden() {
+      setHidden((wasHidden) => !wasHidden)
+    }
+
+    function addTask() {
+      setEditing("new")
+    }
+
+    function clearCompleted() {
+      startTransition(() => dispatch("completed"))
+    }
+
+    function clearActual() {
+      startTransition(() => dispatch("actual"))
+    }
+
+    function clearAll() {
+      startTransition(() => dispatch("all"))
+    }
+
+    function confirm() {
+      startTransition(() => dispatch("confirm"))
+    }
+
+    function changeOpen(open: boolean) {
+      if (!open) setConfirmation(null)
+    }
+
+    return {
+      toggleHidden,
+      addTask,
+      clearCompleted,
+      clearActual,
+      clearAll,
+      confirm,
+      changeOpen,
+    }
+  })
+
+  const request = confirmation?.request
+
+  let description =
+    "Remove all tasks from the list? Focus history stays available."
+
+  let confirmationTitle = "Clear all tasks?"
+
+  if (request?.kind === "delete") {
+    description = `Remove “${request.task.title}” from the task list? Focus history stays available.`
+    confirmationTitle = "Delete task?"
+  } else if (request?.kind === "actual") {
+    description =
+      "Set all task actual counts to zero? Focus history stays available."
+    confirmationTitle = "Clear actual counts?"
+  } else if (request?.kind === "completed") {
+    description =
+      "Remove completed tasks from the list? Focus history stays available."
+    confirmationTitle = "Clear completed tasks?"
+  }
+
+  return (
+    <Box render={<section aria-labelledby="tasks-heading" />}>
+      <Stack>
+        <HStack xstyle={appStyles.spread}>
+          <Box>
+            <Heading id="tasks-heading">Tasks</Heading>
+            <Text xstyle={appStyles.muted}>Choose what to focus on next.</Text>
+          </Box>
+          <HStack xstyle={appStyles.row}>
+            <Button variant="outline" size="xl" onClick={events.toggleHidden}>
+              {hidden ? "Show tasks" : "Hide tasks"}
+            </Button>
+            <Button size="xl" disabled={busy} onClick={events.addTask}>
+              <PlusIcon size={16} aria-hidden="true" /> Add task
+            </Button>
+          </HStack>
+        </HStack>
+        {error && (
+          <Text role="alert" xstyle={appStyles.error}>
+            {error}
+          </Text>
+        )}
+        {!hidden && (
+          <>
+            {tasks.length === 0 ? (
+              <Stack xstyle={appStyles.empty}>
+                <Text>No tasks yet. Add one or use a template.</Text>
+                <Link to="/templates">Browse templates</Link>
+              </Stack>
+            ) : (
+              <Box render={<ul {...stylex.props(styles.list)} />}>
+                {tasks.map((task, index) => (
+                  <TaskRow
+                    key={task.id}
+                    task={task}
+                    index={index}
+                    workspace={workspace}
+                    busy={busy}
+                    onEdit={setEditing}
+                    onConfirm={setConfirmation}
+                  />
+                ))}
+              </Box>
+            )}
+            <HStack xstyle={appStyles.row}>
+              <Link to="/templates">Apply a template</Link>
+              <Button
+                variant="ghost"
+                size="xl"
+                disabled={busy || !tasks.some((task) => task.completed)}
+                onClick={events.clearCompleted}
+              >
+                Clear completed
+              </Button>
+              <Button
+                variant="ghost"
+                size="xl"
+                disabled={busy || !tasks.some((task) => task.actual > 0)}
+                onClick={events.clearActual}
+              >
+                Clear actual counts
+              </Button>
+              <Button
+                variant="ghost"
+                size="xl"
+                disabled={busy || !tasks.length}
+                onClick={events.clearAll}
+              >
+                Clear all tasks
+              </Button>
+            </HStack>
+          </>
+        )}
+      </Stack>
+      {editing !== null && (
+        <TaskForm
+          task={editing === "new" ? null : editing}
+          currentTask={
+            editing === "new"
+              ? undefined
+              : tasks.find((task) => task.id === editing.id)
+          }
+          projects={workspace.projects}
+          setEditing={setEditing}
+        />
+      )}
+      <ConfirmAction
+        open={confirmation !== null}
+        onOpenChange={events.changeOpen}
+        title={confirmationTitle}
+        description={description}
+        action={request?.kind === "actual" ? "Clear counts" : "Remove tasks"}
+        onConfirm={events.confirm}
+      />
+    </Box>
+  )
+}
