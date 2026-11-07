@@ -1,10 +1,12 @@
+import type { ChangeEvent, FormEvent } from "react"
+
 import { useForm } from "@tanstack/react-form"
 import { createFileRoute } from "@tanstack/react-router"
 import { ArchiveIcon, FolderIcon, PencilIcon, PlusIcon } from "lucide-react"
 import { useState } from "react"
 import { z } from "zod"
 
-import type { Project } from "@/features/focus/schema"
+import type { Project, Workspace } from "@/features/focus/schema"
 
 import { ConfirmAction } from "@/components/confirm-action"
 import { FieldMessages } from "@/components/field-messages"
@@ -33,6 +35,10 @@ import {
 import { formatFocusTime } from "@/lib/focus-time"
 import { appStyles } from "@/styles/app.stylex"
 
+const emptyStyles = [appStyles.section, appStyles.empty]
+
+const mutedSmallStyles = [appStyles.small, appStyles.muted]
+
 export const Route = createFileRoute("/projects/")({
   head: () => ({ meta: [{ title: "Projects — Pomodoro" }] }),
   component: ProjectsRoute,
@@ -44,22 +50,18 @@ export function ProjectsRoute() {
   const [editing, setEditing] = useState<Project | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
-  async function toggleArchive(project: Project) {
-    setActionError(null)
-
-    try {
-      await saveProject({
-        expected: project,
-        project: { ...project, archived: !project.archived },
-      })
-    } catch (cause) {
-      setActionError(
-        cause instanceof Error
-          ? cause.message
-          : "The project could not be saved",
-      )
+  const [events] = useState(function createProjectEvents() {
+    function add() {
+      setEditing(null)
+      setOpen(true)
     }
-  }
+
+    function close() {
+      setOpen(false)
+    }
+
+    return { add, close }
+  })
 
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
@@ -70,13 +72,7 @@ export function ProjectsRoute() {
             <Heading render={<h1>Projects</h1>} />
             <Text xstyle={appStyles.muted}>See where your focus goes.</Text>
           </Stack>
-          <Button
-            disabled={!hydrated}
-            onClick={() => {
-              setEditing(null)
-              setOpen(true)
-            }}
-          >
+          <Button disabled={!hydrated} onClick={events.add}>
             <PlusIcon size={18} aria-hidden="true" /> Add project
           </Button>
         </HStack>
@@ -86,7 +82,7 @@ export function ProjectsRoute() {
           </Text>
         )}
         {workspace.projects.length === 0 ? (
-          <Stack xstyle={[appStyles.section, appStyles.empty]}>
+          <Stack xstyle={emptyStyles}>
             <FolderIcon size={32} aria-hidden="true" />
             <Heading>Your projects start here</Heading>
             <Text xstyle={appStyles.muted}>
@@ -113,53 +109,16 @@ export function ProjectsRoute() {
               ).length
 
               return (
-                <Stack key={project.id} xstyle={appStyles.section}>
-                  <HStack xstyle={appStyles.spread}>
-                    <Heading>{project.name}</Heading>
-                    <Text xstyle={[appStyles.small, appStyles.muted]}>
-                      {project.archived ? "Archived" : "Active"}
-                    </Text>
-                  </HStack>
-                  <HStack xstyle={appStyles.row}>
-                    <Text>{formatFocusTime(seconds)} focused</Text>
-                    <Text xstyle={appStyles.muted}>
-                      {tasks} open {tasks === 1 ? "task" : "tasks"}
-                    </Text>
-                  </HStack>
-                  <HStack xstyle={appStyles.row}>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditing(project)
-                        setOpen(true)
-                      }}
-                    >
-                      <PencilIcon size={16} aria-hidden="true" /> Edit
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleArchive(project)}
-                    >
-                      <ArchiveIcon size={16} aria-hidden="true" />{" "}
-                      {project.archived ? "Restore" : "Archive"}
-                    </Button>
-                    <ConfirmAction
-                      title="Delete project"
-                      description={`Remove ${project.name} from your projects. Saved focus history will remain. Tasks will have no project.`}
-                      onConfirm={() =>
-                        deleteProject({
-                          id: project.id,
-                          expected: project,
-                          expected_workspace: workspace,
-                        })
-                      }
-                    >
-                      Delete
-                    </ConfirmAction>
-                  </HStack>
-                </Stack>
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  workspace={workspace}
+                  seconds={seconds}
+                  tasks={tasks}
+                  onEdit={setEditing}
+                  onOpenChange={setOpen}
+                  onError={setActionError}
+                />
               )
             })}
           </Box>
@@ -175,11 +134,118 @@ export function ProjectsRoute() {
           <ProjectForm
             key={editing?.id ?? "new"}
             project={editing}
-            onSaved={() => setOpen(false)}
+            onSaved={events.close}
           />
         </DialogPopup>
       </Dialog>
     </Box>
+  )
+}
+
+async function removeProject(id: string, workspace: Workspace) {
+  const expected = workspace.projects.find((project) => project.id === id)
+
+  if (!expected) throw new Error("The project could not be found")
+
+  await deleteProject({ id, expected, expected_workspace: workspace })
+}
+
+interface ProjectCardAction {
+  action: "edit" | "archive"
+}
+
+export function ProjectCard({
+  project,
+  workspace,
+  seconds,
+  tasks,
+  onEdit,
+  onOpenChange,
+  onError,
+}: {
+  project: Project
+  workspace: Workspace
+  seconds: number
+  tasks: number
+  onEdit: (project: Project) => void
+  onOpenChange: (open: boolean) => void
+  onError: (error: string | null) => void
+}) {
+  const defaultAction: ProjectCardAction = { action: "edit" }
+
+  const form = useForm({
+    defaultValues: {},
+    onSubmitMeta: defaultAction,
+    onSubmit: async ({ meta }) => {
+      if (meta.action === "edit") {
+        onEdit(project)
+        onOpenChange(true)
+
+        return
+      }
+
+      onError(null)
+
+      try {
+        await saveProject({
+          expected: project,
+          project: { ...project, archived: !project.archived },
+        })
+      } catch (cause) {
+        onError(
+          cause instanceof Error
+            ? cause.message
+            : "The project could not be saved",
+        )
+      }
+    },
+  })
+
+  const [events] = useState(function createProjectCardEvents() {
+    function edit() {
+      void form.handleSubmit({ action: "edit" })
+    }
+
+    function archive() {
+      void form.handleSubmit({ action: "archive" })
+    }
+
+    return { edit, archive }
+  })
+
+  return (
+    <Stack xstyle={appStyles.section}>
+      <HStack xstyle={appStyles.spread}>
+        <Heading>{project.name}</Heading>
+        <Text xstyle={mutedSmallStyles}>
+          {project.archived ? "Archived" : "Active"}
+        </Text>
+      </HStack>
+      <HStack xstyle={appStyles.row}>
+        <Text>{formatFocusTime(seconds)} focused</Text>
+        <Text xstyle={appStyles.muted}>
+          {tasks} open {tasks === 1 ? "task" : "tasks"}
+        </Text>
+      </HStack>
+      <HStack xstyle={appStyles.row}>
+        <Button variant="outline" size="sm" onClick={events.edit}>
+          <PencilIcon size={16} aria-hidden="true" /> Edit
+        </Button>
+        <Button variant="ghost" size="sm" onClick={events.archive}>
+          <ArchiveIcon size={16} aria-hidden="true" />{" "}
+          {project.archived ? "Restore" : "Archive"}
+        </Button>
+        <ConfirmAction
+          title="Delete project"
+          description={`Remove ${project.name} from your projects. Saved focus history will remain. Tasks will have no project.`}
+          targetId={project.id}
+          data={workspace}
+          onConfirm={removeProject}
+        >
+          Delete
+        </ConfirmAction>
+      </HStack>
+    </Stack>
   )
 }
 
@@ -229,16 +295,33 @@ export function ProjectForm({
     },
   })
 
+  const [events] = useState(function createProjectFormEvents() {
+    async function submit(event: FormEvent<HTMLFormElement>) {
+      event.preventDefault()
+      const element = event.currentTarget
+      await form.handleSubmit()
+      element.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    }
+
+    function changeName(event: ChangeEvent<HTMLInputElement>) {
+      form.setFieldValue("name", event.currentTarget.value)
+    }
+
+    function changeColor(event: ChangeEvent<HTMLSelectElement>) {
+      const result = projectColorSchema.safeParse(event.currentTarget.value)
+
+      if (result.success) form.setFieldValue("color", result.data)
+    }
+
+    function cancel() {
+      onSaved()
+    }
+
+    return { submit, changeName, changeColor, cancel }
+  })
+
   return (
-    <Form
-      noValidate
-      onSubmit={async (event) => {
-        event.preventDefault()
-        const element = event.currentTarget
-        await form.handleSubmit()
-        element.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-      }}
-    >
+    <Form noValidate onSubmit={events.submit}>
       <Stack>
         <form.Field name="name">
           {(field) => (
@@ -248,7 +331,7 @@ export function ProjectForm({
                 id="project-name"
                 name={field.name}
                 value={field.state.value}
-                onChange={(event) => field.handleChange(event.target.value)}
+                onChange={events.changeName}
                 onBlur={field.handleBlur}
                 aria-invalid={field.state.meta.errors.length > 0}
                 aria-describedby="project-name-error"
@@ -268,13 +351,7 @@ export function ProjectForm({
               <NativeSelect
                 id="project-color"
                 value={field.state.value}
-                onChange={(event) => {
-                  const result = projectColorSchema.safeParse(
-                    event.target.value,
-                  )
-
-                  if (result.success) field.handleChange(result.data)
-                }}
+                onChange={events.changeColor}
                 onBlur={field.handleBlur}
               >
                 <option value="green">Green</option>
@@ -293,12 +370,12 @@ export function ProjectForm({
           </Text>
         )}
         <HStack xstyle={appStyles.actions}>
-          <Button variant="outline" onClick={onSaved}>
+          <Button variant="outline" onClick={events.cancel}>
             Cancel
           </Button>
-          <form.Subscribe selector={(state) => state.isSubmitting}>
-            {(pending) => (
-              <Button type="submit" loading={pending}>
+          <form.Subscribe>
+            {(state) => (
+              <Button type="submit" loading={state.isSubmitting}>
                 Save project
               </Button>
             )}
