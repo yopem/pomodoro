@@ -3,18 +3,31 @@
 ## Scope and setup
 
 Task: create a web-only Pomofocus alternative with basic and premium features,
-Yopem UI and StyleX, and guest use. Exclude Todoist and webhooks. Application
-implementation has not started. Expand this plan before implementation.
+Yopem UI and StyleX, guest use, and account sync. Exclude Todoist and webhooks.
+Implementation is in progress. Runtime QA has not run.
 
-Affected files now: `bunfig.toml` (existing policy), `.gitignore`, and this
-plan. No application routes, endpoints, roles, or services exist yet. No server
-was started. Intended local web port is 3000. Confirm actual scripts and
-bindings once application setup exists. Never use reference-site account data as
-fixtures.
+Frontend scope: `apps/web/src/`, `packages/env/`, app-owned UI, and root Bun
+configuration. Routes are `/`, `/projects`, `/templates`, `/reports`, and
+`/settings`. Rust contract scope is `apps/server/src/contract.rs` and its
+offline OpenAPI exporter. HTTP handlers, account sync, and persistence are not
+complete. Do not treat contract export as a running API.
 
-Runtime available: Bun `1.4.4-canary.1+a8fcd319b`. Setup checks alone have user
-approval. Application QA, application builds, and runtime probes remain
-deferred. Do not treat setup checks as permission for whole-application QA.
+Use `http://127.0.0.1:13001` for web QA. The required backend address is
+`http://127.0.0.1:18001`; web proxies `/api`, `/auth`, and `/openapi.json` to
+it. No development server was started for this work. Before an approved runtime
+pass, check existing listeners. Do not start another server or change ports.
+After approval, the existing root web command is `bun run dev`. An API start
+command remains blocked until its runtime entrypoint exists. Never use
+reference-site account data as fixtures. Confirm isolated database targets
+before any connection, migration, or seed.
+
+Runtime: Bun `1.4.4-canary.1+a8fcd319b`, pinned by `bun-toolchain.json`, and
+Rust `1.97.1`, pinned by `rust-toolchain.toml`. Use `bun.lock` and `Cargo.lock`.
+Native lint, format, and typechecks, plus Cargo checks, Clippy, and Rustfmt, are
+allowed. Offline OpenAPI export and typed-client generation have explicit
+approval. Application tests, browser/API probes, builds outside the offline
+exporter, database access, migrations, and deployment remain deferred. These
+permissions do not authorize a whole-application QA pass.
 
 Use isolated temporary directories for tooling probes. Keep sanitized evidence
 under ignored `qa-artifacts/`. Execute P0 before P1, then P2. Every new case is
@@ -94,7 +107,8 @@ actual result, and evidence path when a case runs.
 - **Evidence:** `qa-artifacts/QA-003-ui-setup.txt`; inspect dry-run and source
   diff.
 - **Cleanup:** no runtime cleanup; preserve requested source files.
-- **Status:** pending; no application scaffold exists yet.
+- **Status:** pending; the scaffold exists, but application setup QA has not
+  run.
 
 ## Coverage map and remaining cases
 
@@ -526,5 +540,209 @@ implementation or resources remain pending, not passed.
   in `qa-artifacts/QA-022/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** pending. The contract-only exporter ran on 2026-11-08 and produced
+  `docs/openapi.json` with 21 schemas and no paths. Frontend type generation and
+  endpoint parity are not implemented or checked.
+
+## Backend contract increment
+
+### [ ] QA-023 — P1 — Strict workspace boundary validation
+
+- **Purpose:** Match the focus schema and reject invalid data before
+  persistence.
+- **Prerequisites:** Isolated local workspace; this increment's contract
+  exported; a future approved focused validation harness. No server or database
+  is needed.
+- **Inputs:** The default workspace, each numeric boundary and one value beyond
+  it, blank and 501 UTF-16-unit titles, 10,001-unit notes, invalid UUIDs,
+  unknown fields, duplicate IDs, missing current project and task references,
+  deleted historical references, and timer run/time combinations.
+- **Steps:** 1. From the repository root, supply each input through the future
+  boundary harness. 2. Record deserialization and validation results.
+- **Expected results:** Valid defaults and deleted historical references pass.
+  Invalid shapes, limits, references and inconsistent timer state fail without
+  panic. Trimmed titles match frontend behavior.
+- **Evidence:** Save sanitized inputs and results to
+  `qa-artifacts/QA-023-contract.txt`; inspect each result.
+- **Cleanup:** Remove isolated input files; keep sanitized evidence.
+- **Status:** pending; a validation harness and its command need separate
+  approval.
+
+The contract files are `apps/server/src/contract.rs`, `apps/server/src/lib.rs`,
+and `apps/server/src/bin/export-openapi.rs`. The exact limits and export command
+are in the local `docs/backend-contract.md`. The installed Rust toolchain is
+1.97.1. There are no affected routes, endpoints, roles, or external services in
+this increment. The exporter evidence is `docs/openapi.json`; inspect the
+component schemas and empty paths.
+
+Coverage: frontend-compatible DTO shape, bounds, references and timer state map
+to QA-023. Offline schema export maps to QA-022. HTTP, auth, persistence, and
+runtime behavior are outside this increment and remain covered by their existing
+pending cases.
+
+## Shell and PWA static-diagnostic repairs
+
+Coverage: shell semantics and theme map to QA-024; service-worker update
+feedback maps to QA-025. Existing navigation and keyboard coverage: QA-021. PWA
+cache and offline coverage: QA-020. Build and browser checks require approval.
+
+### [ ] QA-024 — P1 — Shell navigation and theme
+
+- **Purpose:** Check shell layout, links, alerts, and theme after lint repairs.
+- **Prerequisites:** Shared setup; isolated guest data; approved local web
+  server on 127.0.0.1:13001; a browser with light and dark system settings.
+- **Inputs:** System, light, dark, and dark-while-running theme settings.
+- **Steps:** 1. Open `/` and use each main navigation link and Sign in. 2.
+  Change each theme and the system theme; start and stop the timer with
+  dark-while-running enabled. 3. Repeat keyboard navigation at a narrow
+  viewport.
+- **Expected results:** Links have names and reach their existing destinations;
+  layout remains usable; the chosen theme covers the document and changes
+  correctly; focus is visible and alerts remain announced.
+- **Evidence:** `qa-artifacts/QA-024/` screenshots and accessibility tree;
+  inspect both themes, link names, keyboard focus, and narrow layout.
+- **Cleanup:** Restore guest settings and stop only processes started for this
+  case.
+- **Status:** pending.
+
+### [ ] QA-025 — P1 — PWA update and registration feedback
+
+- **Purpose:** Check update and error announcements and production-only
+  registration.
+- **Prerequisites:** QA-020 isolated production-like setup and two approved
+  builds.
+- **Inputs:** Existing service worker, newer service worker, and a simulated
+  registration failure; no production data.
+- **Steps:** 1. Follow QA-020 setup and load the app. 2. Deploy the newer local
+  worker and check the update message and Update and reload control. 3. Cause
+  registration to fail in the isolated environment and inspect the message. 4.
+  Check that the development app does not register a service worker.
+- **Expected results:** Update and failure messages are announced; update
+  reloads only after activation; failure gives a safe generic message;
+  development does not register the worker.
+- **Evidence:** `qa-artifacts/QA-025/` screenshots and service-worker trace;
+  inspect registration state, messages, and update action.
+- **Cleanup:** Unregister only the isolated worker, clear its test data, and
+  stop only processes started for this case.
+- **Status:** pending.
+
+### [ ] QA-026 — P1 — Historical dates keep their selected year
+
+- **Purpose:** Reports must not change years 0000–0099 to 1900–1999 when they
+  create local day, week, month, or year boundaries.
+- **Prerequisites:** Shared setup above. Use an isolated guest workspace.
+  Browser execution requires the separate QA approval. No database is needed.
+- **Inputs:** Manual record title `Historical focus`, date `0099-12-31`, 1
+  minute, no project, and no optional start or end time.
+- **Steps:** 1. Open `/reports` and add the input record. 2. Select date
+  `0099-12-31`. 3. Select Day, Week, Month, then Year. 4. Select Day and date
+  `0100-01-01`. 5. Export the selected historical day after restoring date
+  `0099-12-31`.
+- **Expected results:** Each range that contains the record reports exactly 1
+  minute and shows `Historical focus`. Year 0099 stays year 0099. Day
+  `0100-01-01` excludes the record. The exported date is `0099-12-31`.
+- **Evidence:** Save filter states and the sanitized CSV under
+  `qa-artifacts/QA-026/`. Inspect the selected year, total, and CSV date.
+- **Cleanup:** Delete only `Historical focus` from the isolated workspace.
+- **Status:** Pending. Source lint, format, and typechecks do not prove this
+  browser scenario.
+
+Historical calendar-range coverage maps to QA-026. Other aggregation and CSV
+cases remain QA-012 and QA-013.
+
+### [ ] QA-027 — P1 — Short pauses keep fractional active time
+
+- **Scope:** `features/focus/schema.ts`, `features/focus/store.ts`, and
+  `features/timer/components/focus-timer.tsx` under `apps/web/src/`; route `/`;
+  isolated guest role and browser storage. No HTTP endpoint is required.
+
+- **Purpose:** Repeated pauses must not discard running milliseconds. Store
+  fractional remaining seconds and round only the displayed clock.
+- **Prerequisites:** Shared setup above. Use an isolated guest workspace,
+  default 25-minute focus duration, and both auto-start settings off. Browser
+  execution requires the separate QA approval. No database is needed.
+- **Inputs:** Eight running intervals of 250 ms. Pause between intervals. Keep a
+  backup with integral remaining seconds to check compatibility.
+- **Steps:** 1. Reset the focus timer. 2. Click Start, wait until Pause is
+  available, wait 250 ms, then click Pause. 3. Export a workspace backup. 4.
+  Repeat with Resume for seven more intervals. Save a backup after each
+  pause. 5. Reload while paused and compare the saved timer. 6. Resume, pause
+  once more, and export. 7. Restore the isolated integral backup.
+- **Expected results:** Each running interval reduces remaining time, including
+  its fractional part. Paused wall time does not reduce it. Eight intervals
+  consume at least 2 seconds; command overhead can consume more. A fractional
+  stored value survives reload and resume. The clock and its accessible name
+  show whole seconds rounded up, with no decimal text. Integral backups still
+  load. Restores must not change another partition.
+- **Evidence:** Save sanitized backups, action timestamps, and clock screenshots
+  under `qa-artifacts/QA-027/`. Inspect consecutive fractional values and the
+  paused reload. Do not infer timing success from a screenshot alone.
+- **Cleanup:** Reset the isolated timer, restore its original settings, and
+  remove only records created for this case.
+- **Status:** Pending. Static checks and offline OpenAPI export passed for the
+  precision source change; this browser scenario has not run.
+
+Timer pause precision and numeric backup compatibility map to QA-027.
+
+### [ ] QA-028 — P0 — A failed partition load hides the previous account
+
+- **Scope:** `apps/web/src/features/focus/store.ts` and future account-switch
+  integration; all frontend routes; isolated guest and authenticated roles. Auth
+  runtime setup must be complete before execution.
+
+- **Purpose:** A corrupt target workspace must not leave another account's
+  records visible after an identity change.
+- **Prerequisites:** Shared setup, completed account flow, isolated account A,
+  and no production data. Use only the project browser group. Browser QA
+  approval is required. Save the guest storage value before changing it.
+- **Inputs:** Account A has project `QA-private-A`. The isolated guest storage
+  key is `pomodoro:workspace:guest`; set it to `{"schema_version":` for this
+  case.
+- **Steps:** 1. Sign in as A and confirm its project is visible. 2. Set the
+  guest key to the malformed input in that tab's local storage. 3. Sign out. 4.
+  Inspect Timer, Projects, Reports, and Settings. 5. Repeat with a corrupt
+  account B partition and switch from A to B.
+- **Expected results:** The new identity is active even when its storage is
+  invalid. No A task, project, report, or editor remains visible. Show an
+  explicit storage error and allow confirmed recovery of the target only.
+  Preserve the corrupt value and A's stored workspace until an approved restore.
+  Ordinary mutations must fail without replacing corrupt data.
+- **Evidence:** Save sanitized snapshots, identity state, and storage changes
+  under `qa-artifacts/QA-028/`. Inspect every named screen and both keys.
+- **Cleanup:** Restore the saved isolated guest value and remove only the named
+  fixture. Sign out of isolated accounts. Keep original evidence local.
+- **Status:** Pending. Requires the completed auth runtime and separate QA pass.
+
+### [ ] QA-029 — P0 — Backup confirmation cannot cross identities
+
+- **Scope:** `apps/web/src/features/focus/store.ts`,
+  `apps/web/src/features/settings/components/workspace-backup.tsx`, and
+  `apps/web/src/routes/settings/index.tsx`; route `/settings`; guest and
+  authenticated roles, browser storage, and completed account switching.
+
+- **Purpose:** Bind a prepared restore to the identity and workspace shown when
+  the user prepares it, including corrupt-storage recovery.
+- **Prerequisites:** Shared setup, two isolated accounts or guest plus A,
+  completed account switching, two browser tabs, and browser QA approval.
+- **Inputs:** Backup project `QA-restore-original`; target A project
+  `QA-account-A`; other target B project `QA-account-B`.
+- **Steps:** 1. Prepare a restore in A but do not confirm. 2. Switch the shared
+  browser session to B in the other tab. 3. Return to the first tab and try to
+  confirm. 4. Repeat with the explicit corrupt-storage recovery option and a
+  malformed A workspace. 5. Repeat while the first tab has not yet rendered the
+  latest identity, using the approved browser interaction trace.
+- **Expected results:** Close the stale dialog or reject the operation with an
+  identity/workspace change error. Neither A nor B is replaced. In particular,
+  recovery must not bypass the identity check with `expected: null`. The storage
+  lock must check the original target before any backup, recovery, or
+  replacement write. A fresh confirmation in the correct target can restore that
+  target only.
+- **Evidence:** Save sanitized before/after backups, the rejected dialog or
+  error, and action/identity ordering under `qa-artifacts/QA-029/`. Inspect both
+  partitions; a visible error alone does not prove isolation.
+- **Cleanup:** Cancel open dialogs, restore isolated fixture data, and close
+  only tabs created for the case.
+- **Status:** Pending. Requires completed account switching and separate QA.
+
+Partition load privacy maps to QA-028. Restore identity and stale-render races
+map to QA-029. Existing ordinary stale-write coverage remains QA-009 and QA-017.
