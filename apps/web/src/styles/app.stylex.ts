@@ -45,7 +45,7 @@ export const appStyles = stylex.create({
     padding: { default: 24, "@media (max-width: 640px)": 20 },
   },
   empty: { paddingBlock: 48, textAlign: "center", alignItems: "center" },
-  error: { color: tokens["--destructive-foreground"] },
+  error: { color: tokens["--destructive"] },
   small: { fontSize: 14 },
   actions: { justifyContent: "flex-end", flexWrap: "wrap", gap: 8 },
   fieldGrid: {
@@ -57,5 +57,8 @@ export const appStyles = stylex.create({
     },
   },
   fullWidth: { inlineSize: "100%" },
-  mono: { fontFamily: tokens["--font-mono"], fontVariantNumeric: "tabular-nums" },
+  mono: {
+    fontFamily: tokens["--font-mono"],
+    fontVariantNumeric: "tabular-nums",
+  },
 })
