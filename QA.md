@@ -558,22 +558,34 @@ implementation or resources remain pending, not passed.
   unknown fields, duplicate IDs, missing current project and task references,
   deleted historical references, and timer run/time combinations.
 - **Steps:** 1. From the repository root, supply each input through the future
-  boundary harness. 2. Record deserialization and validation results.
+  boundary harness. 2. Convert each workspace with
+  `ValidatedWorkspace::try_from` from `pomodoro-focus`. 3. Record
+  deserialization, conversion, and validation results. 4. Compare parsed
+  serialized Rust defaults with `createEmptyWorkspace`. 5. Review shared and
+  consuming access to the validated value. Confirm that callers cannot
+  deserialize the wrapper or change its private inner value.
 - **Expected results:** Valid defaults and deleted historical references pass.
   Invalid shapes, limits, references and inconsistent timer state fail without
-  panic. Trimmed titles match frontend behavior.
+  panic. Trimmed titles match frontend behavior. The wrapper serializes the
+  normalized workspace without an envelope. Its shared access is read-only;
+  consuming access removes the wrapper. Invalid conversion returns an error.
+  Rust and frontend defaults have equal parsed values, including 25/5/15
+  minutes, four-focus long breaks, and a stopped 1500-second focus timer.
+  Floating-point number spelling does not affect this comparison.
 - **Evidence:** Save sanitized inputs and results to
   `qa-artifacts/QA-023-contract.txt`; inspect each result.
 - **Cleanup:** Remove isolated input files; keep sanitized evidence.
 - **Status:** pending; a validation harness and its command need separate
   approval.
 
-The contract files are `apps/server/src/contract.rs`, `apps/server/src/lib.rs`,
-and `apps/server/src/bin/export-openapi.rs`. The exact limits and export command
-are in the local `docs/backend-contract.md`. The installed Rust toolchain is
-1.97.1. There are no affected routes, endpoints, roles, or external services in
-this increment. The exporter evidence is `docs/openapi.json`; inspect the
-component schemas and empty paths.
+The domain contract is `crates/focus/src/lib.rs`. HTTP DTOs and schema
+registration remain in `apps/server/src/contract.rs` and
+`apps/server/src/lib.rs`; the exporter is
+`apps/server/src/bin/export-openapi.rs`. The exact limits and export command are
+in the local `docs/backend-contract.md`. The installed Rust toolchain is 1.97.1.
+There are no affected routes, endpoints, roles, or external services in this
+increment. The exporter evidence is `docs/openapi.json`; inspect the component
+schemas and empty paths.
 
 Coverage: frontend-compatible DTO shape, bounds, references and timer state map
 to QA-023. Offline schema export maps to QA-022. HTTP, auth, persistence, and
@@ -913,3 +925,40 @@ DTO limits, normalization, and reference checks remain QA-023.
 **Ownership coverage map:** Original-owner enforcement maps to QA-034.
 Workspace-generation rejection maps to QA-035. Existing record-conflict,
 failed-load privacy, and backup cases remain QA-017, QA-028, and QA-029.
+
+### [ ] QA-036 — P1 — Source-owned design-system contracts
+
+- **Purpose:** Remove restricted application styles from UI component `xstyle`
+  props. Keep the current lint policy. Do not use imported styles, arrays,
+  generic style props, or source-path exceptions to hide violations.
+- **Prerequisites:** Complete component and caller repairs. Use the pinned Bun
+  toolchain. Read the installed UI sources and plugin 0.1.2 contracts. Static
+  lint, format, and typechecks are approved. No running app is needed.
+- **Inputs:** Timer, projects, templates, reports, settings, shell, and form
+  source files. Include task notes, completed and selected tasks, charts,
+  errors, empty states, responsive grids, and selectable theme controls.
+- **Steps:** 1. From the repository root, review every application `xstyle`
+  value, including local arrays and imported style declarations. Exclude copied
+  component implementation files from this caller inventory only. 2. Map each
+  property to the unchanged default contract. Trace each finite source-owned
+  prop to its implementation; reject arbitrary style passthrough. 3. Run
+  `bun lint --no-script`, `bun fmt --no-script --check`, and
+  `bun run typecheck`. Check added config sources explicitly if the configured
+  lint selection excludes them. 4. Review semantic tags, labels, responsive
+  values, and token colors against the previous source. 5. Check that theme
+  script and provider configuration match and retain workspace preferences.
+- **Expected results:** Application code uses supported component defaults,
+  composition, or finite implemented props. Remaining `xstyle` values contain
+  only allowed properties. No rule, suppression, or generic escape hatch is
+  added. Native semantic content keeps its correct elements. Lint and types have
+  zero diagnostics; formatting passes. Theme has one preference source.
+- **Evidence:** Save the caller-to-prop source review and static command output
+  under `qa-artifacts/QA-036/`. Inspect each mapped property and command exit.
+- **Cleanup:** No records or services change. Keep sanitized local evidence.
+- **Status:** pending. Imported styles currently violate the contract despite a
+  clean configured lint run. Component and caller repairs are not complete.
+
+Coverage: design-system style contracts and source-owned API changes map to
+QA-036. Keyboard, responsive, zoom, and contrast checks remain QA-021. Initial
+paint, stored theme, system changes, and dark-while-running behavior remain
+QA-024. Browser and build checks remain pending and need approval.
