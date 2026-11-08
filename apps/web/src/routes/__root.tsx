@@ -10,8 +10,8 @@ import {
   Link,
   Outlet,
   Scripts,
+  useRouter,
 } from "@tanstack/react-router"
-import { useSyncExternalStore } from "react"
 
 import { AppShell } from "@/components/app-shell"
 import { Box } from "@/components/ui/box"
@@ -19,13 +19,9 @@ import { Heading } from "@/components/ui/heading"
 import { Text } from "@/components/ui/text"
 import { useFocusSnapshot } from "@/features/focus/store"
 import { stylexProps } from "@/lib/stylex"
-import {
-  darkTheme,
-  lightTheme,
-  rootStyles,
-  themeMarker,
-  tokens,
-} from "@/styles/tokens.stylex"
+import { rootStyles, tokens } from "@/styles/tokens.stylex"
+import { getRootThemeProps, ThemeScript } from "@/themes/theme"
+import { ThemeProvider } from "@/themes/theme-provider"
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient
@@ -74,52 +70,36 @@ export function RootContent() {
   )
 }
 
-function subscribeSystemTheme(listener: () => void) {
-  const query = window.matchMedia("(prefers-color-scheme: dark)")
-  query.addEventListener("change", listener)
-
-  return () => query.removeEventListener("change", listener)
-}
-
-function systemIsDark() {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-}
-
-function serverIsDark() {
-  return false
-}
-
 export function RootDocument({ children }: { children: ReactNode }) {
-  const { settings, timer } = useFocusSnapshot((value) => value.workspace)
-
-  const systemDark = useSyncExternalStore(
-    subscribeSystemTheme,
-    systemIsDark,
-    serverIsDark,
-  )
-
-  const dark =
-    settings.theme === "dark" ||
-    (settings.theme === "system" && systemDark) ||
-    (settings.dark_while_running && timer.deadline_ms !== null)
+  const { workspace, hydrated, error } = useFocusSnapshot((value) => value)
+  const nonce = useRouter().options.ssr?.nonce
+  const { settings, timer } = workspace
 
   return (
     <html
       lang="en"
       data-type="software"
-      data-theme={dark ? "dark" : "light"}
-      {...stylexProps(
-        undefined,
-        themeMarker,
-        dark ? darkTheme : lightTheme,
-        rootStyles.html,
-      )}
+      data-theme="light"
+      suppressHydrationWarning
+      {...getRootThemeProps()}
     >
       <head>
+        <ThemeScript nonce={nonce} />
         <HeadContent />
       </head>
       <body {...stylexProps(undefined, rootStyles.body)}>
-        {children}
+        <ThemeProvider
+          theme={settings.theme}
+          ready={hydrated}
+          mirrorPreference={error === null}
+          forcedTheme={
+            settings.dark_while_running && timer.deadline_ms !== null
+              ? "dark"
+              : undefined
+          }
+        >
+          {children}
+        </ThemeProvider>
         <Scripts />
       </body>
     </html>
