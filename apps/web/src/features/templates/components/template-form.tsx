@@ -171,223 +171,212 @@ export function TemplateForm(props: TemplateFormProps) {
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogPopup>
+      <DialogPopup
+        render={<form ref={formRef} noValidate onSubmit={events.submit} />}
+      >
         <DialogHeader>
           <DialogTitle>Template</DialogTitle>
           <DialogDescription>
             Save a named collection of tasks.
           </DialogDescription>
         </DialogHeader>
-        <form ref={formRef} noValidate onSubmit={events.submit}>
-          <DialogPanel>
-            <Stack>
-              <form.Field name="name" validators={nameValidators}>
-                {(field) => (
-                  <Field invalid={field.state.meta.errors.length > 0}>
-                    <FieldLabel htmlFor="template-name">
-                      Template name
-                    </FieldLabel>
-                    <Input
-                      id="template-name"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={events.changeName}
-                      aria-invalid={field.state.meta.errors.length > 0}
-                      aria-describedby={
-                        field.state.meta.errors.length
-                          ? "template-name-error"
-                          : undefined
-                      }
-                    />
-                    <FieldMessages
-                      id="template-name-error"
-                      errors={field.state.meta.errors}
-                    />
-                  </Field>
-                )}
-              </form.Field>
-              <form.Field name="tasks" mode="array">
-                {(tasks) => (
-                  <Stack>
-                    {tasks.state.value.map((_, index) => (
-                      <fieldset key={taskKeys[index]}>
-                        <legend>Task {index + 1}</legend>
-                        <Stack>
-                          <form.Field
-                            name={`tasks[${index}].title`}
-                            validators={nameValidators}
-                          >
-                            {(field) => (
-                              <Field
-                                invalid={field.state.meta.errors.length > 0}
-                              >
-                                <FieldLabel
-                                  htmlFor={`template-task-${index}-title`}
-                                >
-                                  Task {index + 1} title
-                                </FieldLabel>
-                                <Input
-                                  id={`template-task-${index}-title`}
-                                  value={field.state.value}
-                                  onBlur={field.handleBlur}
-                                  onChange={events.changeTaskText}
-                                  aria-invalid={
-                                    field.state.meta.errors.length > 0
-                                  }
-                                  aria-describedby={
-                                    field.state.meta.errors.length
-                                      ? `template-task-${index}-title-error`
-                                      : undefined
-                                  }
-                                />
-                                <FieldMessages
-                                  id={`template-task-${index}-title-error`}
-                                  errors={field.state.meta.errors}
-                                />
-                              </Field>
-                            )}
-                          </form.Field>
-                          <form.Field
-                            name={`tasks[${index}].note`}
-                            validators={noteValidators}
-                          >
-                            {(field) => (
-                              <Field
-                                invalid={field.state.meta.errors.length > 0}
-                              >
-                                <FieldLabel
-                                  htmlFor={`template-task-${index}-note`}
-                                >
-                                  Task {index + 1} note
-                                </FieldLabel>
-                                <Textarea
-                                  id={`template-task-${index}-note`}
-                                  value={field.state.value}
-                                  onBlur={field.handleBlur}
-                                  onChange={events.changeTaskText}
-                                  aria-invalid={
-                                    field.state.meta.errors.length > 0
-                                  }
-                                  aria-describedby={
-                                    field.state.meta.errors.length
-                                      ? `template-task-${index}-note-error`
-                                      : undefined
-                                  }
-                                />
-                                <FieldMessages
-                                  id={`template-task-${index}-note-error`}
-                                  errors={field.state.meta.errors}
-                                />
-                              </Field>
-                            )}
-                          </form.Field>
-                          <form.Field
-                            name={`tasks[${index}].estimate`}
-                            validators={estimateValidators}
-                          >
-                            {(field) => (
-                              <Field
-                                invalid={field.state.meta.errors.length > 0}
-                              >
-                                <FieldLabel
-                                  htmlFor={`template-task-${index}-estimate`}
-                                >
-                                  Task {index + 1} estimated sessions
-                                </FieldLabel>
-                                <Input
-                                  id={`template-task-${index}-estimate`}
-                                  type="number"
-                                  min={1}
-                                  max={10000}
-                                  value={
-                                    Number.isNaN(field.state.value)
-                                      ? ""
-                                      : field.state.value
-                                  }
-                                  onBlur={field.handleBlur}
-                                  onChange={events.changeEstimate}
-                                  aria-invalid={
-                                    field.state.meta.errors.length > 0
-                                  }
-                                  aria-describedby={
-                                    field.state.meta.errors.length
-                                      ? `template-task-${index}-estimate-error`
-                                      : undefined
-                                  }
-                                />
-                                <FieldMessages
-                                  id={`template-task-${index}-estimate-error`}
-                                  errors={field.state.meta.errors}
-                                />
-                              </Field>
-                            )}
-                          </form.Field>
-                          <form.Field name={`tasks[${index}].project_id`}>
-                            {(field) => (
-                              <Field>
-                                <FieldLabel
-                                  htmlFor={`template-task-${index}-project`}
-                                >
-                                  Task {index + 1} project
-                                </FieldLabel>
-                                <NativeSelect
-                                  id={`template-task-${index}-project`}
-                                  value={field.state.value ?? ""}
-                                  onBlur={field.handleBlur}
-                                  onChange={events.changeProject}
-                                >
-                                  <option value="">No project</option>
-                                  {projects
-                                    .filter((project) => !project.archived)
-                                    .map((project) => (
-                                      <option
-                                        key={project.id}
-                                        value={project.id}
-                                      >
-                                        {project.name}
-                                      </option>
-                                    ))}
-                                </NativeSelect>
-                              </Field>
-                            )}
-                          </form.Field>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            value={index}
-                            onClick={events.removeTask}
-                          >
-                            Remove task {index + 1}
-                          </Button>
-                        </Stack>
-                      </fieldset>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={events.addTask}
-                    >
-                      Add task
-                    </Button>
-                  </Stack>
-                )}
-              </form.Field>
-              {error && <Text role="alert">{error}</Text>}
-            </Stack>
-          </DialogPanel>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={events.cancel}>
-              Cancel
-            </Button>
-            <form.Subscribe>
-              {(state) => (
-                <Button type="submit" loading={state.isSubmitting}>
-                  Save template
-                </Button>
+        <DialogPanel>
+          <Stack>
+            <form.Field name="name" validators={nameValidators}>
+              {(field) => (
+                <Field invalid={field.state.meta.errors.length > 0}>
+                  <FieldLabel htmlFor="template-name">Template name</FieldLabel>
+                  <Input
+                    id="template-name"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={events.changeName}
+                    aria-invalid={field.state.meta.errors.length > 0}
+                    aria-describedby={
+                      field.state.meta.errors.length
+                        ? "template-name-error"
+                        : undefined
+                    }
+                  />
+                  <FieldMessages
+                    id="template-name-error"
+                    errors={field.state.meta.errors}
+                  />
+                </Field>
               )}
-            </form.Subscribe>
-          </DialogFooter>
-        </form>
+            </form.Field>
+            <form.Field name="tasks" mode="array">
+              {(tasks) => (
+                <Stack>
+                  {tasks.state.value.map((_, index) => (
+                    <fieldset key={taskKeys[index]}>
+                      <legend>Task {index + 1}</legend>
+                      <Stack>
+                        <form.Field
+                          name={`tasks[${index}].title`}
+                          validators={nameValidators}
+                        >
+                          {(field) => (
+                            <Field invalid={field.state.meta.errors.length > 0}>
+                              <FieldLabel
+                                htmlFor={`template-task-${index}-title`}
+                              >
+                                Task {index + 1} title
+                              </FieldLabel>
+                              <Input
+                                id={`template-task-${index}-title`}
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={events.changeTaskText}
+                                aria-invalid={
+                                  field.state.meta.errors.length > 0
+                                }
+                                aria-describedby={
+                                  field.state.meta.errors.length
+                                    ? `template-task-${index}-title-error`
+                                    : undefined
+                                }
+                              />
+                              <FieldMessages
+                                id={`template-task-${index}-title-error`}
+                                errors={field.state.meta.errors}
+                              />
+                            </Field>
+                          )}
+                        </form.Field>
+                        <form.Field
+                          name={`tasks[${index}].note`}
+                          validators={noteValidators}
+                        >
+                          {(field) => (
+                            <Field invalid={field.state.meta.errors.length > 0}>
+                              <FieldLabel
+                                htmlFor={`template-task-${index}-note`}
+                              >
+                                Task {index + 1} note
+                              </FieldLabel>
+                              <Textarea
+                                id={`template-task-${index}-note`}
+                                value={field.state.value}
+                                onBlur={field.handleBlur}
+                                onChange={events.changeTaskText}
+                                aria-invalid={
+                                  field.state.meta.errors.length > 0
+                                }
+                                aria-describedby={
+                                  field.state.meta.errors.length
+                                    ? `template-task-${index}-note-error`
+                                    : undefined
+                                }
+                              />
+                              <FieldMessages
+                                id={`template-task-${index}-note-error`}
+                                errors={field.state.meta.errors}
+                              />
+                            </Field>
+                          )}
+                        </form.Field>
+                        <form.Field
+                          name={`tasks[${index}].estimate`}
+                          validators={estimateValidators}
+                        >
+                          {(field) => (
+                            <Field invalid={field.state.meta.errors.length > 0}>
+                              <FieldLabel
+                                htmlFor={`template-task-${index}-estimate`}
+                              >
+                                Task {index + 1} estimated sessions
+                              </FieldLabel>
+                              <Input
+                                id={`template-task-${index}-estimate`}
+                                type="number"
+                                min={1}
+                                max={10000}
+                                value={
+                                  Number.isNaN(field.state.value)
+                                    ? ""
+                                    : field.state.value
+                                }
+                                onBlur={field.handleBlur}
+                                onChange={events.changeEstimate}
+                                aria-invalid={
+                                  field.state.meta.errors.length > 0
+                                }
+                                aria-describedby={
+                                  field.state.meta.errors.length
+                                    ? `template-task-${index}-estimate-error`
+                                    : undefined
+                                }
+                              />
+                              <FieldMessages
+                                id={`template-task-${index}-estimate-error`}
+                                errors={field.state.meta.errors}
+                              />
+                            </Field>
+                          )}
+                        </form.Field>
+                        <form.Field name={`tasks[${index}].project_id`}>
+                          {(field) => (
+                            <Field>
+                              <FieldLabel
+                                htmlFor={`template-task-${index}-project`}
+                              >
+                                Task {index + 1} project
+                              </FieldLabel>
+                              <NativeSelect
+                                id={`template-task-${index}-project`}
+                                value={field.state.value ?? ""}
+                                onBlur={field.handleBlur}
+                                onChange={events.changeProject}
+                              >
+                                <option value="">No project</option>
+                                {projects
+                                  .filter((project) => !project.archived)
+                                  .map((project) => (
+                                    <option key={project.id} value={project.id}>
+                                      {project.name}
+                                    </option>
+                                  ))}
+                              </NativeSelect>
+                            </Field>
+                          )}
+                        </form.Field>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          value={index}
+                          onClick={events.removeTask}
+                        >
+                          Remove task {index + 1}
+                        </Button>
+                      </Stack>
+                    </fieldset>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={events.addTask}
+                  >
+                    Add task
+                  </Button>
+                </Stack>
+              )}
+            </form.Field>
+            {error && <Text role="alert">{error}</Text>}
+          </Stack>
+        </DialogPanel>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={events.cancel}>
+            Cancel
+          </Button>
+          <form.Subscribe>
+            {(state) => (
+              <Button type="submit" loading={state.isSubmitting}>
+                Save template
+              </Button>
+            )}
+          </form.Subscribe>
+        </DialogFooter>
       </DialogPopup>
     </Dialog>
   )
