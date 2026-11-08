@@ -147,6 +147,7 @@ async function accountRequest<T>(
 export function sessionQueryOptions() {
   return queryOptions({
     queryKey: ["account", "session"],
+    networkMode: "always",
     queryFn: ({ signal }) =>
       accountRequest(async () => {
         const result = await createBrowserApiClient().GET("/api/session", {
@@ -165,6 +166,7 @@ export function sessionQueryOptions() {
 export function workspaceQueryOptions(userId: string) {
   return queryOptions({
     queryKey: ["account", "workspace", userId],
+    networkMode: "always",
     queryFn: ({ signal }) =>
       accountRequest(async () => {
         const owner = uuidSchema.parse(userId)
@@ -186,6 +188,7 @@ export function workspaceQueryOptions(userId: string) {
 export function saveWorkspaceMutationOptions() {
   return mutationOptions({
     mutationKey: ["account", "save"],
+    networkMode: "always",
     gcTime: 0,
     mutationFn: (input: SaveWorkspaceInput) =>
       accountRequest(async () => {
@@ -209,6 +212,7 @@ export function saveWorkspaceMutationOptions() {
 export function importGuestMutationOptions() {
   return mutationOptions({
     mutationKey: ["account", "import"],
+    networkMode: "always",
     gcTime: 0,
     mutationFn: (input: ImportGuestInput) =>
       accountRequest(async () => {
@@ -236,6 +240,7 @@ export function importGuestMutationOptions() {
 export function logoutMutationOptions() {
   return mutationOptions({
     mutationKey: ["account", "logout"],
+    networkMode: "always",
     gcTime: 0,
     mutationFn: (userId: string) =>
       accountRequest(async () => {

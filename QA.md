@@ -1603,7 +1603,9 @@ approved public-data feature merely because the reference has a tab.
   that cancellation is not replaced by a new timeout. 4. Restore the network and
   use explicit sync/session recovery.
 - **Expected results:** Fetch combines the caller's abort signal with a
-  30-second browser timeout. No action waits forever or retries automatically. A
+  30-second browser timeout. No action waits forever or retries automatically.
+  Account operations do not park in the SDK's offline queue before fetch;
+  offline requests reject or reach the same deadline and release barriers. A
   timed-out mutation remains uncertain until server state or its retained
   receipt is checked; the UI never claims that it rolled back or saved.
 - **Evidence:** Save sanitized elapsed times, abort/error fields, request order,
