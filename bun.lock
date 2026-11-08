@@ -5,6 +5,7 @@
     "": {
       "name": "pomodoro",
       "devDependencies": {
+        "@types/node": "^24.19.2",
         "@yopem-ui/oxlint-plugin": "^0.1.2",
         "@yopem/eslint-plugin": "^0.1.0",
         "@yopem/typescript-config": "^0.2.5",
@@ -51,6 +52,7 @@
         "vite-plugin-pwa": "^2.0.0",
         "workbox-core": "^7.4.1",
         "workbox-precaching": "^7.4.1",
+        "workbox-window": "^7.4.1",
       },
     },
     "packages/api": {
