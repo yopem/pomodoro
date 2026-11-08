@@ -9,6 +9,8 @@ import type { WorkspaceOwner } from "@/features/focus/store"
 
 import { ConfirmAction } from "@/components/confirm-action"
 import { Button } from "@/components/ui/button"
+import { Card, CardPanel } from "@/components/ui/card"
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
@@ -27,9 +29,6 @@ import {
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { formatFocusTime } from "@/lib/focus-time"
-import { appStyles } from "@/styles/app.stylex"
-
-const smallMutedStyles = [appStyles.small, appStyles.muted]
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -128,97 +127,103 @@ export function ReportHistory({
   })
 
   return (
-    <Stack xstyle={appStyles.section}>
-      <Heading>Focus history</Heading>
-      {history.length === 0 ? (
-        <Stack xstyle={appStyles.empty}>
-          <Text>No focus records in this period.</Text>
-          <Text xstyle={appStyles.muted}>
-            Finish a session or add focus time to start your history.
-          </Text>
+    <Card render={<section aria-label="Focus history" />}>
+      <CardPanel>
+        <Stack>
+          <Heading>Focus history</Heading>
+          {history.length === 0 ? (
+            <Empty>
+              <EmptyHeader>
+                <Text>No focus records in this period.</Text>
+                <EmptyDescription>
+                  Finish a session or add focus time to start your history.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <Table>
+              <TableCaption>
+                Focus history for {rangeLabel}. Times use your device time zone.
+              </TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead scope="col">Date</TableHead>
+                  <TableHead scope="col">Project / task</TableHead>
+                  <TableHead scope="col">Focus</TableHead>
+                  <TableHead scope="col">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {history.map((session) => (
+                  <TableRow key={session.id}>
+                    <TableCell>
+                      {historyFormatters[hourFormat].format(
+                        new Date(session.started_at_ms),
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Stack spacing="compact">
+                        <Text>{session.task_title}</Text>
+                        <Text size="small" tone="muted">
+                          {session.project_name || "No project"}
+                        </Text>
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      {formatFocusTime(session.duration_seconds)}
+                    </TableCell>
+                    <TableCell>
+                      <HStack layout="row">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          value={session.id}
+                          aria-label={`Edit ${session.task_title}`}
+                          onClick={events.edit}
+                        >
+                          <PencilIcon size={16} aria-hidden="true" />
+                        </Button>
+                        <ConfirmAction
+                          title="Delete focus record"
+                          description={`Remove ${formatFocusTime(session.duration_seconds)} of ${session.task_title} from reports. This does not change task pomodoro counts.`}
+                          targetId={session.id}
+                          data={session}
+                          owner={owner}
+                          onConfirm={removeSession}
+                        >
+                          Delete
+                        </ConfirmAction>
+                      </HStack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+          <HStack layout="spread">
+            <Text size="small" tone="muted">
+              {total} records · Page {page} of {pages}
+            </Text>
+            <HStack>
+              <Button
+                variant="outline"
+                disabled={pending || page === 1}
+                onClick={events.previous}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                disabled={pending || page === pages}
+                onClick={events.next}
+              >
+                Next
+              </Button>
+            </HStack>
+          </HStack>
+          {error && <Text role="alert">{error}</Text>}
         </Stack>
-      ) : (
-        <Table>
-          <TableCaption>
-            Focus history for {rangeLabel}. Times use your device time zone.
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead scope="col">Date</TableHead>
-              <TableHead scope="col">Project / task</TableHead>
-              <TableHead scope="col">Focus</TableHead>
-              <TableHead scope="col">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {history.map((session) => (
-              <TableRow key={session.id}>
-                <TableCell>
-                  {historyFormatters[hourFormat].format(
-                    new Date(session.started_at_ms),
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Stack xstyle={appStyles.compact}>
-                    <Text>{session.task_title}</Text>
-                    <Text xstyle={smallMutedStyles}>
-                      {session.project_name || "No project"}
-                    </Text>
-                  </Stack>
-                </TableCell>
-                <TableCell>
-                  {formatFocusTime(session.duration_seconds)}
-                </TableCell>
-                <TableCell>
-                  <HStack xstyle={appStyles.row}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      value={session.id}
-                      aria-label={`Edit ${session.task_title}`}
-                      onClick={events.edit}
-                    >
-                      <PencilIcon size={16} aria-hidden="true" />
-                    </Button>
-                    <ConfirmAction
-                      title="Delete focus record"
-                      description={`Remove ${formatFocusTime(session.duration_seconds)} of ${session.task_title} from reports. This does not change task pomodoro counts.`}
-                      targetId={session.id}
-                      data={session}
-                      owner={owner}
-                      onConfirm={removeSession}
-                    >
-                      Delete
-                    </ConfirmAction>
-                  </HStack>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-      <HStack xstyle={appStyles.spread}>
-        <Text xstyle={smallMutedStyles}>
-          {total} records · Page {page} of {pages}
-        </Text>
-        <HStack>
-          <Button
-            variant="outline"
-            disabled={pending || page === 1}
-            onClick={events.previous}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            disabled={pending || page === pages}
-            onClick={events.next}
-          >
-            Next
-          </Button>
-        </HStack>
-      </HStack>
-      {error && <Text role="alert">{error}</Text>}
-    </Stack>
+      </CardPanel>
+    </Card>
   )
 }
