@@ -14,16 +14,19 @@ import { AccountControls } from "@/features/account/components/account-controls"
 import { useAccountController } from "@/features/account/sync"
 import { useFocusSnapshot } from "@/features/focus/store"
 import { PwaUpdates } from "@/features/pwa/updates"
+import { useBrowserFullscreen } from "@/features/timer/hooks/use-browser-fullscreen"
 import { tokens } from "@/styles/tokens.stylex"
 
 const exactMatch = { exact: true }
 
-function isFocusRoute(state: RegisteredRouter["state"]) {
-  return state.matches.at(-1)?.routeId === "/focus/"
+function getRouteId(state: RegisteredRouter["state"]) {
+  return state.matches.at(-1)?.routeId
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const compact = useRouterState({ select: isFocusRoute })
+  const routeId = useRouterState({ select: getRouteId })
+  const fullscreen = useBrowserFullscreen()
+  const compact = routeId === "/focus/" || (routeId === "/" && fullscreen)
   const snapshot = useFocusSnapshot((value) => value)
   const { controller, state } = useAccountController()
 

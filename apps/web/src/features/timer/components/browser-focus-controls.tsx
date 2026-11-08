@@ -1,32 +1,15 @@
 import { Link, useRouter } from "@tanstack/react-router"
-import { useState, useSyncExternalStore } from "react"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { HStack } from "@/components/ui/hstack"
 import { Text } from "@/components/ui/text"
-
-function subscribeFullscreen(listener: () => void) {
-  document.addEventListener("fullscreenchange", listener)
-
-  return () => document.removeEventListener("fullscreenchange", listener)
-}
-
-function getFullscreen() {
-  return Boolean(document.fullscreenElement)
-}
-
-function getServerFullscreen() {
-  return false
-}
+import { useBrowserFullscreen } from "@/features/timer/hooks/use-browser-fullscreen"
 
 export function FocusBrowserControls() {
   const router = useRouter()
 
-  const fullscreen = useSyncExternalStore(
-    subscribeFullscreen,
-    getFullscreen,
-    getServerFullscreen,
-  )
+  const fullscreen = useBrowserFullscreen()
 
   const [error, setError] = useState<string | null>(null)
   const [popupBlocked, setPopupBlocked] = useState(false)
@@ -98,7 +81,11 @@ export function FocusBrowserControls() {
       <Button variant="outline" onClick={events.openFocusWindow}>
         Focus window
       </Button>
-      {error && <Text role="alert">{error}</Text>}
+      {error && (
+        <Text role="alert">
+          {error} <Link to="/focus">Open focus view instead</Link>.
+        </Text>
+      )}
       {popupBlocked && (
         <Text role="alert">
           The focus window could not open.{" "}

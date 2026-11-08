@@ -24,6 +24,7 @@ import { useFocusSnapshot } from "@/features/focus/store"
 import { TaskList } from "@/features/tasks/components/task-list"
 import { FocusBrowserControls } from "@/features/timer/components/browser-focus-controls"
 import { FocusTimer } from "@/features/timer/components/focus-timer"
+import { useBrowserFullscreen } from "@/features/timer/hooks/use-browser-fullscreen"
 import { formatFocusTime } from "@/lib/focus-time"
 
 const finishTime12 = new Intl.DateTimeFormat(undefined, {
@@ -44,6 +45,7 @@ export const Route = createLazyFileRoute("/")({
 
 export function TimerRoute() {
   const { workspace, hydrated, nowMs } = useFocusSnapshot((state) => state)
+  const fullscreen = useBrowserFullscreen()
 
   if (!hydrated) {
     return (
@@ -79,54 +81,58 @@ export function TimerRoute() {
 
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
-      <Container variant="workspace">
+      <Container variant={fullscreen ? "focus" : "workspace"}>
         <Stack spacing="page">
           <HStack layout="pageHeader">
             <Stack spacing="compact">
               <Heading render={<h1>Focus timer</h1>} />
-              <Text tone="muted">
+              <Text tone="muted" hidden={fullscreen}>
                 Work in {workspace.settings.focus_minutes}-minute intervals.
               </Text>
             </Stack>
             <FocusBrowserControls />
           </HStack>
-          <Grid variant="focus">
+          <Grid variant={fullscreen ? "default" : "focus"}>
             <Stack spacing="page">
               <FocusTimer workspace={workspace} nowMs={nowMs} />
-              <Card render={<section aria-label="Today's focus summary" />}>
-                <CardPanel>
-                  <Grid variant="metrics">
-                    <Stat>
-                      <StatLabel>Focus today</StatLabel>
-                      <StatValue size="compact">
-                        {formatFocusTime(today)}
-                      </StatValue>
-                    </Stat>
-                    <Stat>
-                      <StatLabel>Sessions left</StatLabel>
-                      <StatValue size="compact">{remaining}</StatValue>
-                    </Stat>
-                    <Stat>
-                      <StatLabel>Estimated finish</StatLabel>
-                      <StatValue size="compact">
-                        {finish === null
-                          ? "—"
-                          : (workspace.settings.hour_format === "12h"
-                              ? finishTime12
-                              : finishTime24
-                            ).format(finish)}
-                      </StatValue>
-                      <StatDescription>
-                        {finish === null
-                          ? "No remaining estimates"
-                          : "Includes planned breaks"}
-                      </StatDescription>
-                    </Stat>
-                  </Grid>
-                </CardPanel>
-              </Card>
+              <Box hidden={fullscreen}>
+                <Card render={<section aria-label="Today's focus summary" />}>
+                  <CardPanel>
+                    <Grid variant="metrics">
+                      <Stat>
+                        <StatLabel>Focus today</StatLabel>
+                        <StatValue size="compact">
+                          {formatFocusTime(today)}
+                        </StatValue>
+                      </Stat>
+                      <Stat>
+                        <StatLabel>Sessions left</StatLabel>
+                        <StatValue size="compact">{remaining}</StatValue>
+                      </Stat>
+                      <Stat>
+                        <StatLabel>Estimated finish</StatLabel>
+                        <StatValue size="compact">
+                          {finish === null
+                            ? "—"
+                            : (workspace.settings.hour_format === "12h"
+                                ? finishTime12
+                                : finishTime24
+                              ).format(finish)}
+                        </StatValue>
+                        <StatDescription>
+                          {finish === null
+                            ? "No remaining estimates"
+                            : "Includes planned breaks"}
+                        </StatDescription>
+                      </Stat>
+                    </Grid>
+                  </CardPanel>
+                </Card>
+              </Box>
             </Stack>
-            <TaskList workspace={workspace} />
+            <Box hidden={fullscreen}>
+              <TaskList workspace={workspace} />
+            </Box>
           </Grid>
         </Stack>
       </Container>
