@@ -214,14 +214,18 @@ function snapshotFiles(tree: string, directory: string) {
       path.includes("\ufffd") ||
       path
         .split("/")
-        .some((part) => ["..", ".git", "node_modules"].includes(part))
+        .some((part) =>
+          [".", "..", ".git", "node_modules"].includes(part.toLowerCase()),
+        )
     ) {
       throw new Error("Unsupported snapshot path")
     }
 
     const destination = join(directory, path)
     mkdirSync(dirname(destination), { recursive: true })
-    writeFileSync(destination, gitBytes(["cat-file", "blob", object]))
+    writeFileSync(destination, gitBytes(["cat-file", "blob", object]), {
+      flag: "wx",
+    })
     chmodSync(destination, mode === "100755" ? 0o755 : 0o644)
     files.push(path)
   }
@@ -298,7 +302,7 @@ async function checkSnapshot(tree: string) {
   }
 
   const policy = join(directory, ".snapshot-policy.toml")
-  writeFileSync(policy, expandedPolicy)
+  writeFileSync(policy, expandedPolicy, { flag: "wx" })
 
   const sourceFiles = files.filter((path) =>
     /\.(?:[cm]?js|jsx|ts|tsx)$/.test(path),
