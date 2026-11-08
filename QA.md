@@ -848,3 +848,68 @@ no-erasure behavior remain covered by QA-005.
 
 Unicode representation maps to QA-032. JSON parser policy maps to QA-033; strict
 DTO limits, normalization, and reference checks remain QA-023.
+
+### [ ] QA-034 — P0 — Prepared mutations cannot cross workspace owners
+
+- **Purpose:** Reject a command that was prepared for account A after the active
+  workspace changes to account B. Check the storage-lock boundary, not only the
+  route or form state. Cover task, project, template, settings, history, timer,
+  and bulk commands. This extends QA-017, QA-028, and QA-029.
+- **Prerequisites:** Use the shared isolated setup. Account switching and the
+  mutation-owner API must be complete. Use two test accounts in one browser
+  profile. Prepare the same valid workspace in both accounts with Settings
+  backup restore, so IDs and expected records match. Read the Playwriter
+  debugger guide before retaining a real command from its scope. Account login
+  and the command-capture procedure are not yet available; record the exact
+  source location and supported debugger call before QA.
+- **Inputs:** Use task title `Owner baseline`, project `Owner project`, and
+  template `Owner template`. Use the defaults for settings and an idle timer.
+  Keep the owner captured for A. Do not replace it with B's owner.
+- **Steps:**
+  1. Sign in as A. Open the relevant editor and prepare its command. Retain the
+     actual command and its captured owner with the debugger. Do not add a
+     source hook or replace the storage implementation.
+  2. Sign in as B in another tab. Return to the first tab and wait until it
+     identifies B. Check that A's open editor and text are no longer shown.
+  3. Save B's workspace before the retained command runs. Invoke the retained
+     command once. Repeat for each command family listed in Purpose, restoring
+     the same baseline between commands.
+  4. Read B's visible records and stored workspace again. Check A's stored
+     workspace too. Run an ordinary B command as a positive control.
+- **Expected results:** Each retained A command fails with a workspace-change
+  error. It makes no write in A or B and emits no timer completion, alarm, or
+  notification. The B control succeeds. Closing an old command must not close a
+  new B editor.
+- **Evidence:** Save sanitized before/after workspaces, the captured owner
+  generation, command names, visible error, and the B control result under
+  `qa-artifacts/qa-034/`. Inspect the records, not only promise resolution.
+- **Cleanup:** Remove the retained debugger references and isolated records.
+  Restore the initial account and settings. Keep production data unchanged.
+- **Status:** Pending. Account switching and a documented command-capture
+  procedure are execution prerequisites. No command has run.
+
+### [ ] QA-035 — P1 — Returning to an owner does not revive an old command
+
+- **Purpose:** Reject an old A command after an A → B → A switch. A matching
+  account ID must not revive a command from an earlier workspace generation.
+- **Prerequisites:** Use QA-034's isolated setup and command-capture procedure.
+  The first and last A workspace must have the same expected records.
+- **Inputs:** Retain A's prepared change of `Owner baseline` to `Old command`.
+  Keep its original owner object. Do not create a new owner for the command.
+- **Steps:**
+  1. Prepare and retain the A command as described in QA-034.
+  2. Switch to B and then back to A. Wait for each workspace to load.
+  3. Record the new A generation and invoke the retained command once.
+  4. Reload A and inspect the task. Save `Current command` from a newly opened A
+     editor as a positive control.
+- **Expected results:** The original owner is stale even though its account ID
+  matches. The task remains `Owner baseline` after rejection and reload. The
+  fresh command succeeds. No old editor or confirmation returns.
+- **Evidence:** Save the two A generation values, rejection, reload result, and
+  positive control under `qa-artifacts/qa-035/`. Do not save credentials.
+- **Cleanup:** Remove retained debugger references and isolated records.
+- **Status:** Pending. The QA-034 execution prerequisites still apply.
+
+**Ownership coverage map:** Original-owner enforcement maps to QA-034.
+Workspace-generation rejection maps to QA-035. Existing record-conflict,
+failed-load privacy, and backup cases remain QA-017, QA-028, and QA-029.
