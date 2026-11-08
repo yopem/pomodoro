@@ -33,8 +33,6 @@ import {
 } from "@/features/focus/store"
 import { useEventCallback } from "@/hooks/use-event-callback"
 
-const accountPortalProps = { keepMounted: true }
-
 interface BoundAccount {
   controller: AccountController
   owner: WorkspaceOwner
@@ -80,7 +78,7 @@ export function AccountControls({
       <DialogTrigger render={<Button variant="outline" size="xl" />}>
         {focus.owner.identity === null ? "Guest mode" : "Account"}
       </DialogTrigger>
-      <DialogPopup portalProps={accountPortalProps}>
+      <DialogPopup>
         <DialogHeader>
           <DialogTitle>Your workspace</DialogTitle>
           <DialogDescription>
