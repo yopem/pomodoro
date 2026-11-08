@@ -1,0 +1,10 @@
+set +x
+unset POMODORO_GIT_REMOTE_NAME POMODORO_GIT_REMOTE_URL
+if [ "${0##*/}" = "pre-push" ]; then
+  if [ "$#" -ne 2 ]; then
+    exit 1
+  fi
+  export POMODORO_GIT_REMOTE_NAME="$1"
+  export POMODORO_GIT_REMOTE_URL="$2"
+  set --
+fi

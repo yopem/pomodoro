@@ -1768,7 +1768,9 @@ do not survive a full page reload, which can require a new conflict review.
 - **Expected results:** Results belong to the staged tree, not dirty worktree
   sources or borrowed workspace symlinks. Required configuration receives
   explicit coverage. Native checks do not skip unsupported source silently.
-  Original content remains unchanged and temporary snapshots are removed.
+  Original content remains unchanged and temporary snapshots are removed after
+  success, failure, or ordinary SIGINT/SIGTERM. Owned check process groups stop
+  before cleanup. Hard-kill recovery is not an automatic cleanup guarantee.
 - **Evidence:** Save sanitized tree IDs, logs, dependency-link targets, and hash
   comparisons in `qa-artifacts/QA-062/`.
 - **Cleanup:** Remove only owned temporary snapshots and approved fixtures.
@@ -1798,5 +1800,6 @@ do not survive a full page reload, which can require a new conflict review.
 - **Evidence:** Save sanitized ref inputs, resolved commit/tree IDs, gate logs,
   and unchanged input hashes in `qa-artifacts/QA-063/`.
 - **Cleanup:** Remove only approved local transport fixtures and snapshots.
-- **Status:** pending; source implementation is in progress, and transport
-  fixtures remain unapproved.
+- **Status:** pending; snapshot source and the installed manager handoff are
+  present. Transport fixtures remain unapproved. Source review is not proof of
+  real multi-ref, tag, deletion, or interruption behavior.

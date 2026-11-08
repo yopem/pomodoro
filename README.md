@@ -46,6 +46,7 @@ The commands below use the repository root as their working directory.
 
 ```sh
 bun install --frozen-lockfile
+./node_modules/.bin/lefthook install
 test -e .env || cp .env.example .env
 chmod 600 .env
 ```
@@ -155,6 +156,12 @@ support and may need user activation or permission. The timer uses deadlines;
 background timer callbacks do not create invented chains of completed sessions.
 
 ## Static checks
+
+Git hooks use isolated snapshots. Commit checks use the staged tree; pushes to
+`origin` check each distinct pushed commit, including new branches and tags. The
+current snapshot runner needs a POSIX shell and process groups. It fails closed
+on unsupported platforms, refs, source formats, or missing tooling. Native
+snapshot checks do not start application services or replace runtime QA.
 
 ```sh
 bun run lint
