@@ -96,8 +96,6 @@
     }
   }
 
-  /* Base UI owns these measured transition containers. Viewport's render prop
-     targets the outer viewport, not its current/previous content wrappers. */
   :where([data-slot="popover-viewport"], [data-slot="tooltip-viewport"])
     :where([data-current], [data-previous]) {
     inline-size: calc(
