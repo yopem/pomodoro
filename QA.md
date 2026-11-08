@@ -1195,3 +1195,11 @@ Owner switches remain QA-034/035. Dialog focus and same-phase/paused-focus
 behavior remain QA-008/021. Exact-state ABA after restoring identical timer
 fields is not detected by state comparison; this fix adds no persisted timer
 revision or stronger ABA guarantee.
+
+Implementation checkpoint: `11736e4` adds the explicit expected-timer inputs,
+committed-control capture, and request-scoped confirmation handlers in
+`apps/web/src/features/focus/store.ts` and
+`apps/web/src/features/timer/components/focus-timer.tsx`. Scoped and repository
+lint, formatting, and workspace typechecks passed for this source. These are
+working-tree static checks, not proof of isolated hook snapshots or runtime
+behavior. QA-038 through QA-043 remain unchecked and pending browser approval.
