@@ -9,6 +9,8 @@ import type { WorkspaceOwner } from "@/features/focus/store"
 import { ConfirmAction } from "@/components/confirm-action"
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
+import { Card, CardPanel } from "@/components/ui/card"
+import { Container } from "@/components/ui/container"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
@@ -20,7 +22,6 @@ import {
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { TemplateForm } from "@/features/templates/components/template-form"
-import { appStyles } from "@/styles/app.stylex"
 
 type TemplateAction =
   | { kind: "create"; copyTasks: boolean }
@@ -131,80 +132,85 @@ export function TemplatesRoute() {
 
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
-      <Stack xstyle={appStyles.page}>
-        <HStack xstyle={appStyles.pageHeader}>
-          <Stack xstyle={appStyles.compact}>
-            <Heading render={<h1>Templates</h1>} />
-            <Text xstyle={appStyles.muted}>
-              Save task collections for another day.
-            </Text>
-          </Stack>
-          <HStack xstyle={appStyles.row}>
-            <Button
-              disabled={!hydrated || pending}
-              onClick={events.createBlank}
-            >
-              New template
-            </Button>
-            <Button
-              variant="outline"
-              disabled={!hydrated || pending || workspace.tasks.length === 0}
-              onClick={events.copyTasks}
-            >
-              Copy current tasks
-            </Button>
-          </HStack>
-        </HStack>
-        {feedback.error && (
-          <Text role="alert" xstyle={appStyles.error}>
-            {feedback.error}
-          </Text>
-        )}
-        {feedback.applied && (
-          <output>
-            Added tasks from {feedback.applied}. <Link to="/">Go to timer</Link>
-          </output>
-        )}
-        {workspace.templates.length === 0 && (
-          <Text>No templates yet. Create one to reuse a task collection.</Text>
-        )}
-        {workspace.templates.map((template) => (
-          <Stack key={template.id} xstyle={appStyles.section}>
-            <Heading render={<h2>{template.name}</h2>} />
-            <Text>
-              {template.tasks.length}{" "}
-              {template.tasks.length === 1 ? "task" : "tasks"}
-            </Text>
-            <HStack xstyle={appStyles.row}>
+      <Container variant="workspace">
+        <Stack spacing="page">
+          <HStack layout="pageHeader">
+            <Stack spacing="compact">
+              <Heading render={<h1>Templates</h1>} />
+              <Text tone="muted">Save task collections for another day.</Text>
+            </Stack>
+            <HStack layout="row">
               <Button
                 disabled={!hydrated || pending}
-                value={template.id}
-                onClick={events.apply}
+                onClick={events.createBlank}
               >
-                Apply
+                New template
               </Button>
               <Button
                 variant="outline"
-                value={template.id}
-                disabled={pending}
-                onClick={events.edit}
+                disabled={!hydrated || pending || workspace.tasks.length === 0}
+                onClick={events.copyTasks}
               >
-                Edit
+                Copy current tasks
               </Button>
-              <ConfirmAction
-                title="Delete template"
-                description={`Delete ${template.name}? Existing tasks will remain.`}
-                targetId={template.id}
-                data={template}
-                owner={owner}
-                onConfirm={removeTemplate}
-              >
-                Delete
-              </ConfirmAction>
             </HStack>
-          </Stack>
-        ))}
-      </Stack>
+          </HStack>
+          {feedback.error && (
+            <Text role="alert" tone="destructive">
+              {feedback.error}
+            </Text>
+          )}
+          {feedback.applied && (
+            <output>
+              Added tasks from {feedback.applied}.{" "}
+              <Link to="/">Go to timer</Link>
+            </output>
+          )}
+          {workspace.templates.length === 0 && (
+            <Text>
+              No templates yet. Create one to reuse a task collection.
+            </Text>
+          )}
+          {workspace.templates.map((template) => (
+            <Card key={template.id}>
+              <CardPanel render={<Stack />}>
+                <Heading render={<h2>{template.name}</h2>} />
+                <Text>
+                  {template.tasks.length}{" "}
+                  {template.tasks.length === 1 ? "task" : "tasks"}
+                </Text>
+                <HStack layout="row">
+                  <Button
+                    disabled={!hydrated || pending}
+                    value={template.id}
+                    onClick={events.apply}
+                  >
+                    Apply
+                  </Button>
+                  <Button
+                    variant="outline"
+                    value={template.id}
+                    disabled={pending}
+                    onClick={events.edit}
+                  >
+                    Edit
+                  </Button>
+                  <ConfirmAction
+                    title="Delete template"
+                    description={`Delete ${template.name}? Existing tasks will remain.`}
+                    targetId={template.id}
+                    data={template}
+                    owner={owner}
+                    onConfirm={removeTemplate}
+                  >
+                    Delete
+                  </ConfirmAction>
+                </HStack>
+              </CardPanel>
+            </Card>
+          ))}
+        </Stack>
+      </Container>
       {open && editing && (
         <TemplateForm
           template={editing}
