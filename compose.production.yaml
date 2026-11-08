@@ -1,0 +1,86 @@
+services:
+  api:
+    platform: linux/amd64
+    build:
+      context:
+        ${CONTAINER_CONTEXT:?Set CONTAINER_CONTEXT to the clean archived
+        context}
+      dockerfile_inline: |
+        FROM rust:1.97.1-bookworm@sha256:408fe88047cef61a2087653b0c5255fa51c0f2d6d94ddedd7a2562a9b91a46f6 AS build
+        WORKDIR /app
+        COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
+        COPY apps/server ./apps/server
+        COPY crates ./crates
+        RUN cargo build --release --locked --jobs 2 -p pomodoro-server --bin pomodoro-server -p pomodoro-migration --bin pomodoro-migration
+        FROM debian:bookworm-slim@sha256:c67e92c8099ba22853ab4cfda7cfb494d253d6012ca82dee98ba8976772af018
+        COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+        COPY --from=build /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/x86_64-linux-gnu/libgcc_s.so.1
+        COPY --from=build /app/target/release/pomodoro-server /usr/local/bin/pomodoro-server
+        COPY --from=build /app/target/release/pomodoro-migration /usr/local/bin/pomodoro-migration
+        USER 65532:65532
+        CMD ["pomodoro-server"]
+    environment:
+      NODE_ENV: production
+      BIND_ADDR: 0.0.0.0:18001
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
+      AUTH_CLIENT_ID: ${AUTH_CLIENT_ID:?Set AUTH_CLIENT_ID}
+      AUTH_SESSION_KEY: ${AUTH_SESSION_KEY:?Set AUTH_SESSION_KEY}
+      TRUSTED_PROXY_IPS: ${TRUSTED_PROXY_IPS:?Set exact trusted edge peer IPs}
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 50s
+    networks:
+      - edge
+
+  web:
+    platform: linux/amd64
+    build:
+      context:
+        ${CONTAINER_CONTEXT:?Set CONTAINER_CONTEXT to the clean archived
+        context}
+      args:
+        PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN}
+      dockerfile_inline: |
+        FROM rust:1.97.1-bookworm@sha256:408fe88047cef61a2087653b0c5255fa51c0f2d6d94ddedd7a2562a9b91a46f6 AS build
+        COPY .container/bun /usr/local/bin/bun
+        RUN echo '14f268816e1b6a412d3715d8b9820bdb3030386ffdd35c46da1446898e0091c4  /usr/local/bin/bun' | sha256sum -c - && chmod 755 /usr/local/bin/bun && test "$$(bun --version)" = '1.4.4' && test "$$(bun --revision)" = '1.4.4-canary.1+a8fcd319b'
+        WORKDIR /app
+        COPY package.json bun.lock bunfig.toml bun-toolchain.json tsconfig.json turbo.json ./
+        COPY apps/web ./apps/web
+        COPY apps/server/package.json ./apps/server/package.json
+        COPY packages ./packages
+        RUN bun install --frozen-lockfile
+        ARG PUBLIC_ORIGIN
+        RUN test -n "$$PUBLIC_ORIGIN" && NODE_ENV=production bun run --cwd apps/web build
+        FROM debian:bookworm-slim@sha256:c67e92c8099ba22853ab4cfda7cfb494d253d6012ca82dee98ba8976772af018
+        COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+        COPY --from=build /lib/x86_64-linux-gnu/libgcc_s.so.1 /lib/x86_64-linux-gnu/libgcc_s.so.1
+        COPY --from=build /usr/local/bin/bun /usr/local/bin/bun
+        WORKDIR /app
+        COPY --from=build /app/apps/web/.output ./.output
+        USER 65532:65532
+        CMD ["bun", "--no-env-file", ".output/server/index.mjs"]
+    environment:
+      NODE_ENV: production
+      NITRO_HOST: 0.0.0.0
+      NITRO_PORT: "13001"
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?Set PUBLIC_ORIGIN}
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    networks:
+      - edge
+
+networks:
+  edge:
+    external: true
+    name:
+      ${PRIVATE_NETWORK:?Set PRIVATE_NETWORK to an isolated existing network}

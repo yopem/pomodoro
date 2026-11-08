@@ -202,15 +202,107 @@ cargo run --locked -p pomodoro-server --bin export-openapi > docs/openapi.json &
 
 Do not edit generated types or `routeTree.gen.ts` by hand.
 
+## Production containers
+
+`compose.production.yaml` defines separate Linux amd64 API and Bun SSR images.
+It does not create a database or a public edge. Prepare an approved external
+HTTPS edge and an isolated existing container network before deployment. Do not
+publish the API or web ports. Give the edge access to the network and route
+`/api`, `/auth`, `/openapi.json`, `/health`, and `/ready`, including applicable
+subpaths, to `api:18001` before routing other paths to `web:13001`. Preserve
+methods, paths, cookies, and response headers. Unknown backend paths must reach
+the API, not SSR.
+
+The edge must overwrite `X-Forwarded-For` with exactly one verified client IP.
+Set `TRUSTED_PROXY_IPS` to the exact private socket IP addresses used by that
+edge, not a subnet. Reject direct public access to both services. Use an
+explicit, non-overlapping private subnet and fixed edge addresses in the
+external network. Do not trust incoming forwarded headers at the edge. Verify
+the network's actual peer addresses and the edge behavior before release. Build
+only from a reviewed commit with the trusted-proxy implementation.
+
+Prepare the context from a reviewed commit, not the live working tree. From the
+repository root on a Linux amd64 host, with the trusted installed Bun on `PATH`.
+Stop if any command fails:
+
+```sh
+REPO=$(pwd -P)
+CONTAINER_CONTEXT=$(mktemp -d /tmp/pomodoro-context.XXXXXXXX)
+chmod 700 "$CONTAINER_CONTEXT"
+git archive HEAD -o "$CONTAINER_CONTEXT/source.tar" &&
+  tar -xf "$CONTAINER_CONTEXT/source.tar" -C "$CONTAINER_CONTEXT" &&
+  rm "$CONTAINER_CONTEXT/source.tar"
+mkdir -m 700 "$CONTAINER_CONTEXT/.container"
+cp -L "$(command -v bun)" "$CONTAINER_CONTEXT/.container/bun"
+chmod 755 "$CONTAINER_CONTEXT/.container/bun"
+printf '%s  %s\n' \
+  14f268816e1b6a412d3715d8b9820bdb3030386ffdd35c46da1446898e0091c4 \
+  "$CONTAINER_CONTEXT/.container/bun" | sha256sum -c -
+```
+
+The archive contains committed files only. It excludes the untracked `.env`, Git
+history, local QA artifacts, and `node_modules`. Review the commit and archive
+contents before building; do not add secrets or other local files to the
+context. The build checks the supplied Bun checksum, version `1.4.4`, and
+revision `1.4.4-canary.1+a8fcd319b`. These trusted host bytes do not establish
+an independently retrievable official artifact or its provenance. No runtime pin
+or global installation is changed. The pinned image digests fix Linux amd64
+manifests, but network dependency downloads and system libraries still need
+release verification.
+
+Create a private Compose env file outside the repository. Use a secret manager
+or a secure editor to set `PUBLIC_ORIGIN`, `DATABASE_URL`, `AUTH_CLIENT_ID`,
+`AUTH_SESSION_KEY`, `TRUSTED_PROXY_IPS`, and `PRIVATE_NETWORK`. Set
+`PUBLIC_ORIGIN` to the approved HTTPS origin and use the same value for each
+build and deployment. Use the approved issuer client and a stable session key.
+`PRIVATE_NETWORK` is the name of the existing isolated network. Do not use the
+repository `.env` or put secrets in build arguments.
+
+```sh
+PRODUCTION_ENV=$(mktemp /tmp/pomodoro-compose-env.XXXXXXXX)
+chmod 600 "$PRODUCTION_ENV"
+printf 'CONTAINER_CONTEXT=%s\n' "$CONTAINER_CONTEXT" > "$PRODUCTION_ENV"
+```
+
+Add the settings above to that file without printing secrets. Shell environment
+variables normally override Compose env-file values; the commands below clear
+them to prevent accidental overrides. Run them only after approval. They always
+select the explicit env file and project directory, so Compose does not load the
+repository `.env` implicitly:
+
+```sh
+env -i PATH="$PATH" HOME="$HOME" docker compose \
+  --project-directory "$CONTAINER_CONTEXT" --env-file "$PRODUCTION_ENV" \
+  -f "$REPO/compose.production.yaml" build
+
+env -i PATH="$PATH" HOME="$HOME" docker compose \
+  --project-directory "$CONTAINER_CONTEXT" --env-file "$PRODUCTION_ENV" \
+  -f "$REPO/compose.production.yaml" up -d
+```
+
+The API image also contains `pomodoro-migration`. Migrations never run on
+startup. After backup and explicit approval of the database target, invoke
+`docker compose` with the same options and
+`run --rm --no-deps api pomodoro-migration up`. This changes the database. The
+API has a 50-second stop grace period for its 35-second request drain and
+10-second database close. Remove the private env file and context when they are
+no longer needed.
+
+These recipes and the external edge need the separate `QA-072` runtime pass.
+Verify image libraries and CA roots, TLS, read-only operation, listeners,
+standalone SSR assets, routing, proxy identity, shutdown, and migration behavior
+before release. The env file and container environment contain secrets; protect
+both and do not publish `docker compose config` output from real settings.
+
 ## Release constraints
 
 Use HTTPS and a clean `PUBLIC_ORIGIN` in production. Route `/api`, `/auth`,
 `/openapi.json`, `/health`, and `/ready` to Axum before the SSR fallback. Keep
 web SSR and the API as separate processes behind one browser origin.
 
-Application builds, service startup, database migrations, live issuer
-compatibility, and browser QA have not been validated in this implementation
-pass. Complete their cases in `QA.md` before release.
+See `QA.md` for the current release checks and evidence. Successful builds and
+isolated local checks do not establish live issuer compatibility or production
+readiness. Complete the remaining cases before release.
 
 Uncertain save and import facts survive in-memory account changes, not a full
 page reload. A reload can require a fresh conflict review. Browser storage is
