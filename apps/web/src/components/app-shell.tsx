@@ -5,7 +5,6 @@ import { Link } from "@tanstack/react-router"
 import { TimerIcon } from "lucide-react"
 
 import { Box } from "@/components/ui/box"
-import { Button } from "@/components/ui/button"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
@@ -53,10 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             </HStack>
           </Box>
-          <Button
-            variant="outline"
-            render={<a href="/auth/login">Sign in</a>}
-          />
+          <Text>Guest mode</Text>
         </HStack>
       </Box>
       {snapshot.error && <Text role="alert">{snapshot.error}</Text>}
@@ -67,9 +63,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Box render={<footer />}>
         <Stack>
           <PwaUpdates />
-          <Text>
-            Guest work stays on this device. Export a backup in Settings.
-          </Text>
+          <Text>Export a backup in Settings.</Text>
         </Stack>
       </Box>
     </Stack>
