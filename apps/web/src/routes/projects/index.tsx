@@ -47,7 +47,12 @@ import {
 import { formatFocusTime } from "@/lib/focus-time"
 
 export const Route = createFileRoute("/projects/")({
-  head: () => ({ meta: [{ title: "Projects — Pomodoro" }] }),
+  head: () => ({
+    meta: [
+      { title: "Projects — Pomodoro" },
+      { name: "description", content: "Organize focus tasks by project." },
+    ],
+  }),
   component: ProjectsRoute,
 })
 

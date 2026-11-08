@@ -39,6 +39,7 @@ export const Route = createRootRouteWithContext<{
         name: "description",
         content: "Plan tasks, focus in intervals, and track your time.",
       },
+      { name: "robots", content: "noindex, nofollow" },
       { name: "page-type", content: "software" },
       { name: "site-kind", content: "software" },
       { name: "theme-color", content: "#173f35" },
