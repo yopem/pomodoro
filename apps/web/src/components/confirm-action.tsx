@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Text } from "@/components/ui/text"
+import { useEventCallback } from "@/hooks/use-event-callback"
 
 export function ConfirmAction<T, Owner>({
   title,
@@ -32,27 +33,83 @@ export function ConfirmAction<T, Owner>({
   owner: Owner
   onConfirm: (id: string, data: T, owner: Owner) => Promise<void>
 }) {
-  const [open, setOpen] = useState(false)
+  const nextId = useRef(0)
+
+  const [opening, setOpening] = useState<{
+    id: number
+    open: boolean
+    targetId: string
+    data: T
+    owner: Owner
+    onConfirm: typeof onConfirm
+  } | null>(null)
+
+  const changeOpen = useEventCallback((open: boolean) => {
+    if (open) {
+      nextId.current += 1
+      setOpening({ id: nextId.current, open, targetId, data, owner, onConfirm })
+    } else {
+      setOpening((current) => current && { ...current, open: false })
+    }
+  })
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={opening?.open ?? false} onOpenChange={changeOpen}>
       <DialogTrigger
         render={<Button variant="destructive-outline" size="sm" />}
       >
         {children}
       </DialogTrigger>
-      {open && (
-        <ConfirmationContent
+      {opening && (
+        <ScopedConfirmationContent
+          key={opening.id}
           title={title}
           description={description}
-          targetId={targetId}
-          data={data}
-          owner={owner}
-          onConfirm={onConfirm}
-          onOpenChange={setOpen}
+          opening={opening}
+          setOpening={setOpening}
         />
       )}
     </Dialog>
+  )
+}
+
+export function ScopedConfirmationContent<T, Owner>({
+  title,
+  description,
+  opening,
+  setOpening,
+}: {
+  title: string
+  description: string
+  opening: {
+    id: number
+    open: boolean
+    targetId: string
+    data: T
+    owner: Owner
+    onConfirm: (id: string, data: T, owner: Owner) => Promise<void>
+  }
+  setOpening: React.Dispatch<React.SetStateAction<typeof opening | null>>
+}) {
+  const [close] = useState(
+    () =>
+      function closeMatchingOpening(open: boolean) {
+        setOpening((current) =>
+          current?.id === opening.id ? { ...current, open } : current,
+        )
+      },
+  )
+
+  return (
+    <ConfirmationContent
+      title={title}
+      description={description}
+      targetId={opening.targetId}
+      data={opening.data}
+      owner={opening.owner}
+      onConfirm={opening.onConfirm}
+      onOpenChange={close}
+    />
   )
 }
 
