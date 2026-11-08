@@ -66,7 +66,6 @@ export function ReportHistory({
   rangeLabel,
   hourFormat,
   onEdit,
-  onOpenChange,
 }: {
   history: Session[]
   total: number
@@ -74,8 +73,7 @@ export function ReportHistory({
   pages: number
   rangeLabel: string
   hourFormat: "12h" | "24h"
-  onEdit: (session: Session | null) => void
-  onOpenChange: (open: boolean) => void
+  onEdit: (session: Session) => void
 }) {
   const navigate = useNavigate({ from: "/reports/" })
   const owner = useWorkspaceMutationOwner()
@@ -85,10 +83,7 @@ export function ReportHistory({
       if (action.kind === "edit") {
         const session = history.find((item) => item.id === action.id)
 
-        if (session) {
-          onEdit(session)
-          onOpenChange(true)
-        }
+        if (session) onEdit(session)
 
         return null
       }

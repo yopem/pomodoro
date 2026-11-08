@@ -69,8 +69,11 @@ function selectProjectSessions(
 export function ReportsRoute() {
   const { workspace, hydrated, nowMs } = useFocusSnapshot((value) => value)
   const search = Route.useSearch()
-  const [editorOpen, setEditorOpen] = useState(false)
-  const [editing, setEditing] = useState<Session | null>(null)
+
+  const [editing, setEditing] = useState<{
+    id: string
+    session: Session | null
+  } | null>(null)
 
   const [projectSelection, setProjectSelection] = useState(() =>
     selectProjectSessions(workspace.sessions, search.project),
@@ -86,11 +89,24 @@ export function ReportsRoute() {
     setProjectSelection(selected)
   }
 
-  const [addFocus] = useState(function createAddFocus() {
-    return function addFocus() {
-      setEditing(null)
-      setEditorOpen(true)
+  const [editorEvents] = useState(function createEditorEvents() {
+    function addFocus() {
+      setEditing({ id: crypto.randomUUID(), session: null })
     }
+
+    function editFocus(session: Session) {
+      setEditing({ id: crypto.randomUUID(), session })
+    }
+
+    function closeEditor(id: string) {
+      setEditing((current) => (current?.id === id ? null : current))
+    }
+
+    function changeOpen(open: boolean) {
+      if (!open) setEditing(null)
+    }
+
+    return { addFocus, editFocus, closeEditor, changeOpen }
   })
 
   if (!hydrated)
@@ -150,7 +166,7 @@ export function ReportsRoute() {
             </Stack>
             <HStack layout="row">
               <CsvExport sessions={projectSessions} range={range} />
-              <Button onClick={addFocus}>
+              <Button onClick={editorEvents.addFocus}>
                 <PlusIcon size={18} aria-hidden="true" /> Add focus time
               </Button>
             </HStack>
@@ -238,25 +254,27 @@ export function ReportsRoute() {
             pages={pages}
             rangeLabel={rangeLabel}
             hourFormat={workspace.settings.hour_format}
-            onEdit={setEditing}
-            onOpenChange={setEditorOpen}
+            onEdit={editorEvents.editFocus}
           />
         </Stack>
       </Container>
-      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+      <Dialog open={editing !== null} onOpenChange={editorEvents.changeOpen}>
         <DialogPopup>
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Edit focus record" : "Add focus time"}
+              {editing?.session ? "Edit focus record" : "Add focus time"}
             </DialogTitle>
           </DialogHeader>
-          <SessionEditor
-            key={editing?.id ?? "new"}
-            session={editing}
-            projects={workspace.projects}
-            date={dateText}
-            onOpenChange={setEditorOpen}
-          />
+          {editing && (
+            <SessionEditor
+              key={editing.id}
+              openingId={editing.id}
+              session={editing.session}
+              projects={workspace.projects}
+              date={dateText}
+              onClose={editorEvents.closeEditor}
+            />
+          )}
         </DialogPopup>
       </Dialog>
     </Box>

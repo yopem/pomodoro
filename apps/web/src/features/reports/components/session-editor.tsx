@@ -48,15 +48,17 @@ const entrySchema = z
   })
 
 export function SessionEditor({
+  openingId,
   session,
   projects,
   date,
-  onOpenChange,
+  onClose,
 }: {
+  openingId: string
   session: Session | null
   projects: readonly Project[]
   date: string
-  onOpenChange: (open: boolean) => void
+  onClose: (id: string) => void
 }) {
   const owner = useWorkspaceMutationOwner()
   const [error, setError] = useState<string | null>(null)
@@ -119,7 +121,7 @@ export function SessionEditor({
           },
           { owner },
         )
-        onOpenChange(false)
+        onClose(openingId)
       } catch (cause) {
         setError(
           cause instanceof Error
@@ -163,7 +165,7 @@ export function SessionEditor({
     }
 
     function cancel() {
-      onOpenChange(false)
+      onClose(openingId)
     }
 
     return {

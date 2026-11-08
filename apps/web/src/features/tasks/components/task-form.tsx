@@ -1,4 +1,4 @@
-import type { ChangeEvent, Dispatch, FormEvent, SetStateAction } from "react"
+import type { ChangeEvent, FormEvent } from "react"
 
 import { useForm } from "@tanstack/react-form"
 import { useRef, useState } from "react"
@@ -52,15 +52,17 @@ function selectSubmitting(state: { isSubmitting: boolean }) {
 }
 
 export function TaskForm({
+  openingId,
   task,
   currentTask,
   projects,
-  setEditing,
+  onClose,
 }: {
+  openingId: string
   task: Task | null
   currentTask: Task | undefined
   projects: Project[]
-  setEditing: Dispatch<SetStateAction<Task | "new" | null>>
+  onClose: (id: string) => void
 }) {
   const owner = useWorkspaceMutationOwner()
   const formRef = useRef<HTMLFormElement>(null)
@@ -103,7 +105,7 @@ export function TaskForm({
           },
           { owner },
         )
-        setEditing(null)
+        onClose(openingId)
       } catch (cause) {
         setError(
           cause instanceof Error ? cause.message : "Could not save the task",
@@ -114,7 +116,7 @@ export function TaskForm({
 
   const [events] = useState(function createTaskFormEvents() {
     function close() {
-      setEditing(null)
+      onClose(openingId)
     }
 
     function changeOpen(open: boolean) {

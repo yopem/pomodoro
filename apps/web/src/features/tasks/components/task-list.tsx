@@ -221,7 +221,11 @@ export function TaskRow({
 
 export function TaskList({ workspace }: { workspace: Workspace }) {
   const owner = useWorkspaceMutationOwner()
-  const [editing, setEditing] = useState<Task | "new" | null>(null)
+
+  const [editing, setEditing] = useState<{
+    id: string
+    task: Task | "new"
+  } | null>(null)
 
   const [confirmation, setConfirmation] = useState<TaskConfirmation | null>(
     null,
@@ -300,7 +304,15 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
     }
 
     function addTask() {
-      setEditing("new")
+      setEditing({ id: crypto.randomUUID(), task: "new" })
+    }
+
+    function editTask(task: Task) {
+      setEditing({ id: crypto.randomUUID(), task })
+    }
+
+    function closeEditor(id: string) {
+      setEditing((current) => (current?.id === id ? null : current))
     }
 
     function clearCompleted() {
@@ -326,6 +338,8 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
     return {
       toggleHidden,
       addTask,
+      editTask,
+      closeEditor,
       clearCompleted,
       clearActual,
       clearAll,
@@ -334,6 +348,7 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
     }
   })
 
+  const editingTask = editing?.task === "new" ? null : editing?.task
   const request = confirmation?.request
 
   let description =
@@ -406,7 +421,7 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
                       index={index}
                       workspace={workspace}
                       busy={busy}
-                      onEdit={setEditing}
+                      onEdit={events.editTask}
                       onConfirm={setConfirmation}
                     />
                   ))}
@@ -445,14 +460,12 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
       </Stack>
       {editing !== null && (
         <TaskForm
-          task={editing === "new" ? null : editing}
-          currentTask={
-            editing === "new"
-              ? undefined
-              : tasks.find((task) => task.id === editing.id)
-          }
+          key={editing.id}
+          openingId={editing.id}
+          task={editingTask ?? null}
+          currentTask={tasks.find((task) => task.id === editingTask?.id)}
           projects={workspace.projects}
-          setEditing={setEditing}
+          onClose={events.closeEditor}
         />
       )}
       <ConfirmAction
