@@ -118,7 +118,7 @@ actual result, and evidence path when a case runs.
 | Requirement or workflow                              | Pending or historical coverage                    |
 | ---------------------------------------------------- | ------------------------------------------------- |
 | Native tooling and required plugin support           | QA-001; historical compatibility result QA-002    |
-| Isolated staged and actual-origin push snapshots     | QA-062, QA-063                                    |
+| Isolated staged and actual-origin push snapshots     | QA-062, QA-063, QA-064, QA-065                    |
 | UI, StyleX, framework setup and component contracts  | QA-003, QA-021, QA-024, QA-036                    |
 | Timer completion, persistence and fractional timing  | QA-006–008, QA-027, QA-038–043                    |
 | Tasks, ordering, notes and finish estimates          | QA-009, QA-046, QA-050                            |
@@ -1022,7 +1022,9 @@ QA-024. Browser and build checks remain pending and need approval.
   nonce; the two response nonces differ. Hydration and the theme script run
   without nonce violations or hydration errors. The script without a nonce is
   blocked, its flag is not true, and its expected CSP violation is distinct from
-  normal application errors. No relaxed script directive is needed.
+  normal application errors. No relaxed script directive is needed. Scripts,
+  images, and connections allow no unused analytics host. No provider module
+  loads or sends data unless a separate integration is implemented.
 - **Evidence:** Save sanitized HTML, CSP and cache headers, browser logs, and
   screenshots under `qa-artifacts/QA-037/`. Exclude cookies, authorization
   headers, and unrelated browser data. Inspect nonce matching per response,
@@ -1774,8 +1776,13 @@ do not survive a full page reload, which can require a new conflict review.
 - **Evidence:** Save sanitized tree IDs, logs, dependency-link targets, and hash
   comparisons in `qa-artifacts/QA-062/`.
 - **Cleanup:** Remove only owned temporary snapshots and approved fixtures.
-- **Status:** pending; previous hooks do not establish this isolation. Record
-  source repair and actual native snapshot coverage separately from fixtures.
+- **Status:** pending. Commit `9265d6d` passed the real isolated pre-commit gate
+  at tree `a347fa11856d7861b256d5b9b3279841a132a339`. Evidence is
+  `/tmp/pomodoro-isolated-hook-commit.txt`; all 145 protected workspace file
+  digests stayed unchanged and the snapshot was removed. The earlier manual gate
+  also preserved original index bytes. Deliberate opposing-stage and
+  interruption fixtures have not run; these facts do not mark the full case
+  passed.
 
 ### [ ] QA-063 — P1 — Push checks cover each actual origin tip
 
@@ -1803,3 +1810,50 @@ do not survive a full page reload, which can require a new conflict review.
 - **Status:** pending; snapshot source and the installed manager handoff are
   present. Transport fixtures remain unapproved. Source review is not proof of
   real multi-ref, tag, deletion, or interruption behavior.
+
+### [ ] QA-064 — P0 — Push metadata does not enter shell text or logs
+
+- **Purpose:** Keep remote credentials and shell syntax out of hook command
+  expansion and verbose tracing.
+- **Prerequisites:** Explicit approval for a disposable local hook-transport
+  fixture. Use the pinned manager and installed rc handoff. Never use a real
+  remote credential or perform a real network push for this case.
+- **Inputs:** `LEFTHOOK_VERBOSE=1`; raw remote name `origin`; the fake URL
+  `https://qa064:qa064-marker@example.invalid/$(printf qa064-evaluated)`; valid
+  ref stdin from the fixture's isolated commit. These marker values are not
+  credentials. Do not connect to this URL.
+- **Steps:** 1. Record the local fixture's files and sanitized marker. 2. Invoke
+  its installed pre-push hook with the synthetic raw arguments and ref stdin,
+  not a real transport. 3. Inspect hook output and generated child command
+  arguments, not the original Git protocol input. 4. Confirm the marker was
+  neither evaluated nor echoed and the intended origin commit still received the
+  complete snapshot gate.
+- **Expected results:** The rc stops tracing before exporting raw arguments,
+  clears those original positional arguments before Lefthook, and passes only
+  constant script arguments. No synthetic credential appears in hook logs or
+  command text; shell punctuation has no executable effect. Missing capture
+  fails closed rather than silently passing origin checks.
+- **Evidence:** Save redacted output, argument observations, and unchanged file
+  hashes in `qa-artifacts/QA-064/`.
+- **Cleanup:** Remove only the approved disposable fixture and its artifacts.
+- **Status:** pending; source guards are implemented, but no transport fixture
+  or credential-logging experiment has run.
+
+### [ ] QA-065 — P1 — Snapshot export never replaces a tracked file
+
+- **Purpose:** Fail closed when a tracked source file uses the reserved policy
+  path. Never validate replacement bytes that differ from the Git tree.
+- **Prerequisites:** Explicit fixture approval and a disposable local repository
+  with the real pinned tools. Do not add fixture files to this application.
+- **Inputs:** A staged root `.snapshot-policy.toml` containing
+  `sentinel = "qa065"`. Record its Git blob and worktree digest.
+- **Steps:** 1. Add the sentinel only in the approved disposable repository. 2.
+  Invoke its installed pre-commit gate. 3. Inspect the exit status, sentinel
+  digests, and temporary-directory cleanup.
+- **Expected results:** Exclusive file creation rejects the collision. The gate
+  fails rather than replacing the source with its derived policy. The original
+  staged and worktree contents remain unchanged. No success result is issued.
+- **Evidence:** Save sanitized output, object IDs, file hashes, and cleanup
+  observations under `qa-artifacts/QA-065/`.
+- **Cleanup:** Remove only the approved disposable fixture and artifacts.
+- **Status:** pending; no collision fixture has run.
