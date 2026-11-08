@@ -11,6 +11,8 @@ import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
 import { Card, CardPanel } from "@/components/ui/card"
 import { Container } from "@/components/ui/container"
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty"
+import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
@@ -166,49 +168,67 @@ export function TemplatesRoute() {
               <Link to="/">Go to timer</Link>
             </output>
           )}
-          {workspace.templates.length === 0 && (
-            <Text>
-              No templates yet. Create one to reuse a task collection.
-            </Text>
-          )}
-          {workspace.templates.map((template) => (
-            <Card key={template.id}>
-              <CardPanel render={<Stack />}>
-                <Heading render={<h2>{template.name}</h2>} />
-                <Text>
-                  {template.tasks.length}{" "}
-                  {template.tasks.length === 1 ? "task" : "tasks"}
-                </Text>
-                <HStack layout="row">
-                  <Button
-                    disabled={!hydrated || pending}
-                    value={template.id}
-                    onClick={events.apply}
-                  >
-                    Apply
-                  </Button>
-                  <Button
-                    variant="outline"
-                    value={template.id}
-                    disabled={pending}
-                    onClick={events.edit}
-                  >
-                    Edit
-                  </Button>
-                  <ConfirmAction
-                    title="Delete template"
-                    description={`Delete ${template.name}? Existing tasks will remain.`}
-                    targetId={template.id}
-                    data={template}
-                    owner={owner}
-                    onConfirm={removeTemplate}
-                  >
-                    Delete
-                  </ConfirmAction>
-                </HStack>
+          {workspace.templates.length === 0 ? (
+            <Card>
+              <CardPanel>
+                <Empty>
+                  <EmptyHeader>
+                    <Heading>No templates yet</Heading>
+                    <EmptyDescription>
+                      Create one to reuse a task collection.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
               </CardPanel>
             </Card>
-          ))}
+          ) : (
+            <Box render={<section aria-label="Template list" />}>
+              <Grid variant="workspace">
+                {workspace.templates.map((template) => (
+                  <Card key={template.id}>
+                    <CardPanel density="compact" render={<Stack />}>
+                      <Stack spacing="compact">
+                        <Heading render={<h2>{template.name}</h2>} />
+                        <Text size="small" tone="muted">
+                          {template.tasks.length}{" "}
+                          {template.tasks.length === 1 ? "task" : "tasks"}
+                        </Text>
+                      </Stack>
+                      <HStack layout="row">
+                        <Button
+                          size="sm"
+                          disabled={!hydrated || pending}
+                          value={template.id}
+                          onClick={events.apply}
+                        >
+                          Apply
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          value={template.id}
+                          disabled={pending}
+                          onClick={events.edit}
+                        >
+                          Edit
+                        </Button>
+                        <ConfirmAction
+                          title="Delete template"
+                          description={`Delete ${template.name}? Existing tasks will remain.`}
+                          targetId={template.id}
+                          data={template}
+                          owner={owner}
+                          onConfirm={removeTemplate}
+                        >
+                          Delete
+                        </ConfirmAction>
+                      </HStack>
+                    </CardPanel>
+                  </Card>
+                ))}
+              </Grid>
+            </Box>
+          )}
         </Stack>
       </Container>
       {open && editing && (
