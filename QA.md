@@ -1367,3 +1367,75 @@ behavior. QA-038 through QA-043 remain unchecked and pending browser approval.
 - **Cleanup:** Restore fixture preferences and backups, remove isolated records,
   and close only case tabs. Keep sanitized evidence.
 - **Status:** pending; no browser, validator, or sync scenario has run.
+
+## Pomofocus feature and reverse-engineering tracker
+
+This is an implementation tracker, not a record of passed QA. `Source present`
+means code exists. It does not mean integrated, committed, or runtime verified.
+Keep each row current as implementation and reference research continue.
+
+### Release scope and implementation
+
+| Priority | Feature                                     | Current implementation                                     | Remaining work                                                              | QA cases                               |
+| -------- | ------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------- |
+| P1       | Use without login                           | Source present: local guest workspace                      | Verify recovery, offline use, and persistence                               | QA-004, QA-005, QA-020                 |
+| P1       | Focus, short break, long break              | Source present                                             | Verify timing and transitions                                               | QA-006, QA-027, QA-038–043             |
+| P1       | Custom durations and break interval         | Source present                                             | Verify boundary values and saved settings                                   | QA-014, QA-027                         |
+| P1       | Pause, resume, reset, skip                  | Source present with original-state guards                  | Verify concurrency, elapsed accounting, and focus return                    | QA-027, QA-038–043                     |
+| P1       | Task estimates, actual counts, notes, order | Source present                                             | Verify task workflows and history-safe removal                              | QA-008, QA-009                         |
+| P1       | Finish estimate and task automation         | Source present                                             | Verify freshness and automation rules                                       | QA-006, QA-008, QA-014                 |
+| P1       | Projects and archive                        | Source present                                             | Verify totals, archive, and history-safe removal                            | QA-007                                 |
+| P2       | Project and phase colors                    | Source present; defaults preserve older workspaces         | Integrate generated contract; verify appearance and contrast                | QA-007, QA-014, QA-049                 |
+| P1       | Unlimited task templates                    | Source present                                             | Verify copies use new IDs and stale edits fail safely                       | QA-010                                 |
+| P1       | Day, week, month, yearly reports            | Source present                                             | Verify date boundaries, saved history, and project totals                   | QA-011, QA-012, QA-026, QA-044         |
+| P1       | Manual history insert, edit, delete         | Source present                                             | Verify duration rules, stale edits, and report updates                      | QA-012                                 |
+| P1       | CSV downloads                               | Source present                                             | Verify scope, separators, units, escaping, and encoding                     | QA-013                                 |
+| P1       | Sound, reminders, browser notifications     | Source present                                             | Verify activation, permission, delivery, and failure feedback               | QA-014, QA-021, QA-027                 |
+| P1       | Appearance and running dark mode            | Source present                                             | Verify initial paint, account preferences, and contrast                     | QA-024, QA-036, QA-037                 |
+| P2       | Fullscreen and compact focus window         | Route and controls written; not integrated                 | Mount controls, retain account controller, generate routes                  | QA-048                                 |
+| P2       | Live timer page title                       | Missing                                                    | Implement route-safe ownership without task/private text                    | QA-048                                 |
+| P0       | OpenAuth sign-in and server sessions        | Backend source present; integrated Cargo check passed      | Commit verified backend slices; confirm external issuer setup later         | QA-015, QA-016, QA-018                 |
+| P1       | PostgreSQL account storage                  | Backend source present                                     | Commit migrations/services; runtime durability remains deferred             | QA-017, QA-044                         |
+| P1       | Database-backed streaks and reports         | History persistence and report calculations written        | Complete sync so saved history reaches the browser across devices           | QA-011, QA-017, QA-044                 |
+| P0       | Typed HTTP client                           | Client/query source present; generated types missing       | Export actual OpenAPI, generate types, and check compatibility              | QA-022, QA-023, QA-045                 |
+| P0       | Account synchronization                     | Missing controller; UI and metadata helpers written        | Implement discovery, serialized CAS saves, owner invalidation, and recovery | QA-017, QA-018, QA-034, QA-035, QA-045 |
+| P0       | Explicit guest import                       | Server and confirmation source present; controller missing | Integrate retained import IDs, original baselines, and idempotent retry     | QA-017, QA-034, QA-045                 |
+| P0       | Sync conflicts and logout                   | Server/UI source present; controller missing               | Integrate explicit resolution, cache isolation, and logout                  | QA-017, QA-018, QA-034, QA-035, QA-045 |
+| P1       | Backup export and restore                   | Source present                                             | Verify encoding, size limits, recovery, and partition ownership             | QA-014, QA-028–033, QA-047             |
+| P1       | PWA install, update, offline fallback       | Source present                                             | Verify install/update and private-cache exclusions                          | QA-019, QA-020, QA-025                 |
+
+### Reference behavior still to investigate
+
+Use observed UI behavior as evidence. Do not copy source, wording, images, or
+signature effects. Do not purchase premium access or change the reference
+account's settings or records. Record blocked observations as unknown.
+
+| Reference area         | Evidence already captured                                            | Remaining investigation                                                                            | Implementation rule until confirmed                                                    |
+| ---------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Timer defaults         | 25/5/15 minutes; long break every four                               | Compare reset/skip/phase changes, pause accounting, and interval counters                          | Keep documented interruption rules; do not claim exact algorithm parity                |
+| Background timing      | Deadline-based behavior is a product requirement                     | Observe suspension, reload, overdue transitions, and auto-start behavior                           | Never fabricate unattended focus cycles                                                |
+| Task workflow          | Estimates, notes, selection, finish time, and bulk menu observed     | Confirm actual-count reset, completed ordering, removal, and finish-estimate updates               | Keep existing history and explicit confirmations                                       |
+| Templates              | Selector and creation controls observed                              | Confirm saved contents, apply/copy behavior, and project references                                | Generate new task IDs; never alias template records                                    |
+| Project behavior       | Premium projects and project report totals observed                  | Confirm archive/removal and old history labels                                                     | Preserve historical labels and focus time                                              |
+| Summary reports        | Summary/Detail/Ranking, periods, hours, active days, streak observed | Determine day/time-zone, streak, week-start, and empty-period rules                                | Mark calculations as our documented policy, not verified internals                     |
+| Yearly reports         | Year option observed but locked                                      | Capture accessible yearly behavior without purchase                                                | Build real yearly totals from saved history; do not invent locked algorithms           |
+| History editing        | Date/task/minutes and optional start/end observed; no record saved   | Confirm precedence, cross-midnight behavior, and validation                                        | Keep explicit local-date and elapsed-duration rules                                    |
+| CSV download           | Date range, task column, units, and comma/tab options observed       | Obtain an authorized sample to compare headers, dates, decimals, BOM, quoting, and range inclusion | Keep safe exports; exact reference file format remains unverified                      |
+| Sound and notification | Alarm/focus sound, volume, repeat, reminder controls observed        | Compare selection and repeat behavior; identify actual browser versus push features                | Use original sounds and explicit browser permission; do not assume mobile push support |
+| Theme controls         | Color Themes and hour-format controls observed                       | Confirm phase-color choices and running-dark behavior                                              | Use our design system and compatible stored preferences                                |
+| Ranking                | Ranking tab observed                                                 | Establish eligibility, privacy/consent, period, and tie rules                                      | Do not publish private user data or fabricate ranking semantics                        |
+
+### Work order and completion gate
+
+1. Finish and commit the backend and real generated contract in coherent slices.
+2. Implement and commit the account controller and integrate the existing UI.
+3. Integrate focus controls/title and complete the remaining reference research.
+4. Close source-level gaps identified by the tracker. Run permitted static
+   checks and commit every completed slice before starting another feature.
+5. Leave runtime cases pending until separately approved. Never report a source
+   file, a subagent handoff, or compilation alone as a finished user workflow.
+
+Todoist, webhooks, ads, premium billing, native mobile apps, and a mobile push
+alarm service are outside the agreed initial release. Projects, yearly reports,
+and downloads are included without a paywall. Ranking is not assumed to be an
+approved public-data feature merely because the reference has a tab.
