@@ -603,14 +603,28 @@ cache and offline coverage: QA-020. Build and browser checks require approval.
 - **Purpose:** Check shell layout, links, alerts, and theme after lint repairs.
 - **Prerequisites:** Shared setup; isolated guest data; approved local web
   server on 127.0.0.1:13001; a browser with light and dark system settings.
-- **Inputs:** System, light, dark, and dark-while-running theme settings.
-- **Steps:** 1. Open `/` and use each main navigation link and Sign in. 2.
-  Change each theme and the system theme; start and stop the timer with
-  dark-while-running enabled. 3. Repeat keyboard navigation at a narrow
-  viewport.
+- **Inputs:** Workspace theme values `system`, `light`, and `dark`;
+  `dark_while_running`; the public `yopem-ui-theme` preference mirror. Save the
+  original settings before this case.
+- **Steps:**
+  1. Open `/` and use each main navigation link. Inspect the Sign in link
+     destination `/auth/login`; authentication remains covered by QA-015.
+  2. Use `/settings` to save each theme. Reload and inspect the document theme
+     before and after workspace hydration. With `system`, change the operating
+     system theme without reloading.
+  3. Save `light` with `dark_while_running` enabled. Start the timer on `/`,
+     then pause it. Inspect the document theme, saved workspace preference, and
+     public mirror after each action.
+  4. Repeat with a stale mirror value of `dark` and a saved workspace theme of
+     `light`. Confirm that hydration restores the workspace preference. Retain
+     evidence of any initial-paint difference; do not treat the mirror as
+     authoritative or expect it to know timer state before hydration.
+  5. Repeat keyboard navigation at a narrow viewport.
 - **Expected results:** Links have names and reach their existing destinations;
   layout remains usable; the chosen theme covers the document and changes
-  correctly; focus is visible and alerts remain announced.
+  correctly; focus is visible and alerts remain announced. A temporary dark
+  override does not replace the saved preference or its mirror. A stale mirror
+  cannot replace workspace settings after hydration.
 - **Evidence:** `qa-artifacts/QA-024/` screenshots and accessibility tree;
   inspect both themes, link names, keyboard focus, and narrow layout.
 - **Cleanup:** Restore guest settings and stop only processes started for this
@@ -955,10 +969,58 @@ failed-load privacy, and backup cases remain QA-017, QA-028, and QA-029.
 - **Evidence:** Save the caller-to-prop source review and static command output
   under `qa-artifacts/QA-036/`. Inspect each mapped property and command exit.
 - **Cleanup:** No records or services change. Keep sanitized local evidence.
-- **Status:** pending. Imported styles currently violate the contract despite a
-  clean configured lint run. Component and caller repairs are not complete.
+- **Status:** pending separate QA execution. Component and caller repairs are
+  implemented. Source review found only the allowed timer Stack block margins in
+  application `xstyle` values. Repository lint, formatting, workspace
+  typechecks, and explicit Vite source checks passed after integration. These
+  results do not prove CSS extraction, initial paint, or browser behavior.
 
 Coverage: design-system style contracts and source-owned API changes map to
 QA-036. Keyboard, responsive, zoom, and contrast checks remain QA-021. Initial
 paint, stored theme, system changes, and dark-while-running behavior remain
 QA-024. Browser and build checks remain pending and need approval.
+
+### [ ] QA-037 — P0 — Request-local CSP nonces cover SSR scripts
+
+- **Purpose:** Check the nonce boundary in `apps/web/src/server.ts`,
+  `apps/web/src/router.tsx`, the document root, and the theme script. Streamed
+  scripts must use the nonce captured before SSR attachment.
+- **Prerequisites:** Shared setup and explicit approval for a local
+  production-like build, server, and browser QA. Use the isolated QA-020 setup
+  on `127.0.0.1:13001`, not production. Use an empty guest browser profile with
+  no prior service worker. No account or database is needed.
+- **Inputs:** Two concurrent fresh requests to `/` in separate project-group
+  tabs; a script without a nonce containing `window.__qaCspInlineProbe = true`.
+  Do not change the application CSP.
+- **Steps:**
+  1. Confirm approved build and server commands from the current web package and
+     QA-020 setup. Save their versions and tested revision. If the production
+     entry cannot start, mark this case blocked; do not use a development
+     response as production evidence.
+  2. Capture the response headers and HTML for both concurrent navigations.
+     Extract each response's CSP nonce and the nonce attributes on its
+     application bootstrap, inline theme, and streamed hydration scripts.
+  3. Confirm that both pages hydrate and their timer controls work. Inspect
+     browser errors and CSP reports before the negative probe.
+  4. In one page, append the input script without a nonce through the browser
+     automation DOM mutation API. Read `window.__qaCspInlineProbe` and the
+     resulting CSP report. Do not execute the input directly with evaluation.
+  5. Save and inspect the sanitized response and browser evidence.
+- **Expected results:** Both responses return the application HTML with
+  `Cache-Control: no-store`. Each required SSR script has its own response's CSP
+  nonce; the two response nonces differ. Hydration and the theme script run
+  without nonce violations or hydration errors. The script without a nonce is
+  blocked, its flag is not true, and its expected CSP violation is distinct from
+  normal application errors. No relaxed script directive is needed.
+- **Evidence:** Save sanitized HTML, CSP and cache headers, browser logs, and
+  screenshots under `qa-artifacts/QA-037/`. Exclude cookies, authorization
+  headers, and unrelated browser data. Inspect nonce matching per response,
+  different request nonces, working controls, and the blocked probe.
+- **Cleanup:** Close only this case's tabs and stop only its local processes.
+  Remove its isolated browser profile; keep sanitized evidence.
+- **Status:** pending; build and browser execution need approval. Installed
+  source tracing and static checks are not runtime proof.
+
+Coverage: the early router nonce boundary and streamed CSP integration map to
+QA-037. Theme preference and initial-paint behavior remain QA-024; source-owned
+styling remains QA-036.
