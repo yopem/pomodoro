@@ -15,16 +15,8 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { localDateRange } from "@/features/focus/reports"
+import { periodSchema, reportSearchSchema } from "@/features/reports/schema"
 import { localDateText } from "@/lib/local-date"
-
-export const periodSchema = z.enum(["day", "week", "month", "year"])
-
-export const reportSearchSchema = z.object({
-  period: periodSchema.default("week"),
-  date: z.iso.date().optional(),
-  project: z.union([z.uuid(), z.literal("none")]).optional(),
-  page: z.coerce.number().int().min(1).max(100000).default(1),
-})
 
 type FilterAction =
   | { kind: "period"; value: string }
