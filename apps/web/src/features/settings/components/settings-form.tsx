@@ -14,7 +14,7 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Stack } from "@/components/ui/stack"
 import { Switch } from "@/components/ui/switch"
 import { Text } from "@/components/ui/text"
-import { settingsSchema } from "@/features/focus/schema"
+import { projectColorSchema, settingsSchema } from "@/features/focus/schema"
 import {
   updateSettings,
   useWorkspaceMutationOwner,
@@ -36,6 +36,18 @@ const numbers = [
   { name: "reminder_minutes", label: "Reminder minutes", min: 0, max: 180 },
 ] as const
 
+const colors = [
+  { name: "focus_color", label: "Focus color" },
+  { name: "short_color", label: "Short break color" },
+  { name: "long_color", label: "Long break color" },
+] as const
+
+const settingsFormSchema = settingsSchema.extend({
+  focus_color: projectColorSchema,
+  short_color: projectColorSchema,
+  long_color: projectColorSchema,
+})
+
 const switches = [
   { name: "auto_start_breaks", label: "Start breaks automatically" },
   { name: "auto_start_focus", label: "Start focus automatically" },
@@ -56,11 +68,10 @@ export function SettingsForm({
   const formRef = useRef<HTMLFormElement>(null)
   const baseline = useRef(settings)
   const [error, setError] = useState<string | null>(null)
-  const [permission, setPermission] = useState<string | null>(null)
 
   const form = useForm({
     defaultValues: settings,
-    validators: { onBlur: settingsSchema, onSubmit: settingsSchema },
+    validators: { onBlur: settingsFormSchema, onSubmit: settingsFormSchema },
     onSubmitInvalid: () => {
       requestAnimationFrame(() =>
         formRef.current
@@ -98,6 +109,16 @@ export function SettingsForm({
       )?.name
 
       if (name) form.setFieldValue(name, event.currentTarget.valueAsNumber)
+    }
+
+    function changeColor(event: ChangeEvent<HTMLSelectElement>) {
+      const name = colors.find(
+        (item) => item.name === event.currentTarget.id,
+      )?.name
+
+      const result = projectColorSchema.safeParse(event.currentTarget.value)
+
+      if (name && result.success) form.setFieldValue(name, result.data)
     }
 
     function changeAlarm(event: ChangeEvent<HTMLSelectElement>) {
@@ -140,33 +161,10 @@ export function SettingsForm({
       if (result.success) form.setFieldValue("hour_format", result.data)
     }
 
-    async function requestPermission() {
-      if (!("Notification" in window)) {
-        setPermission("Notifications are not supported in this browser.")
-
-        return
-      }
-
-      try {
-        const result = await Notification.requestPermission()
-
-        const messages = {
-          granted: "Notification permission granted.",
-          denied:
-            "Notification permission denied. Change browser permissions to allow notifications.",
-          default: "Notification permission was not granted.",
-        }
-
-        setPermission(messages[result])
-      } catch {
-        setPermission("Could not request notification permission.")
-      }
-    }
-
     return {
-      requestPermission,
       submit,
       changeNumber,
+      changeColor,
       changeAlarm,
       changeFocusSound,
       changeTheme,
@@ -211,6 +209,19 @@ export function SettingsForm({
           </form.Field>
         ))}
         <Heading render={<h2>Preferences</h2>} />
+        {colors.map(({ name, label }) => (
+          <form.Field key={name} name={name}>
+            {(field) => (
+              <ColorSelect
+                name={name}
+                label={label}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={events.changeColor}
+              />
+            )}
+          </form.Field>
+        ))}
         <form.Field name="alarm">
           {(field) => (
             <Field>
@@ -310,14 +321,7 @@ export function SettingsForm({
             )}
           </form.Field>
         ))}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={events.requestPermission}
-        >
-          Request notification permission
-        </Button>
-        {permission && <output>{permission}</output>}
+        <NotificationPermission />
         {error && (
           <Text role="alert" tone="destructive">
             {error}
@@ -332,5 +336,72 @@ export function SettingsForm({
         </form.Subscribe>
       </Stack>
     </form>
+  )
+}
+
+export function ColorSelect({
+  name,
+  label,
+  value,
+  onBlur,
+  onChange,
+}: {
+  name: string
+  label: string
+  value: Settings["focus_color"]
+  onBlur: () => void
+  onChange: (event: ChangeEvent<HTMLSelectElement>) => void
+}) {
+  return (
+    <Field>
+      <FieldLabel htmlFor={name}>{label}</FieldLabel>
+      <NativeSelect id={name} value={value} onBlur={onBlur} onChange={onChange}>
+        <option value="red">Red</option>
+        <option value="orange">Orange</option>
+        <option value="yellow">Yellow</option>
+        <option value="green">Green</option>
+        <option value="blue">Blue</option>
+        <option value="purple">Purple</option>
+        <option value="gray">Gray</option>
+      </NativeSelect>
+    </Field>
+  )
+}
+
+export function NotificationPermission() {
+  const [permission, setPermission] = useState<string | null>(null)
+
+  const [requestPermission] = useState(function createPermissionHandler() {
+    return async function requestPermission() {
+      if (!("Notification" in window)) {
+        setPermission("Notifications are not supported in this browser.")
+
+        return
+      }
+
+      try {
+        const result = await Notification.requestPermission()
+
+        const messages = {
+          granted: "Notification permission granted.",
+          denied:
+            "Notification permission denied. Change browser permissions to allow notifications.",
+          default: "Notification permission was not granted.",
+        }
+
+        setPermission(messages[result])
+      } catch {
+        setPermission("Could not request notification permission.")
+      }
+    }
+  })
+
+  return (
+    <>
+      <Button type="button" variant="outline" onClick={requestPermission}>
+        Request notification permission
+      </Button>
+      {permission && <output>{permission}</output>}
+    </>
   )
 }

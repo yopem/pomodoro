@@ -9,6 +9,7 @@ const estimate = z.number().int().min(1).max(10_000)
 const text = z
   .string()
   .refine((value) => value.isWellFormed(), "Use valid Unicode text")
+  .refine((value) => !value.includes("\0"), "Remove null characters")
 
 const title = text.trim().min(1).max(500)
 
@@ -77,6 +78,9 @@ export const settingsSchema = z.strictObject({
   focus_minutes: minutes,
   short_minutes: minutes,
   long_minutes: minutes,
+  focus_color: projectColorSchema.default("orange"),
+  short_color: projectColorSchema.default("green"),
+  long_color: projectColorSchema.default("blue"),
   long_break_interval: z.number().int().min(1).max(10_000),
   auto_start_breaks: z.boolean(),
   auto_start_focus: z.boolean(),
@@ -221,6 +225,9 @@ export function createEmptyWorkspace(): Workspace {
       focus_minutes: 25,
       short_minutes: 5,
       long_minutes: 15,
+      focus_color: "orange",
+      short_color: "green",
+      long_color: "blue",
       long_break_interval: 4,
       auto_start_breaks: false,
       auto_start_focus: false,

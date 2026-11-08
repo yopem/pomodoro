@@ -36,6 +36,7 @@ import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
+import { ColorIndicator } from "@/features/focus/color-indicator"
 import { projectColorSchema } from "@/features/focus/schema"
 import {
   deleteProject,
@@ -230,6 +231,10 @@ export function ProjectCard({
           <Text size="small" tone="muted">
             {project.archived ? "Archived" : "Active"}
           </Text>
+        </HStack>
+        <HStack layout="row">
+          <ColorIndicator color={project.color} />
+          <Text>{project.color}</Text>
         </HStack>
         <HStack layout="row">
           <Text>{formatFocusTime(seconds)} focused</Text>

@@ -236,6 +236,12 @@ pub struct Settings {
     #[schema(minimum = 1, maximum = 180, value_type = u64)]
     #[serde(deserialize_with = "deserialize_count")]
     pub long_minutes: u32,
+    #[serde(default = "default_focus_color")]
+    pub focus_color: ProjectColor,
+    #[serde(default = "default_short_color")]
+    pub short_color: ProjectColor,
+    #[serde(default = "default_long_color")]
+    pub long_color: ProjectColor,
     #[schema(minimum = 1, maximum = 10000, value_type = u64)]
     #[serde(deserialize_with = "deserialize_count")]
     pub long_break_interval: u32,
@@ -573,12 +579,27 @@ impl Default for Workspace {
     }
 }
 
+fn default_focus_color() -> ProjectColor {
+    ProjectColor::Orange
+}
+
+fn default_short_color() -> ProjectColor {
+    ProjectColor::Green
+}
+
+fn default_long_color() -> ProjectColor {
+    ProjectColor::Blue
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Self {
             focus_minutes: 25,
             short_minutes: 5,
             long_minutes: 15,
+            focus_color: default_focus_color(),
+            short_color: default_short_color(),
+            long_color: default_long_color(),
             long_break_interval: 4,
             auto_start_breaks: false,
             auto_start_focus: false,

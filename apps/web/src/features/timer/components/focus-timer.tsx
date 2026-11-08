@@ -11,6 +11,7 @@ import { Card, CardPanel } from "@/components/ui/card"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
+import { colorStyles } from "@/features/focus/color-indicator"
 import {
   pauseTimer,
   resetTimer,
@@ -192,6 +193,12 @@ export function FocusTimer({
   const clock = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`
   const selected = tasks.find((task) => task.id === timer.selected_task_id)
 
+  const phaseColor = {
+    focus: settings.focus_color,
+    short_break: settings.short_color,
+    long_break: settings.long_color,
+  }[timer.phase]
+
   const currentCycle =
     timer.completed_focus_count % settings.long_break_interval
 
@@ -220,7 +227,7 @@ export function FocusTimer({
             role="timer"
             aria-live="off"
             aria-label={`${clock} remaining`}
-            {...stylex.props(styles.countdown)}
+            {...stylex.props(styles.countdown, colorStyles[phaseColor])}
           >
             {clock}
           </output>
