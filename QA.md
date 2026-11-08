@@ -2,9 +2,9 @@
 
 ## Scope and setup
 
-Task: create a web-only Pomofocus alternative with basic and premium features,
-Yopem UI and StyleX, guest use, and account sync. Exclude Todoist and webhooks.
-Implementation is in progress. Runtime QA has not run.
+Task: create a web-only reference app alternative with basic and premium
+features, Yopem UI and StyleX, guest use, and account sync. Exclude Todoist and
+webhooks. Implementation is in progress. Runtime QA has not run.
 
 Frontend scope: `apps/web/src/`, `packages/env/`, app-owned UI, and root Bun
 configuration. Routes are `/`, `/projects`, `/templates`, `/reports`, and
@@ -1368,7 +1368,7 @@ behavior. QA-038 through QA-043 remain unchecked and pending browser approval.
   and close only case tabs. Keep sanitized evidence.
 - **Status:** pending; no browser, validator, or sync scenario has run.
 
-## Pomofocus feature and reverse-engineering tracker
+## reference app feature and reverse-engineering tracker
 
 This is an implementation tracker, not a record of passed QA. `Source present`
 means code exists. It does not mean integrated, committed, or runtime verified.
