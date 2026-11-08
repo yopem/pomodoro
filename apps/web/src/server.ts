@@ -82,20 +82,6 @@ export default createServerEntry({
 
     const headers = new Headers(response.headers)
 
-    const analyticsOrigins =
-      publicConfig.analyticsEnabled === "true"
-        ? [
-            publicConfig.gaMeasurementId
-              ? "https://www.googletagmanager.com"
-              : "",
-            publicConfig.umamiScriptUrl
-              ? new URL(publicConfig.umamiScriptUrl).origin
-              : "",
-          ]
-            .filter(Boolean)
-            .join(" ")
-        : ""
-
     headers.set("X-Request-ID", requestId)
     headers.set("X-Content-Type-Options", "nosniff")
     headers.set("Referrer-Policy", "strict-origin-when-cross-origin")
@@ -107,12 +93,12 @@ export default createServerEntry({
       "Content-Security-Policy",
       [
         "default-src 'self'",
-        `script-src 'self' 'nonce-${nonce}' ${analyticsOrigins}`,
+        `script-src 'self' 'nonce-${nonce}'`,
         `style-src 'self' 'nonce-${nonce}'`,
         "style-src-attr 'unsafe-inline'",
-        "img-src 'self' data: https://www.google-analytics.com",
+        "img-src 'self' data:",
         "font-src 'self'",
-        `connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com ${publicConfig.umamiScriptUrl ? new URL(publicConfig.umamiScriptUrl).origin : ""}`,
+        "connect-src 'self'",
         "worker-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",
