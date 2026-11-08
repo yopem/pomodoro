@@ -126,27 +126,30 @@ actual result, and evidence path when a case runs.
 
 ## Coverage map and remaining cases
 
-| Requirement or workflow                              | Pending or historical coverage                    |
-| ---------------------------------------------------- | ------------------------------------------------- |
-| Native tooling and required plugin support           | QA-001; historical compatibility result QA-002    |
-| Isolated staged and actual-origin push snapshots     | QA-062, QA-063, QA-064, QA-065                    |
-| UI, StyleX, framework setup and component contracts  | QA-003, QA-021, QA-024, QA-036                    |
-| Timer completion, persistence and fractional timing  | QA-006–008, QA-027, QA-038–043                    |
-| Tasks, ordering, notes and finish estimates          | QA-009, QA-046, QA-050                            |
-| Projects and reusable templates without a paid quota | QA-010, QA-011, QA-049                            |
-| Reports, streaks, dates and database history         | QA-012, QA-026, QA-044, QA-051                    |
-| Manual history and formula-safe CSV downloads        | QA-013, QA-014                                    |
-| Guest storage, backups and partition isolation       | QA-004, QA-005, QA-028–031, QA-057                |
-| OAuth, authorization and account changes             | QA-015, QA-016, QA-034, QA-035, QA-045, QA-053    |
-| Atomic sync, lost responses and recovery fences      | QA-017, QA-052, QA-054, QA-056, QA-058, QA-059    |
-| Explicit idempotent guest import                     | QA-018, QA-055                                    |
-| Sounds, notifications and compact focus controls     | QA-019, QA-048                                    |
-| PWA fallback, update and private cache exclusions    | QA-020, QA-025                                    |
-| Request-local SSR nonce and security headers         | QA-037                                            |
-| Generated HTTP contracts and boundary values         | QA-022, QA-023, QA-032, QA-033, QA-047            |
-| Isolated local database and manual migrations        | QA-060                                            |
-| Public metadata, canonical host and sitemap privacy  | QA-061                                            |
-| Build and runtime integration                        | Pending approved build and applicable cases above |
+| Requirement or workflow                              | Pending or historical coverage                 |
+| ---------------------------------------------------- | ---------------------------------------------- |
+| Native tooling and required plugin support           | QA-001; historical compatibility result QA-002 |
+| Isolated staged and actual-origin push snapshots     | QA-062, QA-063, QA-064, QA-065                 |
+| UI, StyleX, framework setup and component contracts  | QA-003, QA-021, QA-024, QA-036                 |
+| Timer completion, persistence and fractional timing  | QA-006–008, QA-027, QA-038–043                 |
+| Tasks, ordering, notes and finish estimates          | QA-009, QA-046, QA-050                         |
+| Projects and reusable templates without a paid quota | QA-010, QA-011, QA-049                         |
+| Reports, streaks, dates and database history         | QA-012, QA-026, QA-044, QA-051                 |
+| Manual history and formula-safe CSV downloads        | QA-013, QA-014                                 |
+| Guest storage, backups and partition isolation       | QA-004, QA-005, QA-028–031, QA-057             |
+| OAuth, authorization and account changes             | QA-015, QA-016, QA-034, QA-035, QA-045, QA-053 |
+| Atomic sync, lost responses and recovery fences      | QA-017, QA-052, QA-054, QA-056, QA-058, QA-059 |
+| Explicit idempotent guest import                     | QA-018, QA-055                                 |
+| Sounds, notifications and compact focus controls     | QA-019, QA-048                                 |
+| PWA fallback, update and private cache exclusions    | QA-020, QA-025                                 |
+| Request-local SSR nonce and security headers         | QA-037                                         |
+| Generated HTTP contracts and boundary values         | QA-022, QA-023, QA-032, QA-033, QA-047         |
+| Isolated local database and manual migrations        | QA-060                                         |
+| Public metadata, canonical host and sitemap privacy  | QA-061                                         |
+| Responsive pages and reachable dialog actions        | QA-067, QA-068, QA-073                         |
+| Build, lazy routes and production containers         | QA-069, QA-070, QA-072                         |
+| Explicit trusted proxy peers                         | QA-071                                         |
+| Locked dependency advisories                         | QA-074                                         |
 
 Payments are not requested. The requested capabilities have no paid tier.
 External task integrations, webhooks, native apps, and public rankings are not
@@ -2066,3 +2069,57 @@ do not survive a full page reload, which can require a new conflict review.
   implemented. Image builds and runtime acceptance remain. Supplied local Bun
   bytes can preserve the pin, but do not establish an independently retrievable
   official artifact.
+
+### [ ] QA-073 — P1 — Dialog form actions stay reachable on phones
+
+- **Purpose:** Fix the observed task editor overflow and protect every dialog
+  form that shares its composition. Save and Cancel must remain reachable.
+- **Prerequisites:** Shared isolated HTTPS setup and an owned guest workspace.
+  Use actual target-scoped 390 by 844 and 320 by 568 CSS viewports. Confirm the
+  dimensions with CDP layout metrics, not only the client viewport property.
+- **Inputs:** New task `QA check citations`; estimate `1`; multiline notes;
+  existing QA project and history. Include new and existing task, project,
+  template, history, and CSV dialogs, plus an expanded template task list.
+- **Steps:** 1. Open Add task at 390 by 844. Inspect the popup, content viewport
+  and Save task bounds. 2. Submit an empty task and inspect the first invalid
+  field focus. 3. Enter the task name and save with an ordinary pointer
+  click. 4. Repeat at 320 by 568, including keyboard Tab and Enter. 5. Open each
+  other affected dialog; scroll long fields and reach both footer actions. Save
+  or cancel isolated changes. 6. Check desktop layout and the original owner,
+  stale-baseline and opening-completion cases.
+- **Expected results:** No footer action lies beyond an unscrollable viewport.
+  Exactly one content region scrolls when needed. Header, accessible labels,
+  native submit, visible focus, and all inputs remain intact. Save closes only
+  its original opening after a successful guarded write. Invalid submission
+  creates no record and focuses its first invalid field. Cancel makes no write.
+- **Evidence:** Save before/after images, actual viewport and control bounds,
+  snapshots, logs and persisted QA record checks in `qa-artifacts/QA-073/`.
+- **Cleanup:** Remove only isolated QA records after evidence inspection. Keep
+  user storage unchanged; close only owned QA tabs.
+- **Status:** failed on the earlier production artifact: Save task begins at
+  y=861 in an 844-pixel viewport, and an ordinary click times out. The popup
+  content overflows its height. Repair and final-artifact checks are pending.
+
+### [ ] QA-074 — P1 — Locked dependencies receive a public advisory check
+
+- **Purpose:** Check the locked registry dependencies before release without
+  changing tool versions, rules, lockfiles or the global installation.
+- **Prerequisites:** Pinned Bun and Rust; access to public package advisory
+  services. Use only public registry package names and versions. Do not send
+  workspace source, configuration or credentials to an advisory service.
+- **Inputs:** Current `bun.lock` and registry packages from `Cargo.lock`.
+  Exclude private workspace packages from external query payloads.
+- **Steps:** 1. Run the available native Bun advisory command with root dotenv
+  loading disabled. 2. Query current public Rust advisories for the exact locked
+  registry packages with existing tools. 3. Inspect each finding, its fixed
+  versions and the actual affected runtime path. 4. Record unavailable advisory
+  services and any remaining release decision; do not hide findings.
+- **Expected results:** The evidence names the checked lockfile revisions and
+  every reported advisory. No dependency or policy changes occur as a side
+  effect. Known exploitable release findings require a source or dependency fix
+  and a fresh complete static/build/affected-workflow pass before release.
+- **Evidence:** Save sanitized audit output, registry query metadata, lockfile
+  hashes and the finding review in `qa-artifacts/QA-074/`.
+- **Cleanup:** Remove only owned temporary public advisory payloads. No local
+  app data or service changes are needed.
+- **Status:** pending.
