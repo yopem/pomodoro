@@ -27,6 +27,7 @@ const styles = stylex.create({
     lineHeight: 1.2,
     margin: 0,
   },
+  compactValue: { fontSize: "1.25rem" },
   description: {
     color: tokens["--muted-foreground"],
     fontSize: "0.75rem",
@@ -70,13 +71,21 @@ export function StatLabel({
 export function StatValue({
   xstyle: consumerXstyle,
   className,
+  size = "default",
   ...props
-}: StyleXComponentProps<ComponentPropsWithRef<"dd">>) {
+}: StyleXComponentProps<ComponentPropsWithRef<"dd">> & {
+  size?: "default" | "compact"
+}) {
   return (
     <dd
       data-slot="stat-value"
       {...mergeStylexProps(
-        stylexProps(className, styles.value, consumerXstyle),
+        stylexProps(
+          className,
+          styles.value,
+          size === "compact" && styles.compactValue,
+          consumerXstyle,
+        ),
         props,
       )}
     />
