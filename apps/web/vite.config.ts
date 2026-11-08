@@ -1,3 +1,5 @@
+import type { Plugin } from "vite"
+
 import babel from "@rolldown/plugin-babel"
 import { tanstackStart } from "@tanstack/react-start/plugin/vite"
 import viteReact from "@vitejs/plugin-react"
@@ -9,6 +11,25 @@ import { VitePWA } from "vite-plugin-pwa"
 import { z } from "zod"
 
 const source = fileURLToPath(new URL("./src", import.meta.url))
+
+function singleServiceWorkerOutput(): Plugin {
+  return {
+    name: "single-service-worker-output",
+    config(config) {
+      const output = config.build?.rolldownOptions?.output
+
+      if (
+        !output ||
+        Array.isArray(output) ||
+        output.inlineDynamicImports !== true
+      )
+        throw new Error("Unexpected service worker output configuration")
+
+      delete output.inlineDynamicImports
+      output.codeSplitting = false
+    },
+  }
+}
 
 const createStylexPostcss = z
   .function({
@@ -90,6 +111,7 @@ export default defineConfig(({ command }) => {
       VitePWA({
         strategies: "injectManifest",
         srcDir: "src/service-worker",
+        outDir: ".output/public",
         filename: "sw.ts",
         registerType: "prompt",
         injectRegister: false,
@@ -103,6 +125,7 @@ export default defineConfig(({ command }) => {
           "offline.css",
         ],
         injectManifest: {
+          buildPlugins: { vite: [singleServiceWorkerOutput()] },
           globPatterns: ["**/*.{js,css,woff2,png,svg}"],
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         },
