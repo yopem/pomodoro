@@ -31,7 +31,9 @@ self.addEventListener("fetch", (event) => {
     url.pathname === "/api" ||
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/auth/") ||
-    url.pathname === "/openapi.json"
+    url.pathname === "/openapi.json" ||
+    url.pathname === "/health" ||
+    url.pathname === "/ready"
 
   if (
     event.request.mode !== "navigate" ||

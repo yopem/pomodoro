@@ -62,6 +62,8 @@ export default defineConfig(({ command }) => {
         "/api": "http://127.0.0.1:18001",
         "/auth": "http://127.0.0.1:18001",
         "/openapi.json": "http://127.0.0.1:18001",
+        "/health": "http://127.0.0.1:18001",
+        "/ready": "http://127.0.0.1:18001",
       },
     },
     resolve: { tsconfigPaths: true, alias: { "@": source } },

@@ -14,7 +14,9 @@ export default createServerEntry({
       path.startsWith("/api/") ||
       path === "/auth" ||
       path.startsWith("/auth/") ||
-      path === "/openapi.json"
+      path === "/openapi.json" ||
+      path === "/health" ||
+      path === "/ready"
 
     const response = backendPath
       ? Response.json(
