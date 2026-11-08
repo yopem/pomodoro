@@ -159,11 +159,8 @@ export function ReportsRoute() {
         <Stack spacing="page">
           <HStack layout="pageHeader">
             <Stack spacing="compact">
-              <Text variant="eyebrow">A record of your attention</Text>
               <Heading render={<h1>Focus reports</h1>} />
-              <Text tone="muted">
-                Small sessions add up. Here is your actual time.
-              </Text>
+              <Text tone="muted">Review your focus time and history.</Text>
             </Stack>
             <HStack layout="row">
               <CsvExport sessions={projectSessions} range={range} />
@@ -178,22 +175,24 @@ export function ReportsRoute() {
             projectNames={projectNames}
             weekStart={workspace.settings.week_start}
           />
-          <Box render={<section aria-label="Focus summary" />}>
-            <HStack wrap>
-              <ReportMetric
-                label="Time focused"
-                value={formatFocusTime(summary.totalSeconds)}
-              />
-              <ReportMetric
-                label="Active days in this period"
-                value={String(activityDays(sessions))}
-              />
-              <ReportMetric
-                label="Current daily streak"
-                value={`${currentStreak({ sessions: workspace.sessions, now: new Date(nowMs) })} days`}
-              />
-            </HStack>
-          </Box>
+          <Card render={<section aria-label="Focus summary" />}>
+            <CardPanel>
+              <HStack layout="spread">
+                <ReportMetric
+                  label="Time focused"
+                  value={formatFocusTime(summary.totalSeconds)}
+                />
+                <ReportMetric
+                  label="Active days in this period"
+                  value={String(activityDays(sessions))}
+                />
+                <ReportMetric
+                  label="Current daily streak"
+                  value={`${currentStreak({ sessions: workspace.sessions, now: new Date(nowMs) })} days`}
+                />
+              </HStack>
+            </CardPanel>
+          </Card>
           <Box render={<section aria-label="Focus charts" />}>
             <Grid variant="workspace">
               <Card>
@@ -286,13 +285,9 @@ export function ReportMetric({
   value: string
 }) {
   return (
-    <Card>
-      <CardPanel>
-        <Stat>
-          <StatLabel>{label}</StatLabel>
-          <StatValue>{value}</StatValue>
-        </Stat>
-      </CardPanel>
-    </Card>
+    <Stat>
+      <StatLabel>{label}</StatLabel>
+      <StatValue>{value}</StatValue>
+    </Stat>
   )
 }

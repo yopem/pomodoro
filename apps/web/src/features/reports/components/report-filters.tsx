@@ -7,10 +7,12 @@ import { z } from "zod"
 
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
+import { Card, CardPanel } from "@/components/ui/card"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { HStack } from "@/components/ui/hstack"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
+import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { localDateRange } from "@/features/focus/reports"
 import { localDateText } from "@/lib/local-date"
@@ -147,77 +149,81 @@ export function ReportFilters({
   })
 
   return (
-    <>
-      <HStack layout="spread">
-        <Box render={<fieldset aria-label="Report period" />}>
-          <HStack wrap>
-            {periodSchema.options.map((period) => (
-              <Button
-                key={period}
-                value={period}
-                variant={search.period === period ? "default" : "ghost"}
-                aria-pressed={search.period === period}
-                onClick={events.period}
-                disabled={pending}
-              >
-                {period[0]?.toUpperCase()}
-                {period.slice(1)}
-              </Button>
-            ))}
-          </HStack>
-        </Box>
-        <HStack layout="row">
-          <Field>
-            <FieldLabel htmlFor="report-date">Date</FieldLabel>
-            <Input
-              id="report-date"
-              type="date"
-              value={dateText}
-              onChange={events.date}
-              disabled={pending}
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="report-project">Project</FieldLabel>
-            <NativeSelect
-              id="report-project"
-              value={search.project ?? ""}
-              onChange={events.project}
+    <Card render={<section aria-label="Report filters" />}>
+      <CardPanel>
+        <Stack>
+          <HStack layout="row">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Previous period"
+              onClick={events.previous}
               disabled={pending}
             >
-              <option value="">All projects</option>
-              <option value="none">No project</option>
-              {Array.from(projectNames, ([id, name]) => (
-                <option key={id} value={id}>
-                  {name}
-                </option>
-              ))}
-            </NativeSelect>
-          </Field>
-        </HStack>
-      </HStack>
-      <HStack layout="spread">
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Previous period"
-          onClick={events.previous}
-          disabled={pending}
-        >
-          <ArrowLeftIcon size={18} aria-hidden="true" />
-        </Button>
-        <Text>{rangeLabel}</Text>
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Next period"
-          onClick={events.next}
-          disabled={pending}
-        >
-          <ArrowRightIcon size={18} aria-hidden="true" />
-        </Button>
-      </HStack>
-      {error && <Text role="alert">{error}</Text>}
-    </>
+              <ArrowLeftIcon size={18} aria-hidden="true" />
+            </Button>
+            <Text>{rangeLabel}</Text>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Next period"
+              onClick={events.next}
+              disabled={pending}
+            >
+              <ArrowRightIcon size={18} aria-hidden="true" />
+            </Button>
+          </HStack>
+          <HStack layout="spread">
+            <Box render={<fieldset aria-label="Report period" />}>
+              <HStack wrap>
+                {periodSchema.options.map((period) => (
+                  <Button
+                    key={period}
+                    value={period}
+                    variant={search.period === period ? "default" : "ghost"}
+                    aria-pressed={search.period === period}
+                    onClick={events.period}
+                    disabled={pending}
+                  >
+                    {period[0]?.toUpperCase()}
+                    {period.slice(1)}
+                  </Button>
+                ))}
+              </HStack>
+            </Box>
+            <HStack layout="row">
+              <Field>
+                <FieldLabel htmlFor="report-date">Date</FieldLabel>
+                <Input
+                  id="report-date"
+                  type="date"
+                  value={dateText}
+                  onChange={events.date}
+                  disabled={pending}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="report-project">Project</FieldLabel>
+                <NativeSelect
+                  id="report-project"
+                  value={search.project ?? ""}
+                  onChange={events.project}
+                  disabled={pending}
+                >
+                  <option value="">All projects</option>
+                  <option value="none">No project</option>
+                  {Array.from(projectNames, ([id, name]) => (
+                    <option key={id} value={id}>
+                      {name}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </Field>
+            </HStack>
+          </HStack>
+          {error && <Text role="alert">{error}</Text>}
+        </Stack>
+      </CardPanel>
+    </Card>
   )
 }
