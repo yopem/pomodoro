@@ -1,4 +1,4 @@
-import type { ChangeEvent, FormEvent } from "react"
+import type { ChangeEvent, FormEvent, ReactNode } from "react"
 
 import { useForm } from "@tanstack/react-form"
 import { useRef, useState } from "react"
@@ -7,7 +7,9 @@ import type { Settings } from "@/features/focus/schema"
 
 import { FieldMessages } from "@/components/field-messages"
 import { Button } from "@/components/ui/button"
+import { Card, CardPanel } from "@/components/ui/card"
 import { Field, FieldLabel } from "@/components/ui/field"
+import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
@@ -57,7 +59,7 @@ const switches = [
   { name: "notifications", label: "Enable notifications" },
 ] as const
 
-export function SettingsForm({
+export function useSettingsForm({
   settings,
   onSaved,
 }: {
@@ -173,155 +175,195 @@ export function SettingsForm({
     }
   })
 
+  return { form, formRef, events, error }
+}
+
+export function SettingsForm({
+  settings,
+  onSaved,
+}: {
+  settings: Settings
+  onSaved: (message: string) => void
+}) {
+  const { form, formRef, events, error } = useSettingsForm({
+    settings,
+    onSaved,
+  })
+
   return (
     <form ref={formRef} noValidate onSubmit={events.submit}>
       <Stack>
-        <Heading render={<h2>Timer and sound</h2>} />
-        {numbers.map(({ name, label, min, max }) => (
-          <form.Field key={name} name={name}>
-            {(field) => (
-              <Field invalid={field.state.meta.errors.length > 0}>
-                <FieldLabel htmlFor={name}>
-                  {label} ({min}–{max})
-                </FieldLabel>
-                <Input
-                  id={name}
-                  type="number"
-                  min={min}
-                  max={max}
-                  step={1}
-                  value={
-                    Number.isNaN(field.state.value) ? "" : field.state.value
-                  }
-                  onBlur={field.handleBlur}
-                  onChange={events.changeNumber}
-                  aria-invalid={field.state.meta.errors.length > 0}
-                  aria-describedby={
-                    field.state.meta.errors.length ? `${name}-error` : undefined
-                  }
-                />
-                <FieldMessages
-                  id={`${name}-error`}
-                  errors={field.state.meta.errors}
-                />
-              </Field>
-            )}
-          </form.Field>
+        {[
+          { title: "Timer", fields: numbers.slice(0, 4) },
+          { title: "Sound", fields: numbers.slice(4, 7) },
+        ].map((group) => (
+          <Card key={group.title}>
+            <CardPanel>
+              <Stack spacing="relaxed">
+                <Heading render={<h2>{group.title}</h2>} />
+                <Grid variant="workspace">
+                  {group.fields.map(({ name, label, min, max }) => (
+                    <form.Field key={name} name={name}>
+                      {(field) => (
+                        <NumberField
+                          name={name}
+                          label={label}
+                          min={min}
+                          max={max}
+                          value={field.state.value}
+                          errors={field.state.meta.errors}
+                          onBlur={field.handleBlur}
+                          onChange={events.changeNumber}
+                        />
+                      )}
+                    </form.Field>
+                  ))}
+                  {group.title === "Sound" && (
+                    <>
+                      <form.Field name="alarm">
+                        {(field) => (
+                          <SettingsSelect
+                            name="alarm"
+                            label="Alarm"
+                            value={field.state.value}
+                            onBlur={field.handleBlur}
+                            onChange={events.changeAlarm}
+                          >
+                            <option value="none">None</option>
+                            <option value="bell">Bell</option>
+                            <option value="chime">Chime</option>
+                          </SettingsSelect>
+                        )}
+                      </form.Field>
+                      <form.Field name="focus_sound">
+                        {(field) => (
+                          <SettingsSelect
+                            name="focus_sound"
+                            label="Focus sound"
+                            value={field.state.value}
+                            onBlur={field.handleBlur}
+                            onChange={events.changeFocusSound}
+                          >
+                            <option value="none">None</option>
+                            <option value="rain">Rain</option>
+                            <option value="white_noise">White noise</option>
+                          </SettingsSelect>
+                        )}
+                      </form.Field>
+                    </>
+                  )}
+                </Grid>
+              </Stack>
+            </CardPanel>
+          </Card>
         ))}
-        <Heading render={<h2>Preferences</h2>} />
-        {colors.map(({ name, label }) => (
-          <form.Field key={name} name={name}>
-            {(field) => (
-              <ColorSelect
-                name={name}
-                label={label}
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={events.changeColor}
-              />
-            )}
-          </form.Field>
-        ))}
-        <form.Field name="alarm">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="alarm">Alarm</FieldLabel>
-              <NativeSelect
-                id="alarm"
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={events.changeAlarm}
-              >
-                <option value="none">None</option>
-                <option value="bell">Bell</option>
-                <option value="chime">Chime</option>
-              </NativeSelect>
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="focus_sound">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="focus_sound">Focus sound</FieldLabel>
-              <NativeSelect
-                id="focus_sound"
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={events.changeFocusSound}
-              >
-                <option value="none">None</option>
-                <option value="rain">Rain</option>
-                <option value="white_noise">White noise</option>
-              </NativeSelect>
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="theme">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="theme">Theme</FieldLabel>
-              <NativeSelect
-                id="theme"
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={events.changeTheme}
-              >
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </NativeSelect>
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="week_start">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="week_start">First day of week</FieldLabel>
-              <NativeSelect
-                id="week_start"
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={events.changeWeekStart}
-              >
-                <option value="sunday">Sunday</option>
-                <option value="monday">Monday</option>
-                <option value="saturday">Saturday</option>
-              </NativeSelect>
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="hour_format">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="hour_format">Time format</FieldLabel>
-              <NativeSelect
-                id="hour_format"
-                value={field.state.value}
-                onBlur={field.handleBlur}
-                onChange={events.changeHourFormat}
-              >
-                <option value="12h">12-hour</option>
-                <option value="24h">24-hour</option>
-              </NativeSelect>
-            </Field>
-          )}
-        </form.Field>
-        {switches.map(({ name, label }) => (
-          <form.Field key={name} name={name}>
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor={name}>{label}</FieldLabel>
-                <Switch
-                  id={name}
-                  checked={field.state.value}
-                  onCheckedChange={field.handleChange}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-        ))}
-        <NotificationPermission />
+        <Card>
+          <CardPanel>
+            <Stack spacing="relaxed">
+              <Heading render={<h2>Preferences</h2>} />
+              <Grid variant="workspace">
+                {colors.map(({ name, label }) => (
+                  <form.Field key={name} name={name}>
+                    {(field) => (
+                      <ColorSelect
+                        name={name}
+                        label={label}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={events.changeColor}
+                      />
+                    )}
+                  </form.Field>
+                ))}
+                <form.Field name="theme">
+                  {(field) => (
+                    <SettingsSelect
+                      name="theme"
+                      label="Theme"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeTheme}
+                    >
+                      <option value="system">System</option>
+                      <option value="light">Light</option>
+                      <option value="dark">Dark</option>
+                    </SettingsSelect>
+                  )}
+                </form.Field>
+                <form.Field name="week_start">
+                  {(field) => (
+                    <SettingsSelect
+                      name="week_start"
+                      label="First day of week"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeWeekStart}
+                    >
+                      <option value="sunday">Sunday</option>
+                      <option value="monday">Monday</option>
+                      <option value="saturday">Saturday</option>
+                    </SettingsSelect>
+                  )}
+                </form.Field>
+                <form.Field name="hour_format">
+                  {(field) => (
+                    <SettingsSelect
+                      name="hour_format"
+                      label="Time format"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeHourFormat}
+                    >
+                      <option value="12h">12-hour</option>
+                      <option value="24h">24-hour</option>
+                    </SettingsSelect>
+                  )}
+                </form.Field>
+              </Grid>
+            </Stack>
+          </CardPanel>
+        </Card>
+        <Card>
+          <CardPanel>
+            <Stack spacing="relaxed">
+              <Heading render={<h2>Behavior</h2>} />
+              <Grid variant="workspace">
+                {numbers.slice(7).map(({ name, label, min, max }) => (
+                  <form.Field key={name} name={name}>
+                    {(field) => (
+                      <NumberField
+                        name={name}
+                        label={label}
+                        min={min}
+                        max={max}
+                        value={field.state.value}
+                        errors={field.state.meta.errors}
+                        onBlur={field.handleBlur}
+                        onChange={events.changeNumber}
+                      />
+                    )}
+                  </form.Field>
+                ))}
+                {switches.map(({ name, label }) => (
+                  <form.Field key={name} name={name}>
+                    {(field) => (
+                      <Field>
+                        <FieldLabel htmlFor={name}>{label}</FieldLabel>
+                        <Switch
+                          id={name}
+                          checked={field.state.value}
+                          onCheckedChange={field.handleChange}
+                          onBlur={field.handleBlur}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                ))}
+              </Grid>
+              <NotificationPermission />
+            </Stack>
+          </CardPanel>
+        </Card>
         {error && (
           <Text role="alert" tone="destructive">
             {error}
@@ -336,6 +378,72 @@ export function SettingsForm({
         </form.Subscribe>
       </Stack>
     </form>
+  )
+}
+
+export function SettingsSelect({
+  name,
+  label,
+  value,
+  onBlur,
+  onChange,
+  children,
+}: {
+  name: string
+  label: string
+  value: string
+  onBlur: () => void
+  onChange: (event: ChangeEvent<HTMLSelectElement>) => void
+  children: ReactNode
+}) {
+  return (
+    <Field>
+      <FieldLabel htmlFor={name}>{label}</FieldLabel>
+      <NativeSelect id={name} value={value} onBlur={onBlur} onChange={onChange}>
+        {children}
+      </NativeSelect>
+    </Field>
+  )
+}
+
+export function NumberField({
+  name,
+  label,
+  min,
+  max,
+  value,
+  errors,
+  onBlur,
+  onChange,
+}: {
+  name: string
+  label: string
+  min: number
+  max: number
+  value: number
+  errors: readonly unknown[]
+  onBlur: () => void
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void
+}) {
+  return (
+    <Field invalid={errors.length > 0}>
+      <FieldLabel htmlFor={name}>
+        {label} ({min}–{max})
+      </FieldLabel>
+      <Input
+        id={name}
+        type="number"
+        min={min}
+        max={max}
+        step={1}
+        value={Number.isNaN(value) ? "" : value}
+        onBlur={onBlur}
+        onChange={onChange}
+        aria-invalid={errors.length > 0}
+        aria-describedby={errors.length ? `${name}-error` : undefined}
+      />
+      <FieldMessages id={`${name}-error`} errors={errors} />
+    </Field>
   )
 }
 

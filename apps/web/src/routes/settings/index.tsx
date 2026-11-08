@@ -3,6 +3,7 @@ import { useState } from "react"
 
 import { Box } from "@/components/ui/box"
 import { Container } from "@/components/ui/container"
+import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
@@ -44,13 +45,13 @@ export function SettingsRoute() {
           </Text>
           {message && <output>{message}</output>}
           {hydrated ? (
-            <>
+            <Grid variant="focus">
               <SettingsForm
                 settings={workspace.settings}
                 onSaved={setMessage}
               />
               <WorkspaceBackup workspace={workspace} identity={identity} />
-            </>
+            </Grid>
           ) : (
             <Text>Loading settings…</Text>
           )}
