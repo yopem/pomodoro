@@ -1634,3 +1634,48 @@ approved public-data feature merely because the reference has a tab.
   workspace summaries in `qa-artifacts/QA-057/`.
 - **Cleanup:** Restore the baseline and remove only case-created files.
 - **Status:** pending; browser execution remains deferred until features end.
+
+### [ ] QA-058 — P0 — Do not acknowledge an uncommitted recovery fence
+
+- **Purpose:** Preserve uncertain writes until a replacement save actually
+  advances the account revision. Cover rejected and timed-out no-op fences.
+- **Prerequisites:** Approved isolated browser/API QA and approved delayed,
+  dropped, and rate-limited response controls. Keep guest and account backups.
+- **Inputs:** One uncertain save or guest import at revision R; matching local
+  and server data; a no-op replacement with expected revision R; rejection 429.
+- **Steps:** 1. Make an original mutation uncertain. 2. Choose
+  `Use account version` in conflict recovery. 3. Delay or drop the no-op save
+  response before commit and read the unchanged server revision R. 4. Repeat
+  with a definitive 429 rejection of the replacement. 5. Release the original
+  request, then retry recovery against the current server state.
+- **Expected results:** Equal content at R does not prove that a save at R
+  committed. Recovery retains the original facts after a rejected replacement.
+  Only a matching workspace at a revision greater than R proves the fence. Old
+  requests cannot apply after a confirmed fence, and neither local edits nor
+  guest source records are silently discarded.
+- **Evidence:** Save sanitized hashes, revisions, request ordering, and pending
+  recovery state in `qa-artifacts/QA-058/`.
+- **Cleanup:** Remove response controls and restore isolated workspaces.
+- **Status:** pending; runtime execution remains deferred.
+
+### [ ] QA-059 — P0 — Recheck cache readiness before dispatch
+
+- **Purpose:** Prevent queued account commands from sending a stale snapshot
+  after another tab makes the active cache invalid without changing its owner.
+- **Prerequisites:** Approved isolated browser QA with two project-group tabs, a
+  verified account, its cache key, and an exported backup. Discover the key from
+  the verified session ID; do not use production data.
+- **Inputs:** A pending save, import, or logout; malformed JSON `{` in the
+  active account cache; the valid backup used to restore that cache.
+- **Steps:** 1. Queue each account action before its dispatch guard. 2. Damage
+  the active cache in the other tab and wait for its storage event. 3. Release
+  the queued action. 4. Restore the cache through the explicit backup workflow
+  and retry account recovery. Repeat with an already-sent request.
+- **Expected results:** Unhydrated or failed cache state prevents a new request
+  despite an unchanged owner and last valid snapshot. Already-sent requests
+  retain uncertain facts, no false saved state appears, and recovery remains
+  available after the cache is repaired.
+- **Evidence:** Save sanitized readiness/error states and request counts in
+  `qa-artifacts/QA-059/`.
+- **Cleanup:** Restore the original cache and remove queued-request controls.
+- **Status:** pending; browser execution remains deferred.

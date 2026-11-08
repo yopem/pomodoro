@@ -141,7 +141,7 @@ function createAccountController(client: QueryClient) {
       focus.owner !== owner ||
       owner.identity !== user.id ||
       !focus.hydrated ||
-      focus.error
+      focus.error !== null
     ) {
       throw new Error("The account workspace is not ready")
     }
@@ -173,6 +173,12 @@ function createAccountController(client: QueryClient) {
   ) {
     if (!current(version, userId, owner)) {
       throw new Error("Account verification changed. Review this action again")
+    }
+
+    const focus = getFocusSnapshot()
+
+    if (!focus.hydrated || focus.error !== null) {
+      throw new Error("The account workspace is not ready")
     }
   }
 
@@ -226,15 +232,23 @@ function createAccountController(client: QueryClient) {
     hash: string,
     resolution?: { expected: SyncStamp },
   ) {
+    assertCurrent(version, userId, owner)
     await acknowledgeWorkspace(
       userId,
       { revision: response.revision, hash },
-      () => current(version, userId, owner),
+      () => {
+        const focus = getFocusSnapshot()
+
+        return (
+          current(version, userId, owner) &&
+          focus.hydrated &&
+          focus.error === null
+        )
+      },
       resolution,
     )
-
-    if (current(version, userId, owner))
-      publish({ revision: response.revision })
+    assertCurrent(version, userId, owner)
+    publish({ revision: response.revision })
   }
 
   function conflict(response: AccountWorkspace, message: string | null = null) {
@@ -287,7 +301,7 @@ function createAccountController(client: QueryClient) {
       if (receipt?.userId === userId && receipt.owner === owner) {
         if (
           receipt.hash === remoteHash &&
-          response.revision >= receipt.expectedRevision
+          response.revision > receipt.expectedRevision
         ) {
           await acknowledge(userId, version, owner, response, remoteHash)
 
@@ -492,6 +506,7 @@ function createAccountController(client: QueryClient) {
       clearsImport,
     }
 
+    let previous: PendingSave | undefined
     let sent = false
     let received = false
 
@@ -508,6 +523,7 @@ function createAccountController(client: QueryClient) {
 
             if (!sameWorkspace(expectedLocal, getFocusSnapshot().workspace))
               throw new LocalSaveChangedError()
+            previous = pendingSaves.get(userId)
             rememberSaveRequest(receipt)
             sent = true
           },
@@ -518,7 +534,8 @@ function createAccountController(client: QueryClient) {
       const responseHash = await hashWorkspace(response.workspace)
       assertCurrent(version, userId, owner)
 
-      if (hash !== responseHash) throw new AccountApiError(200)
+      if (hash !== responseHash || response.revision <= expectedRevision)
+        throw new AccountApiError(200)
       await acknowledge(userId, version, owner, response, hash)
       assertCurrent(version, userId, owner)
       forgetSaveRequest(receipt)
@@ -532,9 +549,18 @@ function createAccountController(client: QueryClient) {
         sent &&
         !received &&
         !uncertain(cause) &&
-        !(cause instanceof AccountApiError && cause.status === 409)
-      )
+        !(cause instanceof AccountApiError && cause.status === 409) &&
+        pendingSaves.get(userId) === receipt
+      ) {
         forgetSaveRequest(receipt)
+
+        if (previous) {
+          pendingSaves.set(userId, previous)
+
+          if (current(version, userId, owner)) pendingSave = previous
+        }
+      }
+
       throw cause
     }
   }
