@@ -71,9 +71,11 @@ export async function acknowledgeWorkspace(
   userId: string,
   stamp: SyncStamp,
   isCurrent: () => boolean,
+  resolution?: { expected: SyncStamp },
 ) {
   const key = stampKey(userId)
   const incoming = stampSchema.parse(stamp)
+  const expected = resolution ? stampSchema.parse(resolution.expected) : null
 
   if (!navigator.locks) throw new Error("Web Locks are unavailable")
 
@@ -86,11 +88,15 @@ export async function acknowledgeWorkspace(
     }
 
     if (previous && previous.revision === incoming.revision) {
-      if (previous.hash !== incoming.hash) {
+      if (previous.hash === incoming.hash) return
+
+      if (
+        expected === null ||
+        expected.revision !== previous.revision ||
+        expected.hash !== previous.hash
+      ) {
         throw new Error("Sync stamp hashes do not match")
       }
-
-      return
     }
 
     if (!isCurrent()) return
