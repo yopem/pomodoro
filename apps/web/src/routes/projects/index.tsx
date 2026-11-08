@@ -80,7 +80,6 @@ export function ProjectsRoute() {
         <Stack spacing="page">
           <HStack layout="pageHeader">
             <Stack spacing="compact">
-              <Text variant="eyebrow">Make room for your work</Text>
               <Heading render={<h1>Projects</h1>} />
               <Text tone="muted">See where your focus goes.</Text>
             </Stack>
@@ -230,26 +229,28 @@ export function ProjectCard({
 
   return (
     <Card>
-      <CardPanel render={<Stack />}>
+      <CardPanel density="compact" render={<Stack />}>
         <HStack layout="spread">
-          <Heading>{project.name}</Heading>
+          <HStack layout="row">
+            <ColorIndicator color={project.color} />
+            <Heading>{project.name}</Heading>
+          </HStack>
           <Text size="small" tone="muted">
             {project.archived ? "Archived" : "Active"}
           </Text>
         </HStack>
         <HStack layout="row">
-          <ColorIndicator color={project.color} />
-          <Text>{project.color}</Text>
-        </HStack>
-        <HStack layout="row">
-          <Text>{formatFocusTime(seconds)} focused</Text>
-          <Text tone="muted">
+          <Text size="small" tone="muted">
+            {project.color}
+          </Text>
+          <Text size="small">{formatFocusTime(seconds)} focused</Text>
+          <Text size="small" tone="muted">
             {tasks} open {tasks === 1 ? "task" : "tasks"}
           </Text>
         </HStack>
         <HStack layout="row">
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             disabled={pending}
             onClick={events.edit}
