@@ -12,14 +12,15 @@ import { FieldMessages } from "@/components/field-messages"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
+  DialogFooter,
   DialogHeader,
+  DialogPanel,
   DialogPopup,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Form } from "@/components/ui/form"
-import { HStack } from "@/components/ui/hstack"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Stack } from "@/components/ui/stack"
@@ -56,16 +57,13 @@ export function CsvExport({
       <DialogTrigger render={<Button variant="outline" />}>
         <DownloadIcon size={18} aria-hidden="true" /> Download report
       </DialogTrigger>
-      <DialogPopup>
-        <DialogHeader>
-          <DialogTitle>Download focus report</DialogTitle>
-        </DialogHeader>
+      {open && (
         <CsvExportForm
           sessions={sessions}
           range={range}
           onOpenChange={setOpen}
         />
-      </DialogPopup>
+      )}
     </Dialog>
   )
 }
@@ -162,106 +160,113 @@ export function CsvExportForm({
   })
 
   return (
-    <Form noValidate onSubmit={events.submit}>
-      <Stack>
-        <form.Field name="from">
-          {(field) => (
-            <Field invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor="export-from">From</FieldLabel>
-              <Input
-                id="export-from"
-                type="date"
-                value={field.state.value}
-                onChange={events.changeFrom}
-                onBlur={field.handleBlur}
-                aria-invalid={field.state.meta.errors.length > 0}
-                aria-describedby="export-from-error"
-              />
-              <FieldMessages
-                id="export-from-error"
-                errors={field.state.meta.errors}
-              />
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="to">
-          {(field) => (
-            <Field invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor="export-to">Through</FieldLabel>
-              <Input
-                id="export-to"
-                type="date"
-                value={field.state.value}
-                onChange={events.changeTo}
-                onBlur={field.handleBlur}
-                aria-invalid={field.state.meta.errors.length > 0}
-                aria-describedby="export-to-error"
-              />
-              <FieldMessages
-                id="export-to-error"
-                errors={field.state.meta.errors}
-              />
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="includeTask">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="export-task">Include task names</FieldLabel>
-              <Switch
-                id="export-task"
-                checked={field.state.value}
-                onCheckedChange={field.handleChange}
-              />
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="unit">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="export-unit">Focus time unit</FieldLabel>
-              <NativeSelect
-                id="export-unit"
-                value={field.state.value}
-                onChange={events.changeUnit}
-              >
-                <option value="minutes">Minutes</option>
-                <option value="hours">Hours</option>
-              </NativeSelect>
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="delimiter">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="export-delimiter">Delimiter</FieldLabel>
-              <NativeSelect
-                id="export-delimiter"
-                value={field.state.value}
-                onChange={events.changeDelimiter}
-              >
-                <option value="comma">Comma</option>
-                <option value="tab">Tab</option>
-              </NativeSelect>
-            </Field>
-          )}
-        </form.Field>
-        <Text size="small" tone="muted">
-          Exports use your local dates and the current project filter.
-          Spreadsheet formulas in names are escaped.
-        </Text>
-        {error && (
-          <Text role="alert" tone="destructive">
-            {error}
+    <DialogPopup render={<Form noValidate onSubmit={events.submit} />}>
+      <DialogHeader>
+        <DialogTitle>Download focus report</DialogTitle>
+      </DialogHeader>
+      <DialogPanel>
+        <Stack>
+          <form.Field name="from">
+            {(field) => (
+              <Field invalid={field.state.meta.errors.length > 0}>
+                <FieldLabel htmlFor="export-from">From</FieldLabel>
+                <Input
+                  id="export-from"
+                  type="date"
+                  value={field.state.value}
+                  onChange={events.changeFrom}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
+                  aria-describedby="export-from-error"
+                />
+                <FieldMessages
+                  id="export-from-error"
+                  errors={field.state.meta.errors}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="to">
+            {(field) => (
+              <Field invalid={field.state.meta.errors.length > 0}>
+                <FieldLabel htmlFor="export-to">Through</FieldLabel>
+                <Input
+                  id="export-to"
+                  type="date"
+                  value={field.state.value}
+                  onChange={events.changeTo}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
+                  aria-describedby="export-to-error"
+                />
+                <FieldMessages
+                  id="export-to-error"
+                  errors={field.state.meta.errors}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="includeTask">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="export-task">
+                  Include task names
+                </FieldLabel>
+                <Switch
+                  id="export-task"
+                  checked={field.state.value}
+                  onCheckedChange={field.handleChange}
+                />
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="unit">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="export-unit">Focus time unit</FieldLabel>
+                <NativeSelect
+                  id="export-unit"
+                  value={field.state.value}
+                  onChange={events.changeUnit}
+                >
+                  <option value="minutes">Minutes</option>
+                  <option value="hours">Hours</option>
+                </NativeSelect>
+              </Field>
+            )}
+          </form.Field>
+          <form.Field name="delimiter">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="export-delimiter">Delimiter</FieldLabel>
+                <NativeSelect
+                  id="export-delimiter"
+                  value={field.state.value}
+                  onChange={events.changeDelimiter}
+                >
+                  <option value="comma">Comma</option>
+                  <option value="tab">Tab</option>
+                </NativeSelect>
+              </Field>
+            )}
+          </form.Field>
+          <Text size="small" tone="muted">
+            Exports use your local dates and the current project filter.
+            Spreadsheet formulas in names are escaped.
           </Text>
-        )}
-        <HStack layout="actions">
-          <Button variant="outline" onClick={events.cancel}>
-            Cancel
-          </Button>
-          <Button type="submit">Download CSV</Button>
-        </HStack>
-      </Stack>
-    </Form>
+          {error && (
+            <Text role="alert" tone="destructive">
+              {error}
+            </Text>
+          )}
+        </Stack>
+      </DialogPanel>
+      <DialogFooter>
+        <Button variant="outline" onClick={events.cancel}>
+          Cancel
+        </Button>
+        <Button type="submit">Download CSV</Button>
+      </DialogFooter>
+    </DialogPopup>
   )
 }
