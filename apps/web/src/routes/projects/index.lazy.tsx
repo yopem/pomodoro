@@ -134,11 +134,13 @@ export function ProjectsRoute() {
         </Stack>
       </Container>
       <Dialog open={open} onOpenChange={setOpen}>
-        <ProjectForm
-          key={editing?.id ?? "new"}
-          project={editing}
-          onSaved={events.close}
-        />
+        {open && (
+          <ProjectForm
+            key={editing?.id ?? "new"}
+            project={editing}
+            onSaved={events.close}
+          />
+        )}
       </Dialog>
     </Box>
   )
