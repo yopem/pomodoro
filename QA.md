@@ -1857,3 +1857,26 @@ do not survive a full page reload, which can require a new conflict review.
   observations under `qa-artifacts/QA-065/`.
 - **Cleanup:** Remove only the approved disposable fixture and artifacts.
 - **Status:** pending; no collision fixture has run.
+
+### [ ] QA-066 — P1 — StyleX styles load under the development CSP
+
+- **Purpose:** Repair the observed browser-default interface without replacing
+  StyleX or relaxing the production policy.
+- **Prerequisites:** Existing web dev process on `http://127.0.0.1:13001`,
+  Playwriter session 3 in green `pomodoro-qa`, backend intentionally offline.
+  Preserve any existing guest records. No database or migration is required.
+- **Inputs:** Main route `/`, viewport 1440 by 900, then 390 by 844; root CSS
+  import and a request-specific Vite nonce meta before the head content.
+- **Steps:** 1. Reload the existing project tab. 2. Inspect fresh browser logs,
+  body typography, background, timer controls and generated stylesheet rules. 3.
+  Verify that a full reload and a source-driven HMR update retain styling. 4.
+  Repeat on mobile; do not create account or production records.
+- **Expected results:** The page uses Yopem fonts, tokens, spacing and controls,
+  not browser-default links and inputs. No CSS injection is blocked by CSP.
+  StyleX extraction remains active. Production CSP gains no blanket exception.
+- **Evidence:** Save before/after screenshots and sanitized console and style
+  observations under `qa-artifacts/QA-066/`. Do not save nonce values.
+- **Cleanup:** Restore the original viewport. Leave the requested web process
+  running; stop no unrelated process or browser tab.
+- **Status:** pending. The initial browser snapshot and screenshot confirm a
+  completely unstyled interface and blocked Vite style injection.

@@ -133,6 +133,7 @@ export function RootDocument({ children }: { children: ReactNode }) {
       {...getRootThemeProps()}
     >
       <head>
+        <meta property="csp-nonce" content={nonce} nonce={nonce} />
         <ThemeScript nonce={nonce} />
         <HeadContent />
         <DocumentTitle timer={timer} nowMs={nowMs} hydrated={hydrated} />
