@@ -14,9 +14,19 @@ const styles = stylex.create({
     fontFamily: tokens["--font-heading"],
     fontSize: {
       default: "1.5rem",
-      ":is(h1)": "2.25rem",
-      ":is(h3)": "1.25rem",
-      ":is(h4)": "1.125rem",
+      "@media (max-width: 640px)": "1.25rem",
+      ":is(h1)": {
+        default: "2.25rem",
+        "@media (max-width: 640px)": "1.75rem",
+      },
+      ":is(h3)": {
+        default: "1.25rem",
+        "@media (max-width: 640px)": "1.125rem",
+      },
+      ":is(h4)": {
+        default: "1.125rem",
+        "@media (max-width: 640px)": "1rem",
+      },
       ":is(h5)": "1rem",
       ":is(h6)": "0.875rem",
     },

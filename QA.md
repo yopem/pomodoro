@@ -2135,3 +2135,37 @@ do not survive a full page reload, which can require a new conflict review.
 - **Cleanup:** Remove only owned temporary public advisory payloads. No local
   app data or service changes are needed.
 - **Status:** pending.
+
+### [ ] QA-075 — P2 — Compact mobile typography
+
+- **Purpose:** Reduce oversized mobile headings, timer digits, and summary
+  values. Keep desktop sizes, body text, inputs, and control targets unchanged.
+- **Affected files:** `apps/web/src/components/ui/heading.tsx`,
+  `apps/web/src/components/ui/stat.tsx`, and
+  `apps/web/src/features/timer/components/focus-timer.tsx`.
+- **Prerequisites:** The owned HTTPS QA origin and current production build. Use
+  the owned project browser group and its existing paused guest fixture. Do not
+  change saved records or use the supplied database.
+- **Inputs:** Viewports 320×568, 390×844, 640×900, and 1440×900. Use all six
+  workspace pages, a long heading, Japanese text, and the existing paused timer.
+- **Steps:** 1. Confirm each target viewport with CDP layout metrics. 2. Inspect
+  heading, countdown, and statistic font sizes and capture the timer and
+  reports. 3. Inspect projects, templates, and settings for clipped or crowded
+  titles. 4. Inspect one open form. Compare body text, input size, labels, and
+  targets. 5. Repeat at 200% text zoom and a 320 CSS-pixel reflow width. 6.
+  Compare the desktop view and verify that timer storage bytes did not change.
+- **Expected results:** At widths up to 640 CSS pixels, h1 is 28px, h2 is 20px,
+  h3 is 18px, and h4 is 16px at the default root font size. Summary values are
+  24px, or 18px for compact values. The countdown is no larger than 52px and can
+  shrink with viewport width. Desktop h1 remains 36px, h2 24px, and summary
+  values 30px or compact 20px. Body text, inputs, semantic headings, focus
+  indicators, and target sizes remain unchanged. No title or number clips or
+  creates horizontal page overflow. Text zoom remains usable. The timer does not
+  reset or write history.
+- **Evidence:** Save computed style output, actual viewport metrics, inspected
+  screenshots, and storage comparisons under `qa-artifacts/QA-075/`. Record the
+  tested source revision and any unrun combinations.
+- **Cleanup:** Close only case-created forms. Restore target-scoped metrics and
+  zoom. Leave fixture records and browser permissions unchanged.
+- **Status:** pending. The mobile baseline uses 36px h1 and a countdown with a
+  64px minimum. Final-build browser acceptance remains open.

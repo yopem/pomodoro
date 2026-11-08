@@ -21,13 +21,21 @@ const styles = stylex.create({
   },
   value: {
     color: tokens["--foreground"],
-    fontSize: "1.875rem",
+    fontSize: {
+      default: "1.875rem",
+      "@media (max-width: 640px)": "1.5rem",
+    },
     fontVariantNumeric: "tabular-nums",
     fontWeight: 600,
     lineHeight: 1.2,
     margin: 0,
   },
-  compactValue: { fontSize: "1.25rem" },
+  compactValue: {
+    fontSize: {
+      default: "1.25rem",
+      "@media (max-width: 640px)": "1.125rem",
+    },
+  },
   description: {
     color: tokens["--muted-foreground"],
     fontSize: "0.75rem",

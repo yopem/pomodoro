@@ -38,7 +38,10 @@ const styles = stylex.create({
   countdown: {
     fontFamily: tokens["--font-sans"],
     fontVariantNumeric: "tabular-nums",
-    fontSize: "clamp(4rem, 10vw, 7rem)",
+    fontSize: {
+      default: "clamp(4rem, 10vw, 7rem)",
+      "@media (max-width: 640px)": "min(3.25rem, 16vw)",
+    },
     fontWeight: 600,
     letterSpacing: "-0.06em",
     lineHeight: 1,
