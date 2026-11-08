@@ -1679,3 +1679,30 @@ approved public-data feature merely because the reference has a tab.
   `qa-artifacts/QA-059/`.
 - **Cleanup:** Restore the original cache and remove queued-request controls.
 - **Status:** pending; browser execution remains deferred.
+
+### [ ] QA-060 — P1 — Set up an isolated local account database
+
+- **Purpose:** Cover the pinned local PostgreSQL service, environment loading,
+  explicit migrations, and documented development entrypoints.
+- **Prerequisites:** Explicit approval to start a local database and apply
+  migrations; Docker Compose v2 or compatible Podman Compose; free local port
+  5432; pinned Bun and Rust. Inspect existing processes first and never replace
+  a running database or use production credentials.
+- **Inputs:** A new `pomodoro-local` volume, a local-only password in
+  `LOCAL_POSTGRES_PASSWORD`, and a matching local `DATABASE_URL`.
+- **Steps:** 1. Follow README setup from a fresh checkout. 2. Start only the
+  documented local database service. 3. Apply `bun run db:migrate` to the
+  confirmed isolated target. 4. Start the web/API through documented
+  commands. 5. Complete QA-044 against this target and verify its named volume
+  survives a normal container stop and restart.
+- **Expected results:** The pinned image uses the PostgreSQL 18 data-volume
+  path, the port binds only to loopback, and no migration runs automatically.
+  Web and API use ports 13001 and 18001. Backend environment values are never
+  exposed through client configuration. Existing services and data are
+  untouched.
+- **Evidence:** Save sanitized image digest, service state, migration output,
+  and persistence results in `qa-artifacts/QA-060/`; do not print resolved
+  secrets.
+- **Cleanup:** Stop only case-started processes and containers. Preserve the
+  named volume unless separate destructive-cleanup approval is given.
+- **Status:** pending; service startup and migrations remain unapproved.
