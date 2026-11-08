@@ -168,6 +168,13 @@ function pushedOriginCommits() {
 
   if (!input) throw new Error("The push has no ref input to verify")
   const commits = new Set<string>()
+  const objectFormat = gitText(["rev-parse", "--show-object-format"])
+
+  if (objectFormat !== "sha1" && objectFormat !== "sha256") {
+    throw new Error("Unsupported Git object format")
+  }
+
+  const objectIdLength = objectFormat === "sha1" ? 40 : 64
 
   for (const line of input.split("\n")) {
     const fields = line.split(" ")
@@ -180,13 +187,37 @@ function pushedOriginCommits() {
       !remoteRef ||
       !localId ||
       !remoteId ||
-      !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(localId) ||
-      !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(remoteId)
+      !/^[a-f0-9]+$/.test(localId) ||
+      !/^[a-f0-9]+$/.test(remoteId) ||
+      localId.length !== objectIdLength ||
+      remoteId.length !== objectIdLength ||
+      !/^(refs\/heads\/|refs\/tags\/)/.test(remoteRef)
     ) {
       throw new Error("Unsupported push ref input")
     }
 
-    if (/^0+$/.test(localId)) continue
+    gitText(["check-ref-format", remoteRef])
+
+    if (/^0+$/.test(localId)) {
+      if (localRef !== "(delete)" || /^0+$/.test(remoteId)) {
+        throw new Error("Unsupported push ref input")
+      }
+
+      continue
+    }
+
+    if (
+      localRef === "(delete)" ||
+      gitText([
+        "rev-parse",
+        "--verify",
+        "--end-of-options",
+        `${localRef}^{object}`,
+      ]) !== localId
+    ) {
+      throw new Error("Unsupported push ref input")
+    }
+
     const commit = gitText(["rev-parse", "--verify", `${localId}^{commit}`])
     commits.add(commit)
   }

@@ -7,4 +7,6 @@ if [ "${0##*/}" = "pre-push" ]; then
   export POMODORO_GIT_REMOTE_NAME="$1"
   export POMODORO_GIT_REMOTE_URL="$2"
   set --
+elif [ "${0##*/}" = "pre-commit" ]; then
+  set -- --no-stage-fixed
 fi
