@@ -1880,3 +1880,52 @@ do not survive a full page reload, which can require a new conflict review.
   running; stop no unrelated process or browser tab.
 - **Status:** pending. The initial browser snapshot and screenshot confirm a
   completely unstyled interface and blocked Vite style injection.
+
+### [ ] QA-067 — P1 — Header spacing and account disclosure
+
+- **Purpose:** Fix the clipped brand, crowded navigation and oversized sync
+  error in the reported screenshot. Keep account failures discoverable.
+- **Prerequisites:** Shared local browser setup; web on port 13001. Keep the
+  backend offline for the guest error state. Preserve existing workspace data.
+- **Inputs:** `/` at 1440 by 900 and 390 by 844; guest account discovery error.
+- **Steps:** 1. Inspect the header and its alignment with main content. 2. Open
+  the account disclosure using its button, then close with Escape. 3. Tab
+  through the brand, navigation and account button. 4. Visit Projects and return
+  to Timer. 5. Inspect `/focus/` separately.
+- **Expected results:** Brand and icon are fully visible. Header has balanced
+  padding and no page-wide overflow. Navigation remains usable on mobile. The
+  account button is compact; full sync feedback and retry controls appear in its
+  accessible dialog. Failures are not erased or reported as successful. Closing
+  returns focus to the trigger. Compact mode hides only shell chrome; the
+  account controller stays mounted and guest records remain unchanged.
+- **Evidence:** Save desktop/mobile screenshots and sanitized fresh console
+  observations in `qa-artifacts/QA-067/`; inspect focus return and active links.
+- **Cleanup:** Close only the opened disclosure and restore the viewport. Leave
+  the requested dev process running. No data cleanup is needed.
+- **Status:** pending.
+
+### [ ] QA-068 — P1 — Consistent application layouts
+
+- **Purpose:** Redesign layout only on Timer, Projects, Templates, Reports,
+  Settings and compact Focus without changing their workflows or stored data.
+- **Prerequisites:** Existing web dev process and project browser group; backend
+  remains offline. Preserve the current guest workspace. Source review must
+  compare all existing controls and owner-bound actions before and after.
+- **Inputs:** `/`, `/projects`, `/templates`, `/reports`, `/settings`,
+  `/focus/`; viewport sizes 1440x900, 1024x768, 768x1024 and 390x844.
+- **Steps:** 1. Visit each route directly and through navigation. 2. Inspect the
+  title, primary action, content alignment and responsive columns. 3. Tab
+  through visible controls; inspect focus styles and dialog return. 4. Inspect
+  report filters and settings sections without saving changes. 5. Compare
+  original action availability against the changed source.
+- **Expected results:** One readable heading hierarchy, equal content edges,
+  consistent page spacing, clear primary actions and no clipped or overlapping
+  controls. Mobile layouts stack cleanly without page-wide horizontal scroll.
+  Yopem UI and StyleX remain the design system. No feature, validation, stale
+  baseline check, account owner guard or timer precision rule is removed.
+- **Evidence:** Save one desktop and mobile screenshot per route under
+  `qa-artifacts/QA-068/`, plus sanitized console and layout observations.
+- **Cleanup:** Close opened dialogs, restore the viewport and keep the existing
+  server running. No writes or data cleanup are needed for layout inspection.
+- **Status:** pending. No production build, database access or migration is
+  authorized by this layout-only work.
