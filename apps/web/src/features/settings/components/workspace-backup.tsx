@@ -5,6 +5,7 @@ import { startTransition, useActionState, useState } from "react"
 import type { Workspace } from "@/features/focus/schema"
 
 import { Button } from "@/components/ui/button"
+import { Card, CardPanel } from "@/components/ui/card"
 import {
   Dialog,
   DialogClose,
@@ -22,7 +23,6 @@ import { Text } from "@/components/ui/text"
 import { exportBackup } from "@/features/focus/reports"
 import { importBackup, useWorkspaceMutationOwner } from "@/features/focus/store"
 import { downloadText } from "@/lib/download"
-import { appStyles } from "@/styles/app.stylex"
 
 const maxBackupBytes = 10 * 1024 * 1024
 
@@ -201,89 +201,93 @@ export function WorkspaceBackup({
   const { file, message, error, confirmation } = state
 
   return (
-    <Stack xstyle={appStyles.section}>
-      <Heading render={<h2>Workspace backup</h2>} />
-      <Text>
-        Import replaces all tasks, projects, templates, sessions, settings, and
-        timer data.
-      </Text>
-      <Button type="button" variant="outline" onClick={events.download}>
-        Export backup
-      </Button>
-      <Field>
-        <FieldLabel htmlFor="backup-file">
-          Backup JSON file (maximum 10 MB)
-        </FieldLabel>
-        <Input
-          id="backup-file"
-          type="file"
-          accept="application/json,.json"
-          onChange={events.select}
-        />
-      </Field>
-      {file && (
-        <>
-          <Button
-            variant="destructive-outline"
-            size="sm"
-            disabled={pending}
-            onClick={events.prepare}
-          >
-            Import backup
+    <Card>
+      <CardPanel>
+        <Stack>
+          <Heading render={<h2>Workspace backup</h2>} />
+          <Text>
+            Import replaces all tasks, projects, templates, sessions, settings,
+            and timer data.
+          </Text>
+          <Button type="button" variant="outline" onClick={events.download}>
+            Export backup
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pending}
-            onClick={events.recover}
-          >
-            Recover corrupt workspace
-          </Button>
-        </>
-      )}
-      <Dialog open={confirmation !== null} onOpenChange={events.changeOpen}>
-        <DialogPopup>
-          <DialogHeader>
-            <DialogTitle>
-              {confirmation?.expected === null
-                ? "Recover corrupt workspace"
-                : "Replace workspace"}
-            </DialogTitle>
-            <DialogDescription>
-              {confirmation?.expected === null
-                ? "Restore this backup only if the current workspace storage is corrupt. The corrupt data will be retained."
-                : "This replaces all current workspace data. Export a backup first if you need to keep it."}
-            </DialogDescription>
-          </DialogHeader>
-          {error && (
-            <Text role="alert" xstyle={appStyles.error}>
+          <Field>
+            <FieldLabel htmlFor="backup-file">
+              Backup JSON file (maximum 10 MB)
+            </FieldLabel>
+            <Input
+              id="backup-file"
+              type="file"
+              accept="application/json,.json"
+              onChange={events.select}
+            />
+          </Field>
+          {file && (
+            <>
+              <Button
+                variant="destructive-outline"
+                size="sm"
+                disabled={pending}
+                onClick={events.prepare}
+              >
+                Import backup
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pending}
+                onClick={events.recover}
+              >
+                Recover corrupt workspace
+              </Button>
+            </>
+          )}
+          <Dialog open={confirmation !== null} onOpenChange={events.changeOpen}>
+            <DialogPopup>
+              <DialogHeader>
+                <DialogTitle>
+                  {confirmation?.expected === null
+                    ? "Recover corrupt workspace"
+                    : "Replace workspace"}
+                </DialogTitle>
+                <DialogDescription>
+                  {confirmation?.expected === null
+                    ? "Restore this backup only if the current workspace storage is corrupt. The corrupt data will be retained."
+                    : "This replaces all current workspace data. Export a backup first if you need to keep it."}
+                </DialogDescription>
+              </DialogHeader>
+              {error && (
+                <Text role="alert" tone="destructive">
+                  {error}
+                </Text>
+              )}
+              <DialogFooter>
+                <DialogClose
+                  render={<Button variant="outline" disabled={pending} />}
+                >
+                  Cancel
+                </DialogClose>
+                <Button
+                  variant="destructive"
+                  loading={pending}
+                  onClick={events.replace}
+                >
+                  {confirmation?.expected === null
+                    ? "Recover workspace"
+                    : "Replace workspace"}
+                </Button>
+              </DialogFooter>
+            </DialogPopup>
+          </Dialog>
+          {error && !confirmation && (
+            <Text role="alert" tone="destructive">
               {error}
             </Text>
           )}
-          <DialogFooter>
-            <DialogClose
-              render={<Button variant="outline" disabled={pending} />}
-            >
-              Cancel
-            </DialogClose>
-            <Button
-              variant="destructive"
-              loading={pending}
-              onClick={events.replace}
-            >
-              {confirmation?.expected === null
-                ? "Recover workspace"
-                : "Replace workspace"}
-            </Button>
-          </DialogFooter>
-        </DialogPopup>
-      </Dialog>
-      {error && !confirmation && (
-        <Text role="alert" xstyle={appStyles.error}>
-          {error}
-        </Text>
-      )}
-      {message && <output>{message}</output>}
-    </Stack>
+          {message && <output>{message}</output>}
+        </Stack>
+      </CardPanel>
+    </Card>
   )
 }
