@@ -368,14 +368,8 @@ const styles = stylex.create({
       default: "2.75rem",
       "@media (min-width: 640px)": "2.5rem",
     },
-    fontSize: {
-      default: "1.125rem",
-      "@media (min-width: 640px)": "1rem",
-    },
-    lineHeight: {
-      default: "1.75rem",
-      "@media (min-width: 640px)": "1.5rem",
-    },
+    fontSize: "1rem",
+    lineHeight: "1.5rem",
     paddingInline: "calc(1rem - 1px)",
   },
   sizeXSmall: {

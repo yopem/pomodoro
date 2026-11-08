@@ -2141,7 +2141,8 @@ do not survive a full page reload, which can require a new conflict review.
 - **Purpose:** Reduce oversized mobile headings, timer digits, and summary
   values. Keep desktop sizes, body text, inputs, and control targets unchanged.
 - **Affected files:** `apps/web/src/components/ui/heading.tsx`,
-  `apps/web/src/components/ui/stat.tsx`, and
+  `apps/web/src/components/ui/stat.tsx`,
+  `apps/web/src/components/ui/button.tsx`, and
   `apps/web/src/features/timer/components/focus-timer.tsx`.
 - **Prerequisites:** The owned HTTPS QA origin and current production build. Use
   the owned project browser group and its existing paused guest fixture. Do not
@@ -2157,11 +2158,12 @@ do not survive a full page reload, which can require a new conflict review.
 - **Expected results:** At widths up to 640 CSS pixels, h1 is 28px, h2 is 20px,
   h3 is 18px, and h4 is 16px at the default root font size. Summary values are
   24px, or 18px for compact values. The countdown is no larger than 52px and can
-  shrink with viewport width. Desktop h1 remains 36px, h2 24px, and summary
-  values 30px or compact 20px. Body text, inputs, semantic headings, focus
-  indicators, and target sizes remain unchanged. No title or number clips or
-  creates horizontal page overflow. Text zoom remains usable. The timer does not
-  reset or write history.
+  shrink with viewport width. Large action-button text is 16px instead of 18px
+  on phones. Its 44px height and focus ring remain. Desktop h1 remains 36px, h2
+  24px, and summary values 30px or compact 20px. Body text, inputs, semantic
+  headings, focus indicators, and target sizes remain unchanged. No title or
+  number clips or creates horizontal page overflow. Text zoom remains usable.
+  The timer does not reset or write history.
 - **Evidence:** Save computed style output, actual viewport metrics, inspected
   screenshots, and storage comparisons under `qa-artifacts/QA-075/`. Record the
   tested source revision and any unrun combinations.
