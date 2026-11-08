@@ -14,6 +14,9 @@
         "turbo": "^2.11.10",
       },
     },
+    "apps/server": {
+      "name": "@pomodoro/server",
+    },
     "apps/web": {
       "name": "@pomodoro/web",
       "dependencies": {
@@ -441,6 +444,8 @@
     "@pkgr/core": ["@pkgr/core@0.3.6", "", {}, "sha512-SEeaJLb3qBNF/OaXnaR1NmmBbFYk1zC0ZH/52fATcRPLFg/p791YrcyFFy44Bo9sLaGuSuLp5Q6axbb/O+v/RA=="],
 
     "@pomodoro/env": ["@pomodoro/env@workspace:packages/env"],
+
+    "@pomodoro/server": ["@pomodoro/server@workspace:apps/server"],
 
     "@pomodoro/web": ["@pomodoro/web@workspace:apps/web"],
 
