@@ -5,7 +5,6 @@ import { Progress } from "@/components/ui/progress"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { formatFocusTime } from "@/lib/focus-time"
-import { appStyles } from "@/styles/app.stylex"
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -18,8 +17,6 @@ const formatters = {
     timeZone,
   }),
 }
-
-const durationStyles = [appStyles.small, appStyles.mono]
 
 export function FocusTimeline({
   sessions,
@@ -66,10 +63,12 @@ export function FocusTimeline({
   return (
     <Stack>
       {bins.map((bin) => (
-        <Stack key={bin.start} xstyle={appStyles.compact}>
-          <HStack xstyle={appStyles.spread}>
-            <Text xstyle={appStyles.small}>{bin.label}</Text>
-            <Text xstyle={durationStyles}>{formatFocusTime(bin.seconds)}</Text>
+        <Stack key={bin.start} spacing="compact">
+          <HStack layout="spread">
+            <Text size="small">{bin.label}</Text>
+            <Text size="small" format="numeric">
+              {formatFocusTime(bin.seconds)}
+            </Text>
           </HStack>
           <Progress
             value={bin.seconds}
