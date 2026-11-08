@@ -4,7 +4,9 @@
 
 Task: create a web-only reference app alternative with basic and premium
 features, Yopem UI and StyleX, guest use, and account sync. Exclude Todoist and
-webhooks. Core source workflows are integrated. Runtime QA has not run.
+webhooks. Core source workflows are integrated. Layout browser checks are in
+progress. The user has requested autonomous feature completion and QA before
+release.
 
 Frontend scope: `apps/web/src/`, `packages/env/`, `packages/api/`, app-owned UI,
 and root Bun configuration. Routes are `/`, `/focus`, `/projects`, `/templates`,
@@ -15,22 +17,31 @@ that services, issuer integration, or browser workflows work at runtime.
 
 Use `http://127.0.0.1:13001` for web QA. The required backend address is
 `http://127.0.0.1:18001`; web proxies `/api`, `/auth`, `/openapi.json`,
-`/health`, and `/ready` to it. No development server was started for this work.
-Before an approved runtime pass, check existing listeners. Do not start another
-server or change ports. Follow `README.md` for configuration and confirmed
-isolated PostgreSQL setup. After approval, `bun run db:migrate` applies
-migrations, then `bun run dev` starts the web and API. Guest-only development
-uses `bun run --cwd apps/web dev`. Run these commands from the repository root.
-Never use reference-site account data as fixtures. Confirm isolated database
-targets before any connection, migration, or seed.
+`/health`, and `/ready` to it. The owned web dev process is already running
+on 13001. Check listeners before starting any service. Do not start a second web
+server or change its port. Read-only layout checks use the existing app origin.
+Use `http://localhost:13001` for new guest QA records so browser storage stays
+separate from the user's `127.0.0.1` workspace. Do not clear user storage.
+
+The existing PostgreSQL listener on 5432 belongs to another project. Do not
+connect to it, stop it, or use its volumes. Database QA requires a new local
+Podman instance with a unique name, fresh credentials and a confirmed free
+loopback port. Record that owned target before connecting or applying reviewed
+migrations. Never use the root `.env` database URL. Do not run root
+`bun run dev` or migration scripts with inherited credentials. Construct an
+explicit isolated environment and preserve all unrelated processes and data.
 
 Runtime: Bun `1.4.4-canary.1+a8fcd319b`, pinned by `bun-toolchain.json`, and
 Rust `1.97.1`, pinned by `rust-toolchain.toml`. Use `bun.lock` and `Cargo.lock`.
 Native lint, format, and typechecks, plus Cargo checks, Clippy, and Rustfmt, are
 allowed. Offline OpenAPI export and typed-client generation have explicit
-approval. Application tests, browser/API probes, builds outside the offline
-exporter, database access, migrations, and deployment remain deferred. These
-permissions do not authorize a whole-application QA pass.
+approval. The latest user request authorizes application QA after feature
+completion, including local builds and browser/API workflows. Use only owned,
+isolated non-production resources. Do not create new test infrastructure or run
+an unrelated whole-project test suite. Production changes, deployment,
+destructive shared-data operations, global tool changes and unverified
+external-account actions remain unauthorized. Record blockers without guessing
+credentials, account identities or callback permissions.
 
 Use isolated temporary directories for tooling probes. Keep sanitized evidence
 under ignored `qa-artifacts/`. Execute P0 before P1, then P2. Every new case is
@@ -1920,12 +1931,63 @@ do not survive a full page reload, which can require a new conflict review.
   original action availability against the changed source.
 - **Expected results:** One readable heading hierarchy, equal content edges,
   consistent page spacing, clear primary actions and no clipped or overlapping
-  controls. Mobile layouts stack cleanly without page-wide horizontal scroll.
-  Yopem UI and StyleX remain the design system. No feature, validation, stale
-  baseline check, account owner guard or timer precision rule is removed.
+  controls. Mobile layouts stack cleanly without page-wide horizontal scroll. At
+  390 pixels, all three timer phase controls fit on one row. Yopem UI and StyleX
+  remain the design system. No feature, validation, stale baseline check,
+  account owner guard or timer precision rule is removed.
 - **Evidence:** Save one desktop and mobile screenshot per route under
   `qa-artifacts/QA-068/`, plus sanitized console and layout observations.
 - **Cleanup:** Close opened dialogs, restore the viewport and keep the existing
   server running. No writes or data cleanup are needed for layout inspection.
-- **Status:** pending. No production build, database access or migration is
-  authorized by this layout-only work.
+- **Status:** pending. Layout inspection alone does not prove production build,
+  persistence, authentication or offline behavior.
+
+### [ ] QA-069 — P1 — Lazy route boundaries
+
+- **Purpose:** preserve every page while removing eager page imports and the
+  framework's exported-component split warnings.
+- **Prerequisites:** shared setup; completed layout commits; approved local
+  build; existing web process and the QA-owned browser tab.
+- **Inputs:** `/`, `/focus/`, `/projects/`, `/templates/`, `/reports/`,
+  `/settings/`; reports search `?period=year&date=2026-01-01&page=1`.
+- **Steps:** 1. Keep route metadata, validation and access behavior in each
+  eager route. Put its UI in the matching `index.lazy.tsx` route file. 2. Run
+  the existing route generator and static checks from the root. 3. Build web
+  with `PUBLIC_ORIGIN=https://pomodoro.example` and analytics disabled. 4. Load
+  each direct URL, reload and use back/forward navigation. 5. Inspect browser
+  requests, headings, search controls, metadata and logs.
+- **Expected results:** URLs and route IDs stay unchanged. Metadata and search
+  validation run before rendering. Named route components remain in route files.
+  Page code loads through framework-owned lazy imports. No component export
+  split warning or existing 500 kB chunk warning remains. No threshold or check
+  is weakened.
+- **Evidence:** `qa-artifacts/QA-069/build.txt`, route request observations and
+  sanitized snapshots; inspect emitted route chunks and each direct page.
+- **Cleanup:** restore the timer route; keep owned processes available for QA.
+- **Status:** pending. The first production build emitted an 820.90 kB client
+  asset. Development also reported exported route component split warnings.
+
+### [ ] QA-070 — P1 — PWA build output compatibility
+
+- **Purpose:** resolve the missing browser runtime, obsolete worker option and
+  wrong precache output directory without removing offline or update behavior.
+- **Prerequisites:** shared setup; direct `workbox-window` dependency; pinned
+  Vite and PWA plugin; approved local production build.
+- **Inputs:** existing worker source, injection point and private cache rules;
+  `PUBLIC_ORIGIN=https://pomodoro.example`; analytics disabled.
+- **Steps:** 1. Use the supported worker-only Vite plugin hook to replace the
+  obsolete worker output option with its current single-output equivalent. 2.
+  Match PWA output and glob scanning to the actual web client output. 3. Build
+  web from `apps/web`. 4. Inspect `.output/public/sw.js`, its precache URLs,
+  public assets and offline files. 5. Continue the existing offline and update
+  browser cases against an owned production-like listener.
+- **Expected results:** build succeeds without missing imports, deprecated
+  worker options or unmatched asset globs. One worker is produced. Its manifest
+  contains actual client assets and offline files, but no API, auth or private
+  responses. App route splitting stays enabled; updates still require consent.
+- **Evidence:** `qa-artifacts/QA-070/build.txt` and sanitized asset/manifest
+  inventory; inspect paths and each later browser result before recording pass.
+- **Cleanup:** retain local build artifacts for the remaining QA cases. Do not
+  delete browser caches or service workers belonging to another origin.
+- **Status:** pending. The first build failed to resolve `workbox-window` and
+  warned about `inlineDynamicImports` and an unmatched `dist` asset glob.
