@@ -12,7 +12,7 @@ function subscribeFullscreen(listener: () => void) {
 }
 
 function getFullscreen() {
-  return document.fullscreenElement !== null
+  return Boolean(document.fullscreenElement)
 }
 
 function getServerFullscreen() {

@@ -21,6 +21,7 @@ import {
 } from "@/features/focus/reports"
 import { useFocusSnapshot } from "@/features/focus/store"
 import { TaskList } from "@/features/tasks/components/task-list"
+import { FocusBrowserControls } from "@/features/timer/components/browser-focus-controls"
 import { FocusTimer } from "@/features/timer/components/focus-timer"
 import { formatFocusTime } from "@/lib/focus-time"
 
@@ -82,6 +83,7 @@ export function TimerRoute() {
             <Heading render={<h1>Focus timer</h1>} />
             <Text tone="muted">Make space for the work that matters.</Text>
           </Stack>
+          <FocusBrowserControls />
           <Grid variant="workspace">
             <FocusTimer workspace={workspace} nowMs={nowMs} />
             <Card render={<section aria-labelledby="summary-heading" />}>

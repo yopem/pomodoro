@@ -1,7 +1,8 @@
+import type { RegisteredRouter } from "@tanstack/react-router"
 import type { ReactNode } from "react"
 
 import * as stylex from "@stylexjs/stylex"
-import { Link } from "@tanstack/react-router"
+import { Link, useRouterState } from "@tanstack/react-router"
 import { TimerIcon } from "lucide-react"
 
 import { Box } from "@/components/ui/box"
@@ -14,12 +15,17 @@ import { tokens } from "@/styles/tokens.stylex"
 
 const exactMatch = { exact: true }
 
+function isFocusRoute(state: RegisteredRouter["state"]) {
+  return state.matches.at(-1)?.routeId === "/focus/"
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
+  const compact = useRouterState({ select: isFocusRoute })
   const snapshot = useFocusSnapshot((value) => value)
 
   return (
     <Stack>
-      <Box render={<header />}>
+      <Box render={<header hidden={compact} />}>
         <HStack wrap>
           <Link
             to="/"
@@ -60,7 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Box render={<output>{snapshot.storageWarning}</output>} />
       )}
       {children}
-      <Box render={<footer />}>
+      <Box render={<footer hidden={compact} />}>
         <Stack>
           <PwaUpdates />
           <Text>Export a backup in Settings.</Text>
