@@ -1024,3 +1024,174 @@ QA-024. Browser and build checks remain pending and need approval.
 Coverage: the early router nonce boundary and streamed CSP integration map to
 QA-037. Theme preference and initial-paint behavior remain QA-024; source-owned
 styling remains QA-036.
+
+## Timer command guard setup
+
+Cases QA-038 through QA-043 use the shared setup with explicit browser QA
+approval, two isolated guest tabs in the green `pomodoro` group, and the web
+origin `http://127.0.0.1:13001`. No account, backend, or database is needed. Use
+default 25/5/15-minute phases with both auto-start settings off. Export an
+initial backup through `/settings` and record its settings. Both tabs must use
+the same guest partition, `pomodoro:workspace:guest`, without switching owners.
+Do not use production data. Save each case's exports and screenshots under its
+own ignored `qa-artifacts/QA-NNN/` directory. The reviewer must inspect timer
+fields and session records, not only a visible clock.
+
+For a replacement run, start focus A in tab one. In tab two, reset A with its
+own confirmation, then start focus B. Save B's baseline backup. Reset may record
+partial A time; keep those baseline records in the comparison. Ensure B has not
+reached its deadline before the stale command is submitted. If that starting
+condition is lost, record it and restore the fixture before running the case.
+Natural deadline completion has separate coverage below.
+
+### [ ] QA-038 — P1 — Retained reset rejects a replacement run
+
+- **Purpose:** Bind the original reset confirmation to focus A, not a newer
+  same-owner timer. Covers the UI request and locked store comparison.
+- **Prerequisites:** Timer command guard setup; idle focus in both tabs.
+- **Inputs:** Focus A and B from setup; the timer action with `value="reset"`;
+  retain A's confirmation in tab one.
+- **Steps:**
+  1. Start A in tab one and open its reset confirmation.
+  2. Create replacement B in tab two as described in setup. Export B's baseline
+     and wait for tab one to display B behind the open dialog.
+  3. Confirm the retained request in tab one. Export the resulting workspace in
+     tab two and inspect both tabs and the saved records.
+- **Expected results:** The stale request reports a timer conflict. B's phase,
+  run ID, deadline, selected task, remaining state, and completion count match
+  its baseline. Its clock can continue to decrease normally. No session, counter
+  change, or requested manual transition is added.
+- **Evidence:** Save before/after exports and the conflict screenshot in
+  `qa-artifacts/QA-038/`; inspect B and the complete session list.
+- **Cleanup:** Restore the initial backup in this isolated profile. Close only
+  case tabs and stop only case processes. Retain sanitized evidence.
+- **Status:** pending; implementation and browser execution are not verified.
+
+### [ ] QA-039 — P1 — Retained skip rejects a replacement run
+
+- **Purpose:** Bind the original skip confirmation to focus A, not a newer
+  same-owner timer. Covers the UI request and locked store comparison.
+- **Prerequisites:** Timer command guard setup; idle focus in both tabs.
+- **Inputs:** Focus A and B from setup; the timer action with `value="skip"`;
+  retain A's confirmation in tab one.
+- **Steps:**
+  1. Start A in tab one and open its skip confirmation.
+  2. Create replacement B in tab two as described in setup. Export B's baseline
+     and wait for tab one to display B behind the open dialog.
+  3. Confirm the retained request in tab one. Export the resulting workspace in
+     tab two and inspect both tabs and the saved records.
+- **Expected results:** The stale request reports a timer conflict. B's phase,
+  run ID, deadline, selected task, remaining state, and completion count match
+  its baseline. Its clock can continue to decrease normally. No session, counter
+  change, or requested manual transition is added.
+- **Evidence:** Save before/after exports and the conflict screenshot in
+  `qa-artifacts/QA-039/`; inspect B and the complete session list.
+- **Cleanup:** Restore the initial backup in this isolated profile. Close only
+  case tabs and stop only case processes. Retain sanitized evidence.
+- **Status:** pending; implementation and browser execution are not verified.
+
+### [ ] QA-040 — P1 — Retained phase change rejects a replacement run
+
+- **Purpose:** Bind the original phase change confirmation to focus A, not a
+  newer same-owner timer. Covers the UI request and locked store comparison.
+- **Prerequisites:** Timer command guard setup; idle focus in both tabs.
+- **Inputs:** Focus A and B from setup; the timer action with
+  `value="short_break"`; retain A's confirmation in tab one.
+- **Steps:**
+  1. Start A in tab one and open its phase change confirmation.
+  2. Create replacement B in tab two as described in setup. Export B's baseline
+     and wait for tab one to display B behind the open dialog.
+  3. Confirm the retained request in tab one. Export the resulting workspace in
+     tab two and inspect both tabs and the saved records.
+- **Expected results:** The stale request reports a timer conflict. B's phase,
+  run ID, deadline, selected task, remaining state, and completion count match
+  its baseline. Its clock can continue to decrease normally. No session, counter
+  change, or requested manual transition is added.
+- **Evidence:** Save before/after exports and the conflict screenshot in
+  `qa-artifacts/QA-040/`; inspect B and the complete session list.
+- **Cleanup:** Restore the initial backup in this isolated profile. Close only
+  case tabs and stop only case processes. Retain sanitized evidence.
+- **Status:** pending; implementation and browser execution are not verified.
+
+### [ ] QA-041 — P1 — Confirmation rejects pause and resume changes
+
+- **Purpose:** Compare the full original timer, not only its run ID.
+- **Prerequisites:** Timer command guard setup and running focus A.
+- **Inputs:** A reset confirmation; pause A in tab two while that dialog is
+  open. Repeat from a fresh fixture with pause followed by resume.
+- **Steps:** 1. Open reset in tab one. 2. Change A in tab two with the stated
+  pause/resume input and export that baseline. 3. Confirm the old request in tab
+  one and export the result. 4. Inspect both repeats independently.
+- **Expected results:** The run ID can remain the same, but changed deadline or
+  fractional remaining time causes a conflict. The stored baseline and sessions
+  remain unchanged by the rejected reset. A fresh reset can still use the newly
+  displayed timer. No fractional time is rounded by rejection.
+- **Evidence:** Before/after exports and conflict screenshots in
+  `qa-artifacts/QA-041/`; inspect fractional fields and unchanged records.
+- **Cleanup:** Restore the initial isolated backup and settings; close case tabs
+  and stop only case processes. Retain sanitized evidence.
+- **Status:** pending. Subsecond accounting also remains covered by QA-027.
+
+### [ ] QA-042 — P1 — Natural completion wins for the queued original timer
+
+- **Purpose:** Preserve natural completion when a matching command waits for the
+  lock and the original timer then becomes due.
+- **Prerequisites:** Timer command guard setup; Web Locks and approved browser
+  clock mutation in the isolated profile. Start a fresh 25-minute focus A.
+- **Inputs:** The exclusive lock `pomodoro:workspace:guest`, A's stored
+  `deadline_ms`, and an original reset request queued before that deadline.
+- **Steps:**
+  1. Hold the guest Web Lock from the second tab. Keep a release callback in the
+     browser automation state. Open and confirm reset in tab one while A is
+     still before its deadline. Confirm the manual request is waiting.
+  2. Save the original `Date.now` function in tab one. Set its return value to
+     A's deadline plus one millisecond, then release the held lock. Do not
+     replace timer IDs or stored workspace data.
+  3. Restore `Date.now` immediately after the queued command finishes. Export
+     the workspace and inspect the history, phase, and completion count.
+  4. Retry the retained request and inspect the resulting stored state.
+- **Expected results:** The first matching request completes A exactly once
+  through the natural completion path. With auto-start off, short break is idle.
+  There is one completed A session and one focus-count increment; no additional
+  reset or manual phase transition occurs. A stale retry cannot change that
+  result or add a duplicate session. Clock setup failures are blocked
+  prerequisites, not passes.
+- **Evidence:** Save lock/clock setup, exports, history, and completion feedback
+  observations in `qa-artifacts/QA-042/`. Inspect the run ID and counts.
+- **Cleanup:** Restore the original clock and release every held lock even on
+  failure. Restore the initial isolated backup; close case tabs and stop only
+  case processes. Retain sanitized evidence.
+- **Status:** pending; no clock or lock fixture has been executed.
+
+### [ ] QA-043 — P1 — Immediate controls retain their original intent
+
+- **Purpose:** Bind start, pause, and unconfirmed interruption requests before
+  asynchronous queue processing. A later snapshot must not reverse toggle.
+- **Prerequisites:** Timer command guard setup and a browser Web Lock holder.
+  Confirm request ordering in the actual lock queue before evaluating results.
+- **Inputs:** Start from idle focus; pause from running focus; reset, skip, and
+  short-break selection from idle focus. Use a fresh fixture per input.
+- **Steps:**
+  1. Hold the guest lock. Queue a timer-changing action in tab two first.
+  2. Activate the stated control in tab one while its original timer is still
+     displayed. Release the lock so the earlier change commits first.
+  3. Export the result and inspect the intended action, conflict, and timer.
+     Repeat each input independently. If action order cannot be established,
+     mark that repeat blocked rather than inferring success.
+- **Expected results:** Tab one's request compares the timer displayed at its
+  activation against storage under the lock. A changed baseline rejects it. A
+  start intent cannot become pause, nor pause become start. No rejected command
+  changes the earlier action's timer, sessions, or completion count.
+- **Evidence:** Save ordering, per-input exports, and conflict screenshots in
+  `qa-artifacts/QA-043/`. Inspect each repeat independently.
+- **Cleanup:** Release all locks, restore initial isolated data, close case
+  tabs, and stop only case processes. Retain sanitized evidence.
+- **Status:** pending; request capture and lock ordering need runtime proof.
+
+Coverage: original reset/skip/phase consent maps to QA-038/039/040. Full timer
+state and queued command intent map to QA-041/043. Natural completion and
+idempotency map to QA-042 and QA-005; fractional accounting remains QA-027.
+Owner switches remain QA-034/035. Dialog focus and same-phase/paused-focus
+behavior remain QA-008/021. Exact-state ABA after restoring identical timer
+fields is not detected by state comparison; this fix adds no persisted timer
+revision or stronger ABA guarantee.
