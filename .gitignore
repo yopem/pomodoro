@@ -9,6 +9,7 @@ qa-artifacts/
 .turbo/
 **/routeTree.gen.ts
 **/dist/
+.output/
 **/build/
 *.tsbuildinfo
 target/
