@@ -1337,6 +1337,10 @@ behavior. QA-038 through QA-043 remain unchecked and pending browser approval.
   route retains storage/owner/run guards and has a route back to the workspace.
   No duplicate session or timer is created; existing controls keep their focus.
   Document titles show only timer phase/time, never private task or user names.
+  Exactly one title exists during initial SSR, hydration, phase changes, and
+  navigation. Paused fractional seconds round up, as on the visible timer.
+  Reports and other routes retain their own titles. Compact mode hides the main
+  header/footer without unmounting account or PWA subscriptions.
 - **Evidence:** Save screenshots and an interaction trace in
   `qa-artifacts/QA-048/`; inspect timer IDs, titles, focus, and errors.
 - **Cleanup:** Exit fullscreen, restore browser permissions and fixture data,

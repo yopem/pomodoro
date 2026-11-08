@@ -21,6 +21,7 @@ import {
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { ConfirmAction } from "@/features/timer/components/confirm-action"
+import { formatTimerClock, timerPhaseLabels } from "@/features/timer/countdown"
 import { useEventCallback } from "@/hooks/use-event-callback"
 import { tokens } from "@/styles/tokens.stylex"
 
@@ -44,11 +45,7 @@ const styles = stylex.create({
   },
 })
 
-const phases: { value: Timer["phase"]; label: string }[] = [
-  { value: "focus", label: "Focus" },
-  { value: "short_break", label: "Short break" },
-  { value: "long_break", label: "Long break" },
-]
+const phases = Object.entries(timerPhaseLabels)
 
 type Interruption =
   | { kind: "reset" }
@@ -185,12 +182,7 @@ export function FocusTimer({
     startTransition(() => dispatch(captured))
   })
 
-  const remaining =
-    timer.deadline_ms === null
-      ? Math.ceil(timer.remaining_seconds)
-      : Math.max(0, Math.ceil((timer.deadline_ms - nowMs) / 1000))
-
-  const clock = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`
+  const clock = formatTimerClock(timer, nowMs)
   const selected = tasks.find((task) => task.id === timer.selected_task_id)
 
   const phaseColor = {
@@ -208,17 +200,17 @@ export function FocusTimer({
         <Stack layout="centered" spacing="relaxed" xstyle={styles.timer}>
           <fieldset aria-label="Timer phase" {...stylex.props(styles.phases)}>
             <HStack layout="centered">
-              {phases.map((phase) => (
+              {phases.map(([value, label]) => (
                 <Button
-                  key={phase.value}
-                  value={phase.value}
-                  variant={timer.phase === phase.value ? "default" : "ghost"}
+                  key={value}
+                  value={value}
+                  variant={timer.phase === value ? "default" : "ghost"}
                   size="xl"
-                  aria-pressed={timer.phase === phase.value}
+                  aria-pressed={timer.phase === value}
                   disabled={busy}
                   onClick={request}
                 >
-                  {phase.label}
+                  {label}
                 </Button>
               ))}
             </HStack>

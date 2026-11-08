@@ -1,5 +1,6 @@
 import "@/styles/styles.css"
 import type { QueryClient } from "@tanstack/react-query"
+import type { RegisteredRouter } from "@tanstack/react-router"
 import type { ReactNode } from "react"
 
 import * as stylex from "@stylexjs/stylex"
@@ -11,13 +12,17 @@ import {
   Outlet,
   Scripts,
   useRouter,
+  useRouterState,
 } from "@tanstack/react-router"
+
+import type { Timer } from "@/features/focus/schema"
 
 import { AppShell } from "@/components/app-shell"
 import { Box } from "@/components/ui/box"
 import { Heading } from "@/components/ui/heading"
 import { Text } from "@/components/ui/text"
 import { useFocusSnapshot } from "@/features/focus/store"
+import { formatTimerClock, timerPhaseLabels } from "@/features/timer/countdown"
 import { stylexProps } from "@/lib/stylex"
 import { rootStyles, tokens } from "@/styles/tokens.stylex"
 import { getRootThemeProps, ThemeScript } from "@/themes/theme"
@@ -30,7 +35,6 @@ export const Route = createRootRouteWithContext<{
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Pomodoro — Focus timer" },
       {
         name: "description",
         content: "Plan tasks, focus in intervals, and track your time.",
@@ -70,8 +74,52 @@ export function RootContent() {
   )
 }
 
+function documentTitleMode(state: RegisteredRouter["state"]) {
+  const match = state.matches.at(-1)
+
+  if (
+    state.matches.some((route) =>
+      route.meta?.some((meta) => meta !== undefined && "title" in meta),
+    )
+  )
+    return "route"
+
+  if (match?.status === "error") return "fallback"
+
+  if (match?.routeId === "/" || match?.routeId === "/focus/") return "timer"
+
+  return "fallback"
+}
+
+export function DocumentTitle({
+  timer,
+  nowMs,
+  hydrated,
+}: {
+  timer: Timer
+  nowMs: number
+  hydrated: boolean
+}) {
+  const mode = useRouterState({ select: documentTitleMode })
+
+  if (mode === "route") return null
+
+  let title = "Pomodoro — Focus timer"
+
+  if (mode === "timer" && hydrated) {
+    const paused = timer.run_id !== null && timer.deadline_ms === null
+
+    title = `${paused ? "Paused · " : ""}${formatTimerClock(timer, nowMs)} · ${timerPhaseLabels[timer.phase]} — Pomodoro`
+  }
+
+  return <title>{title}</title>
+}
+
 export function RootDocument({ children }: { children: ReactNode }) {
-  const { workspace, hydrated, error } = useFocusSnapshot((value) => value)
+  const { workspace, hydrated, error, nowMs } = useFocusSnapshot(
+    (value) => value,
+  )
+
   const nonce = useRouter().options.ssr?.nonce
   const { settings, timer } = workspace
 
@@ -86,6 +134,7 @@ export function RootDocument({ children }: { children: ReactNode }) {
       <head>
         <ThemeScript nonce={nonce} />
         <HeadContent />
+        <DocumentTitle timer={timer} nowMs={nowMs} hydrated={hydrated} />
       </head>
       <body {...stylexProps(undefined, rootStyles.body)}>
         <ThemeProvider

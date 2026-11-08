@@ -9,7 +9,11 @@ import { useFocusSnapshot } from "@/features/focus/store"
 import { FocusTimer } from "@/features/timer/components/focus-timer"
 
 export const Route = createFileRoute("/focus/")({
-  head: () => ({ meta: [{ title: "Focus — Pomodoro" }] }),
+  head: () => ({
+    meta: [
+      { name: "description", content: "Use the timer in a small window." },
+    ],
+  }),
   component: FocusRoute,
 })
 
