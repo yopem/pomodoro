@@ -353,14 +353,14 @@ fn js_whitespace(c: char) -> bool {
 
 fn title(value: &mut String, field: &'static str) -> Result<(), ValidationError> {
     *value = value.trim_matches(js_whitespace).to_owned();
-    if value.is_empty() || value.encode_utf16().count() > 500 {
+    if value.is_empty() {
         return Err(ValidationError::InvalidField(field));
     }
-    Ok(())
+    text(value, 500, field)
 }
 
 fn text(value: &str, max: usize, field: &'static str) -> Result<(), ValidationError> {
-    if value.encode_utf16().count() > max {
+    if value.contains('\0') || value.encode_utf16().count() > max {
         return Err(ValidationError::InvalidField(field));
     }
     Ok(())
