@@ -21,6 +21,7 @@ const styles = stylex.create({
     color: tokens["--card-foreground"],
     display: "flex",
     flexDirection: "column",
+    minInlineSize: 0,
     position: "relative",
     "::before": {
       borderRadius: "calc(var(--radius-md) - 1px)",
@@ -39,6 +40,7 @@ const styles = stylex.create({
       ':is([data-slot="card-frame"] > [data-slot="card"])': "-1px",
     },
   },
+  selected: { borderColor: tokens["--success-foreground"] },
   frame: {
     backgroundColor: tokens["--card"],
     borderColor: tokens["--border"],
@@ -149,6 +151,17 @@ const styles = stylex.create({
       ':is([data-slot="card"]:has(> [data-slot="card-footer"]:not([data-separator])) > [data-slot="card-panel"])': 0,
     },
   },
+  panelCompact: {
+    padding: "1rem",
+    paddingBlockStart: {
+      default: "1rem",
+      ':is([data-slot="card"]:has(> [data-slot="card-header"]:not([data-separator])) > [data-slot="card-panel"])': 0,
+    },
+    paddingBlockEnd: {
+      default: "1rem",
+      ':is([data-slot="card"]:has(> [data-slot="card-footer"]:not([data-separator])) > [data-slot="card-panel"])': 0,
+    },
+  },
   footer: {
     alignItems: "center",
     display: "flex",
@@ -172,16 +185,20 @@ const styles = stylex.create({
 })
 
 export function Card({
+  selected = false,
   xstyle: consumerXstyle,
   className,
   render,
   ...restProps
-}: StyleXComponentProps<useRender.ComponentProps<"div">>) {
+}: StyleXComponentProps<
+  useRender.ComponentProps<"div">,
+  { selected?: boolean }
+>) {
   const props = restProps
   const xstyle = consumerXstyle
 
   const defaultProps = {
-    ...stylexProps(className, styles.card, xstyle),
+    ...stylexProps(className, styles.card, selected && styles.selected, xstyle),
     "data-slot": "card",
   }
 
@@ -413,16 +430,25 @@ export function CardAction({
 }
 
 export function CardPanel({
+  density = "default",
   xstyle: consumerXstyle,
   className,
   render,
   ...restProps
-}: StyleXComponentProps<useRender.ComponentProps<"div">>) {
+}: StyleXComponentProps<
+  useRender.ComponentProps<"div">,
+  { density?: "default" | "compact" }
+>) {
   const props = restProps
   const xstyle = consumerXstyle
 
   const defaultProps = {
-    ...stylexProps(className, styles.panel, xstyle),
+    ...stylexProps(
+      className,
+      styles.panel,
+      density === "compact" && styles.panelCompact,
+      xstyle,
+    ),
     "data-slot": "card-panel",
   }
 
