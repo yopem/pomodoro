@@ -1203,3 +1203,167 @@ committed-control capture, and request-scoped confirmation handlers in
 lint, formatting, and workspace typechecks passed for this source. These are
 working-tree static checks, not proof of isolated hook snapshots or runtime
 behavior. QA-038 through QA-043 remain unchecked and pending browser approval.
+
+### [ ] QA-044 — P1 — Database history restores reports and streaks
+
+- **Purpose:** Prove that signed-in focus history and its report/streak results
+  come from PostgreSQL, not only the current browser's storage.
+- **Prerequisites:** Explicit runtime QA and migration approval; an isolated
+  PostgreSQL database with reviewed migrations; the completed API and web app;
+  an approved isolated issuer account with no previous history. Confirm the
+  database target without recording its connection string. Do not use a
+  production account or database. The backend and sync are not implemented yet.
+- **Inputs:** Manual records titled `Database report check` for local today and
+  yesterday, 25 minutes each. Record the exact local dates in the evidence. Use
+  one account and a second isolated browser storage partition for it.
+- **Steps:**
+  1. Sign in, add both records, save to the account, and record the acknowledged
+     server revision. Inspect the saved 3,000 focus seconds and two-day streak.
+  2. Restart only the case API process against the same isolated database. Do
+     not reset its tables. Open a fresh browser partition with no workspace
+     cache and sign in as the same account.
+  3. Load the stored workspace and inspect both records, the two-day streak, and
+     day/month/year report totals. Use the same local dates and time zone.
+  4. Save a sanitized API response and database evidence for that user. Use the
+     final documented read-only query after implementation; do not guess table
+     or column names. Confirm that no other user's data is returned.
+- **Expected results:** Both records and their IDs survive the API restart and
+  new browser. Their combined focus is 3,000 seconds, two active days, and a
+  current two-day streak on the recorded local test date. Report results match
+  that stored history. Browser cache is not required to recover account data.
+- **Evidence:** Save sanitized before/after responses, the acknowledged
+  revision, report screenshots, and read-only database evidence under
+  `qa-artifacts/QA-044/`. Inspect record IDs, dates, ownership, and totals.
+- **Cleanup:** Remove only the isolated account's case data through the approved
+  cleanup workflow. Stop only case processes and keep sanitized evidence.
+- **Status:** pending; blocked until persistence, auth, sync, documented
+  database inspection, and runtime/migration approval are available. Coverage
+  also uses QA-015–018 for account security, conflicts, and explicit guest
+  import.
+
+### [ ] QA-045 — P0 — Captured HTTP account cannot act through new cookies
+
+- **Purpose:** Reject old-account HTTP operations even when shared browser
+  cookies now authenticate a different account with the same revision.
+- **Prerequisites:** Approved isolated auth/API/database QA; two fixture users A
+  and B with distinct history but equal workspace revisions; generated API
+  client and the configured same-origin web origin. No production users.
+- **Inputs:** A's captured UUID and valid workspace/import payload; B's current
+  browser session; the required `X-Pomodoro-User` header set to A. Record the
+  exact fixture IDs and revision without saving cookies or tokens.
+- **Steps:** 1. Capture A's state, then sign in as B in a shared-cookie tab. 2.
+  Send documented workspace GET, PUT, import POST, and logout POST requests with
+  B's cookies and A's header. Use the generated client or documented JSON from
+  the browser; never export a cookie jar. 3. Inspect each response and re-read
+  B's session/workspace with its correct header. 4. Repeat with missing and
+  malformed expected-user headers, then with a correct fresh B command.
+- **Expected results:** Mismatched identity returns 409, missing/malformed
+  headers return 400, and no request returns B's workspace or mutates either
+  account. Logout mismatch leaves B signed in. Correct B requests still work.
+  Equal revisions never substitute for identity verification.
+- **Evidence:** Save sanitized statuses, headers, responses, and before/after
+  owned records in `qa-artifacts/QA-045/`. Inspect data and session side
+  effects.
+- **Cleanup:** Remove isolated fixtures through the approved workflow and stop
+  only case processes. Keep sanitized evidence; no credentials in artifacts.
+- **Status:** pending; requires completed backend/client and runtime approval.
+
+### [ ] QA-046 — P2 — Old modal completion cannot dismiss a new opening
+
+- **Purpose:** Keep asynchronous confirmation results tied to their original
+  dialog opening, even within one account and one mounted control.
+- **Prerequisites:** Approved isolated browser QA; a real confirmation mutation
+  that can wait on the workspace lock. Use the existing project removal or
+  account conflict/import workflow after implementation. No new test helpers.
+- **Inputs:** Two openings of the same confirmation control and a held workspace
+  lock. Capture each opening's target, baseline, and owner in the evidence.
+- **Steps:** 1. Submit the first opening while its operation waits on the
+  lock. 2. Close it through an available dismissal and open the control
+  again. 3. Release the original operation and inspect the second opening. 4.
+  Repeat with a failed original operation and keyboard-only cancel/reopen.
+- **Expected results:** The original result cannot close, replace, or clear the
+  new opening. Original baselines and owner checks still apply. Errors stay
+  associated with the correct action; focus returns to the triggering control.
+  If dismissal is blocked while pending, verify that behavior instead of
+  inventing an unavailable interaction and record the protected path.
+- **Evidence:** Save an interaction trace and focused screenshots under
+  `qa-artifacts/QA-046/`; inspect the active dialog and focus after each step.
+- **Cleanup:** Release locks even on failure, restore isolated fixture data, and
+  close only case tabs/processes. Retain sanitized evidence.
+- **Status:** pending; no browser or lock fixture has run.
+
+### [ ] QA-047 — P1 — Text validation rejects PostgreSQL null characters
+
+- **Purpose:** Reject text that PostgreSQL JSONB/text cannot store before any
+  durable write. Preserve valid Unicode and existing boundary behavior.
+- **Prerequisites:** Approved isolated frontend/API/database QA and a valid
+  fixture workspace. Use the documented backup and generated API contracts.
+- **Inputs:** Insert the JSON escape `\u0000` into a task title, note, template
+  title, and historical project name, one field per repeat. Include valid
+  Unicode controls such as `日本語` and `Focus 🟢` in separate valid repeats.
+- **Steps:** 1. Export a baseline backup. 2. Prepare the stated invalid backup
+  and attempt its import. 3. Send its valid-JSON counterpart through the
+  documented account workspace API with the current revision and identity. 4.
+  Inspect original local/database data and repeat with the valid text.
+- **Expected results:** Invalid text fails frontend validation or returns safe
+  HTTP 400 before database writes. No silent replacement, truncation, revision
+  change, or SQL error reaches the client. Valid Unicode still round-trips. A
+  legacy local payload with a null character remains available for explicit
+  recovery; hydration must not overwrite its original stored bytes.
+- **Evidence:** Save sanitized rejection responses, screenshots, and
+  before/after exports in `qa-artifacts/QA-047/`; inspect IDs, text, and
+  revisions.
+- **Cleanup:** Restore the isolated baseline and remove only case data/files.
+  Keep sanitized evidence and stop only case processes.
+- **Status:** pending. No backup, validator, endpoint, or database run occurred.
+
+### [ ] QA-048 — P2 — Browser focus controls and compact timer
+
+- **Purpose:** Provide working fullscreen and focus-window controls without
+  losing timer state or leaving unsupported browser behavior silent.
+- **Prerequisites:** Approved browser QA on the existing local web origin; a
+  guest fixture with one running task; browsers with allowed and blocked
+  popup/fullscreen settings. Use only the green pomodoro project tab group.
+- **Inputs:** The Focus window, Full screen, and Exit full screen controls; the
+  `/focus` route; a paused run and a running run of the same task.
+- **Steps:** 1. Open `/focus` directly and through Focus window. 2. Observe the
+  same timer and task in both windows, pause/resume in one, and inspect the
+  other. 3. Enter fullscreen, exit with Escape, and inspect the control label
+  and focus. 4. Repeat with fullscreen unsupported and popups blocked, then use
+  the offered same-tab focus link. 5. Navigate back to reports and check that
+  timer document-title updates do not replace the report title.
+- **Expected results:** Controls act from the user's activation, not a delayed
+  event that loses permission. Errors are visible and announced. The compact
+  route retains storage/owner/run guards and has a route back to the workspace.
+  No duplicate session or timer is created; existing controls keep their focus.
+  Document titles show only timer phase/time, never private task or user names.
+- **Evidence:** Save screenshots and an interaction trace in
+  `qa-artifacts/QA-048/`; inspect timer IDs, titles, focus, and errors.
+- **Cleanup:** Exit fullscreen, restore browser permissions and fixture data,
+  and close only case-created focus windows. Retain sanitized evidence.
+- **Status:** pending; no browser or popup was opened during implementation.
+
+### [ ] QA-049 — P2 — Phase and project colors use the design system
+
+- **Purpose:** Make stored color choices visible while preserving accessible
+  phase labels and compatible workspaces from before phase-color preferences.
+- **Prerequisites:** Approved browser/API QA; guest and account fixtures; light,
+  dark, and system appearances. Use existing source-owned design-system tokens.
+- **Inputs:** Focus color `orange`, Short break color `green`, Long break color
+  `blue`, and projects with `red` and `blue`. Keep a pre-change backup without
+  the three new optional preferences and record its original history IDs.
+- **Steps:** 1. Set and save the phase colors in Settings. 2. Inspect each
+  phase, the compact focus view, and the project indicators. 3. Reload and
+  verify account synchronization on a second isolated browser. 4. Import the
+  older backup and inspect default colors and unchanged history. 5. Repeat in
+  dark appearance, high zoom, and with a screen reader.
+- **Expected results:** Choices persist and use finite design-system colors, not
+  arbitrary CSS input. Older workspaces get the documented defaults without data
+  loss. Phase text and color names remain readable without color vision;
+  foreground contrast and focus indicators meet the existing requirements.
+- **Evidence:** Save settings/phase/project screenshots and sanitized
+  before/after exports in `qa-artifacts/QA-049/`; inspect color names, IDs, and
+  retained data.
+- **Cleanup:** Restore fixture preferences and backups, remove isolated records,
+  and close only case tabs. Keep sanitized evidence.
+- **Status:** pending; no browser, validator, or sync scenario has run.
