@@ -19,7 +19,6 @@ import {
   updateSettings,
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
-import { appStyles } from "@/styles/app.stylex"
 
 const numbers = [
   { name: "focus_minutes", label: "Focus minutes", min: 1, max: 180 },
@@ -320,7 +319,7 @@ export function SettingsForm({
         </Button>
         {permission && <output>{permission}</output>}
         {error && (
-          <Text role="alert" xstyle={appStyles.error}>
+          <Text role="alert" tone="destructive">
             {error}
           </Text>
         )}
