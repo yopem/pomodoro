@@ -8,6 +8,13 @@ import type { Project, Session } from "@/features/focus/schema"
 
 import { FieldMessages } from "@/components/field-messages"
 import { Button } from "@/components/ui/button"
+import {
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Form } from "@/components/ui/form"
 import { HStack } from "@/components/ui/hstack"
@@ -181,156 +188,163 @@ export function SessionEditor({
   })
 
   return (
-    <Form noValidate onSubmit={events.submit}>
-      <Stack>
-        <form.Field name="date">
-          {(field) => (
-            <Field invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor="session-date">Date</FieldLabel>
-              <Input
-                id="session-date"
-                type="date"
-                value={field.state.value}
-                onChange={events.changeDate}
-                onBlur={field.handleBlur}
-                aria-invalid={field.state.meta.errors.length > 0}
-                aria-describedby="session-date-error"
-              />
-              <FieldMessages
-                id="session-date-error"
-                errors={field.state.meta.errors}
-              />
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="title">
-          {(field) => (
-            <Field invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor="session-title">Task name</FieldLabel>
-              <Input
-                id="session-title"
-                value={field.state.value}
-                onChange={events.changeTitle}
-                onBlur={field.handleBlur}
-                aria-invalid={field.state.meta.errors.length > 0}
-                aria-describedby="session-title-error"
-                maxLength={500}
-              />
-              <FieldMessages
-                id="session-title-error"
-                errors={field.state.meta.errors}
-              />
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="project">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="session-project">Project</FieldLabel>
-              <NativeSelect
-                id="session-project"
-                value={field.state.value}
-                onChange={events.changeProject}
-                onBlur={field.handleBlur}
-              >
-                <option value="">No project</option>
-                {projects
-                  .filter(
-                    (project) =>
-                      !project.archived || project.id === session?.project_id,
-                  )
-                  .map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.name}
-                    </option>
-                  ))}
-              </NativeSelect>
-            </Field>
-          )}
-        </form.Field>
-        <HStack layout="row">
-          <form.Field name="start">
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor="session-start">
-                  Start time (optional)
-                </FieldLabel>
-                <Input
-                  id="session-start"
-                  type="time"
-                  value={field.state.value}
-                  onChange={events.changeStart}
-                  onBlur={field.handleBlur}
-                />
-              </Field>
-            )}
-          </form.Field>
-          <form.Field name="end">
+    <DialogPopup render={<Form noValidate onSubmit={events.submit} />}>
+      <DialogHeader>
+        <DialogTitle>
+          {session ? "Edit focus record" : "Add focus time"}
+        </DialogTitle>
+      </DialogHeader>
+      <DialogPanel>
+        <Stack>
+          <form.Field name="date">
             {(field) => (
               <Field invalid={field.state.meta.errors.length > 0}>
-                <FieldLabel htmlFor="session-end">
-                  End time (optional)
-                </FieldLabel>
+                <FieldLabel htmlFor="session-date">Date</FieldLabel>
                 <Input
-                  id="session-end"
-                  type="time"
+                  id="session-date"
+                  type="date"
                   value={field.state.value}
-                  onChange={events.changeEnd}
+                  onChange={events.changeDate}
                   onBlur={field.handleBlur}
                   aria-invalid={field.state.meta.errors.length > 0}
-                  aria-describedby="session-end-error"
+                  aria-describedby="session-date-error"
                 />
                 <FieldMessages
-                  id="session-end-error"
+                  id="session-date-error"
                   errors={field.state.meta.errors}
                 />
               </Field>
             )}
           </form.Field>
-        </HStack>
-        <form.Field name="minutes">
-          {(field) => (
-            <Field invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor="session-minutes">Focus minutes</FieldLabel>
-              <Input
-                id="session-minutes"
-                type="number"
-                min={1}
-                max={1440}
-                value={field.state.value}
-                onChange={events.changeMinutes}
-                onBlur={field.handleBlur}
-                aria-invalid={field.state.meta.errors.length > 0}
-                aria-describedby="session-minutes-help session-minutes-error"
-              />
-              <Text id="session-minutes-help" size="small" tone="muted">
-                Start and end times override minutes when both are set.
-              </Text>
-              <FieldMessages
-                id="session-minutes-error"
-                errors={field.state.meta.errors}
-              />
-            </Field>
-          )}
-        </form.Field>
-        {error && (
-          <Text role="alert" tone="destructive">
-            {error}
-          </Text>
-        )}
-        <HStack layout="actions">
-          <Button variant="outline" onClick={events.cancel}>
-            Cancel
-          </Button>
-          <form.Subscribe selector={isSubmitting}>
-            {(pending) => (
-              <Button type="submit" loading={pending}>
-                Save focus record
-              </Button>
+          <form.Field name="title">
+            {(field) => (
+              <Field invalid={field.state.meta.errors.length > 0}>
+                <FieldLabel htmlFor="session-title">Task name</FieldLabel>
+                <Input
+                  id="session-title"
+                  value={field.state.value}
+                  onChange={events.changeTitle}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
+                  aria-describedby="session-title-error"
+                  maxLength={500}
+                />
+                <FieldMessages
+                  id="session-title-error"
+                  errors={field.state.meta.errors}
+                />
+              </Field>
             )}
-          </form.Subscribe>
-        </HStack>
-      </Stack>
-    </Form>
+          </form.Field>
+          <form.Field name="project">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="session-project">Project</FieldLabel>
+                <NativeSelect
+                  id="session-project"
+                  value={field.state.value}
+                  onChange={events.changeProject}
+                  onBlur={field.handleBlur}
+                >
+                  <option value="">No project</option>
+                  {projects
+                    .filter(
+                      (project) =>
+                        !project.archived || project.id === session?.project_id,
+                    )
+                    .map((project) => (
+                      <option key={project.id} value={project.id}>
+                        {project.name}
+                      </option>
+                    ))}
+                </NativeSelect>
+              </Field>
+            )}
+          </form.Field>
+          <HStack layout="row">
+            <form.Field name="start">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor="session-start">
+                    Start time (optional)
+                  </FieldLabel>
+                  <Input
+                    id="session-start"
+                    type="time"
+                    value={field.state.value}
+                    onChange={events.changeStart}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+            <form.Field name="end">
+              {(field) => (
+                <Field invalid={field.state.meta.errors.length > 0}>
+                  <FieldLabel htmlFor="session-end">
+                    End time (optional)
+                  </FieldLabel>
+                  <Input
+                    id="session-end"
+                    type="time"
+                    value={field.state.value}
+                    onChange={events.changeEnd}
+                    onBlur={field.handleBlur}
+                    aria-invalid={field.state.meta.errors.length > 0}
+                    aria-describedby="session-end-error"
+                  />
+                  <FieldMessages
+                    id="session-end-error"
+                    errors={field.state.meta.errors}
+                  />
+                </Field>
+              )}
+            </form.Field>
+          </HStack>
+          <form.Field name="minutes">
+            {(field) => (
+              <Field invalid={field.state.meta.errors.length > 0}>
+                <FieldLabel htmlFor="session-minutes">Focus minutes</FieldLabel>
+                <Input
+                  id="session-minutes"
+                  type="number"
+                  min={1}
+                  max={1440}
+                  value={field.state.value}
+                  onChange={events.changeMinutes}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
+                  aria-describedby="session-minutes-help session-minutes-error"
+                />
+                <Text id="session-minutes-help" size="small" tone="muted">
+                  Start and end times override minutes when both are set.
+                </Text>
+                <FieldMessages
+                  id="session-minutes-error"
+                  errors={field.state.meta.errors}
+                />
+              </Field>
+            )}
+          </form.Field>
+          {error && (
+            <Text role="alert" tone="destructive">
+              {error}
+            </Text>
+          )}
+        </Stack>
+      </DialogPanel>
+      <DialogFooter>
+        <Button variant="outline" onClick={events.cancel}>
+          Cancel
+        </Button>
+        <form.Subscribe selector={isSubmitting}>
+          {(pending) => (
+            <Button type="submit" loading={pending}>
+              Save focus record
+            </Button>
+          )}
+        </form.Subscribe>
+      </DialogFooter>
+    </DialogPopup>
   )
 }

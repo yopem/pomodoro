@@ -8,12 +8,7 @@ import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
 import { Card, CardPanel } from "@/components/ui/card"
 import { Container } from "@/components/ui/container"
-import {
-  Dialog,
-  DialogHeader,
-  DialogPopup,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Dialog } from "@/components/ui/dialog"
 import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty"
 import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
@@ -265,23 +260,16 @@ export function ReportsRoute() {
         </Stack>
       </Container>
       <Dialog open={editing !== null} onOpenChange={editorEvents.changeOpen}>
-        <DialogPopup>
-          <DialogHeader>
-            <DialogTitle>
-              {editing?.session ? "Edit focus record" : "Add focus time"}
-            </DialogTitle>
-          </DialogHeader>
-          {editing && (
-            <SessionEditor
-              key={editing.id}
-              openingId={editing.id}
-              session={editing.session}
-              projects={workspace.projects}
-              date={dateText}
-              onClose={editorEvents.closeEditor}
-            />
-          )}
-        </DialogPopup>
+        {editing && (
+          <SessionEditor
+            key={editing.id}
+            openingId={editing.id}
+            session={editing.session}
+            projects={workspace.projects}
+            date={dateText}
+            onClose={editorEvents.closeEditor}
+          />
+        )}
       </Dialog>
     </Box>
   )
