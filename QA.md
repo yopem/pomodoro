@@ -1348,7 +1348,7 @@ behavior. QA-038 through QA-043 remain unchecked and pending browser approval.
   Keep sanitized evidence and stop only case processes.
 - **Status:** pending. No backup, validator, endpoint, or database run occurred.
 
-### [ ] QA-048 — P2 — Browser focus controls and compact timer
+### [ ] QA-048 — P1 — Browser focus controls and compact timer
 
 - **Purpose:** Provide working fullscreen and focus-window controls without
   losing timer state or leaving unsupported browser behavior silent.
@@ -1359,24 +1359,36 @@ behavior. QA-038 through QA-043 remain unchecked and pending browser approval.
   `/focus` route; a paused run and a running run of the same task.
 - **Steps:** 1. Open `/focus` directly and through Focus window. 2. Observe the
   same timer and task in both windows, pause/resume in one, and inspect the
-  other. 3. Enter fullscreen, exit with Escape, and inspect the control label
-  and focus. 4. Repeat with fullscreen unsupported and popups blocked, then use
-  the offered same-tab focus link. 5. Navigate back to reports and check that
-  timer document-title updates do not replace the report title.
+  other. 3. From the workspace, enter fullscreen. Check that only the timer and
+  its browser controls remain. Exit with Escape and the exit button in separate
+  runs. Inspect the restored workspace, control label, focus, run ID, deadline,
+  and history. Repeat five times with a paused run and a running run. 4. Repeat
+  with fullscreen unsupported and popups blocked, then use the offered same-tab
+  focus link. 5. Navigate back to reports and check that timer document-title
+  updates do not replace the report title.
 - **Expected results:** Controls act from the user's activation, not a delayed
   event that loses permission. Errors are visible and announced. The compact
   route retains storage/owner/run guards and has a route back to the workspace.
-  No duplicate session or timer is created; existing controls keep their focus.
-  Document titles show only timer phase/time, never private task or user names.
-  Exactly one title exists during initial SSR, hydration, phase changes, and
-  navigation. Paused fractional seconds round up, as on the visible timer.
-  Reports and other routes retain their own titles. Compact mode hides the main
-  header/footer without unmounting account or PWA subscriptions.
+  Fullscreen hides navigation, tasks, summaries, and the footer without
+  unmounting account synchronization. Exit restores the workspace without
+  changing the route, resetting the timer, or adding a history record. The
+  fullscreen control retains focus when the view changes. No duplicate session
+  or timer is created. A denied request leaves the normal workspace usable and
+  offers the same-tab focus route. Document titles show only timer phase/time,
+  never private task or user names. Exactly one title exists during initial SSR,
+  hydration, phase changes, and navigation. Paused fractional seconds round up,
+  as on the visible timer. Reports and other routes retain their own titles.
+  Compact mode hides the main header/footer without unmounting account or PWA
+  subscriptions.
 - **Evidence:** Save screenshots and an interaction trace in
   `qa-artifacts/QA-048/`; inspect timer IDs, titles, focus, and errors.
 - **Cleanup:** Exit fullscreen, restore browser permissions and fixture data,
   and close only case-created focus windows. Retain sanitized evidence.
-- **Status:** pending; no browser or popup was opened during implementation.
+- **Status:** pending. Chrome native enter and exit worked on the pre-repair
+  running artifact, but the dashboard remained visible. Final-build timer-only
+  layout, Escape, focus, denied-request fallback, and state checks remain open.
+  Initial evidence: `qa-artifacts/QA-048/fullscreen-ready.txt`,
+  `fullscreen-enter.txt`, and `fullscreen-exit.txt`.
 
 ### [ ] QA-049 — P2 — Phase and project colors use the design system
 
