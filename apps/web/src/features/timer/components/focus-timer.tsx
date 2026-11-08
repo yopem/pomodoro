@@ -5,8 +5,10 @@ import { startTransition, useActionState, useState } from "react"
 
 import type { Timer, Workspace } from "@/features/focus/schema"
 
-import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
+import { Card, CardPanel } from "@/components/ui/card"
+import { HStack } from "@/components/ui/hstack"
+import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import {
   pauseTimer,
@@ -17,23 +19,13 @@ import {
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { ConfirmAction } from "@/features/timer/components/confirm-action"
-import { appStyles } from "@/styles/app.stylex"
 import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
   timer: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    textAlign: "center",
-    gap: 24,
-    paddingBlock: { default: 48, "@media (max-width: 640px)": 32 },
+    marginBlock: { default: 48, "@media (max-width: 640px)": 32 },
   },
   phases: {
-    display: "flex",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    gap: 8,
     border: 0,
     margin: 0,
     padding: 0,
@@ -47,7 +39,6 @@ const styles = stylex.create({
     letterSpacing: "-0.06em",
     lineHeight: 1,
   },
-  current: { color: tokens["--success-foreground"], overflowWrap: "anywhere" },
 })
 
 const phases: { value: Timer["phase"]; label: string }[] = [
@@ -159,89 +150,81 @@ export function FocusTimer({
   else if (pending?.kind === "skip") actionLabel = "Skip session"
 
   return (
-    <Box
-      render={<section aria-label="Focus timer" />}
-      xstyle={appStyles.section}
-    >
-      <Box render={<div {...stylex.props(styles.timer)} />}>
-        <Box
-          render={
-            <fieldset
-              aria-label="Timer phase"
-              {...stylex.props(styles.phases)}
-            />
-          }
-        >
-          {phases.map((phase) => (
+    <Card render={<section aria-label="Focus timer" />}>
+      <CardPanel>
+        <Stack layout="centered" spacing="relaxed" xstyle={styles.timer}>
+          <fieldset aria-label="Timer phase" {...stylex.props(styles.phases)}>
+            <HStack layout="centered">
+              {phases.map((phase) => (
+                <Button
+                  key={phase.value}
+                  value={phase.value}
+                  variant={timer.phase === phase.value ? "default" : "ghost"}
+                  size="xl"
+                  aria-pressed={timer.phase === phase.value}
+                  disabled={busy}
+                  onClick={events.request}
+                >
+                  {phase.label}
+                </Button>
+              ))}
+            </HStack>
+          </fieldset>
+          <output
+            role="timer"
+            aria-live="off"
+            aria-label={`${clock} remaining`}
+            {...stylex.props(styles.countdown)}
+          >
+            {clock}
+          </output>
+          <Text tone="success">
+            {selected ? `Focusing on ${selected.title}` : "No task selected"}
+          </Text>
+          <HStack layout="centered">
             <Button
-              key={phase.value}
-              value={phase.value}
-              variant={timer.phase === phase.value ? "default" : "ghost"}
               size="xl"
-              aria-pressed={timer.phase === phase.value}
+              value="toggle"
               disabled={busy}
               onClick={events.request}
             >
-              {phase.label}
+              {timer.deadline_ms === null
+                ? timer.run_id
+                  ? "Resume"
+                  : "Start"
+                : "Pause"}
             </Button>
-          ))}
-        </Box>
-        <Box
-          render={
-            <div
-              aria-label={`${clock} remaining`}
-              {...stylex.props(styles.countdown)}
-            />
-          }
-        >
-          {clock}
-        </Box>
-        <Box render={<p {...stylex.props(styles.current)} />}>
-          {selected ? `Focusing on ${selected.title}` : "No task selected"}
-        </Box>
-        <Box render={<div {...stylex.props(styles.phases)} />}>
-          <Button
-            size="xl"
-            value="toggle"
-            disabled={busy}
-            onClick={events.request}
-          >
-            {timer.deadline_ms === null
-              ? timer.run_id
-                ? "Resume"
-                : "Start"
-              : "Pause"}
-          </Button>
-          <Button
-            variant="outline"
-            size="xl"
-            value="reset"
-            disabled={busy}
-            onClick={events.request}
-          >
-            Reset
-          </Button>
-          <Button
-            variant="outline"
-            size="xl"
-            value="skip"
-            disabled={busy}
-            onClick={events.request}
-          >
-            Skip
-          </Button>
-        </Box>
-        <Text xstyle={appStyles.muted}>
-          Focus sessions in this cycle: {currentCycle} /{" "}
-          {settings.long_break_interval} · {timer.completed_focus_count}{" "}
-          completed
-        </Text>
-        {error && (
-          <Text role="alert" xstyle={appStyles.error}>
-            {error}
+            <Button
+              variant="outline"
+              size="xl"
+              value="reset"
+              disabled={busy}
+              onClick={events.request}
+            >
+              Reset
+            </Button>
+            <Button
+              variant="outline"
+              size="xl"
+              value="skip"
+              disabled={busy}
+              onClick={events.request}
+            >
+              Skip
+            </Button>
+          </HStack>
+          <Text tone="muted">
+            Focus sessions in this cycle: {currentCycle} /{" "}
+            {settings.long_break_interval} · {timer.completed_focus_count}{" "}
+            completed
           </Text>
-        )}
-      </Box>
+          {error && (
+            <Text role="alert" tone="destructive">
+              {error}
+            </Text>
+          )}
+        </Stack>
+      </CardPanel>
       <ConfirmAction
         open={pending !== null}
         onOpenChange={events.openChange}
@@ -250,6 +233,6 @@ export function FocusTimer({
         action={actionLabel}
         onConfirm={events.confirm}
       />
-    </Box>
+    </Card>
   )
 }
