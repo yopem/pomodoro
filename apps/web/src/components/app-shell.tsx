@@ -6,6 +6,7 @@ import { Link, useRouterState } from "@tanstack/react-router"
 import { TimerIcon } from "lucide-react"
 
 import { Box } from "@/components/ui/box"
+import { Container } from "@/components/ui/container"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
@@ -28,18 +29,21 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <Stack>
-      <Box render={<header hidden={compact} />}>
-        <HStack wrap>
-          <Link
-            to="/"
-            {...stylex.props(styles.brand)}
-            aria-label="Pomodoro timer"
-          >
-            <TimerIcon size={24} aria-hidden="true" />
-            <Box render={<span>pomodoro</span>} />
-          </Link>
-          <Box render={<nav aria-label="Main navigation" />}>
-            <HStack wrap>
+      <Box render={<header hidden={compact} />} variant="appHeader">
+        <Container variant="navigation">
+          <HStack layout="spread">
+            <Link
+              to="/"
+              {...stylex.props(styles.brand)}
+              aria-label="Pomodoro timer"
+            >
+              <TimerIcon size={24} aria-hidden="true" />
+              <Box render={<span>pomodoro</span>} />
+            </Link>
+            <Box
+              render={<nav aria-label="Main navigation" />}
+              variant="appNavigation"
+            >
               <Link
                 to="/"
                 activeOptions={exactMatch}
@@ -59,10 +63,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link to="/settings" {...stylex.props(styles.navLink)}>
                 Settings
               </Link>
-            </HStack>
-          </Box>
-          <AccountControls controller={controller} state={state} />
-        </HStack>
+            </Box>
+            <AccountControls controller={controller} state={state} />
+          </HStack>
+        </Container>
       </Box>
       {snapshot.error && <Text role="alert">{snapshot.error}</Text>}
       {snapshot.storageWarning && (
@@ -70,10 +74,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       )}
       {children}
       <Box render={<footer hidden={compact} />}>
-        <Stack>
-          <PwaUpdates />
-          <Text>Export a backup in Settings.</Text>
-        </Stack>
+        <Container variant="navigation">
+          <Stack>
+            <PwaUpdates />
+            <Text tone="muted" size="small">
+              Export a backup in Settings.
+            </Text>
+          </Stack>
+        </Container>
       </Box>
     </Stack>
   )
@@ -89,27 +97,30 @@ const styles = stylex.create({
     textDecoration: "none",
     fontSize: 20,
     fontWeight: 700,
-    letterSpacing: "-0.06em",
+    letterSpacing: "-0.04em",
+    flexShrink: 0,
   },
   navLink: {
     display: "inline-flex",
     alignItems: "center",
     minBlockSize: 44,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 500,
+    paddingInline: 8,
+    whiteSpace: "nowrap",
+    borderRadius: tokens["--radius-md"],
+    backgroundColor: {
+      default: "transparent",
+      ":hover": tokens["--muted"],
+      ":is([data-status=active])": tokens["--accent"],
+    },
     color: {
       default: tokens["--muted-foreground"],
       ":hover": tokens["--foreground"],
       ":is([data-status=active])": tokens["--foreground"],
     },
     textDecoration: "none",
-    borderBlockEndStyle: "solid",
-    borderBlockEndWidth: 2,
-    borderBlockEndColor: {
-      default: "transparent",
-      ":is([data-status=active])": tokens["--primary"],
-    },
-    transitionProperty: "color, border-color",
+    transitionProperty: "color, background-color",
     transitionDuration: {
       default: "150ms",
       "@media (prefers-reduced-motion: reduce)": "0ms",

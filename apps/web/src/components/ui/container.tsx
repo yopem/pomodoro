@@ -16,11 +16,14 @@ const styles = stylex.create({
     maxInlineSize: "90rem",
     paddingInline: `calc(${tokens["--spacing"]} * 4)`,
   },
-  workspace: {
+  appWidth: {
     maxInlineSize: 1160,
     paddingInline: { default: 32, "@media (max-width: 640px)": 20 },
+  },
+  workspace: {
     paddingBlock: { default: 40, "@media (max-width: 640px)": 24 },
   },
+  navigation: { paddingBlock: 16 },
   fluid: { maxInlineSize: "none" },
 })
 
@@ -29,7 +32,7 @@ type ContainerElementProps = ComponentPropsWithoutRef<"div"> &
 
 export type ContainerProps = StyleXComponentProps<
   ContainerElementProps,
-  { fluid?: boolean; variant?: "default" | "workspace" }
+  { fluid?: boolean; variant?: "default" | "workspace" | "navigation" }
 >
 
 export function Container({
@@ -47,7 +50,9 @@ export function Container({
         stylexProps(
           className,
           styles.root,
+          variant !== "default" && styles.appWidth,
           variant === "workspace" && styles.workspace,
+          variant === "navigation" && styles.navigation,
           fluid && styles.fluid,
           xstyle,
         ),
