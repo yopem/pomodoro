@@ -4,6 +4,7 @@ import type { RegisteredRouter } from "@tanstack/react-router"
 import type { ReactNode } from "react"
 
 import { CSPProvider } from "@base-ui/react/csp-provider"
+import { publicConfig } from "@pomodoro/env/client"
 import * as stylex from "@stylexjs/stylex"
 import { QueryClientProvider } from "@tanstack/react-query"
 import {
@@ -134,7 +135,9 @@ export function RootDocument({ children }: { children: ReactNode }) {
       {...getRootThemeProps()}
     >
       <head>
-        <meta property="csp-nonce" content={nonce} nonce={nonce} />
+        {!publicConfig.isProduction && (
+          <meta property="csp-nonce" content={nonce} nonce={nonce} />
+        )}
         <ThemeScript nonce={nonce} />
         <HeadContent />
         <DocumentTitle timer={timer} nowMs={nowMs} hydrated={hydrated} />
