@@ -1294,17 +1294,21 @@ behavior. QA-038 through QA-043 remain unchecked and pending browser approval.
 
 ### [ ] QA-046 — P2 — Old modal completion cannot dismiss a new opening
 
-- **Purpose:** Keep asynchronous confirmation results tied to their original
-  dialog opening, even within one account and one mounted control.
+- **Purpose:** Keep asynchronous confirmation and editor results tied to their
+  original dialog opening, even within one account and one mounted control.
 - **Prerequisites:** Approved isolated browser QA; a real confirmation mutation
   that can wait on the workspace lock. Use the existing project removal or
-  account conflict/import workflow after implementation. No new test helpers.
-- **Inputs:** Two openings of the same confirmation control and a held workspace
-  lock. Capture each opening's target, baseline, and owner in the evidence.
+  account conflict/import workflow, task editor, and report history editor. No
+  new test helpers.
+- **Inputs:** Two openings of the same confirmation or editor and a held
+  workspace lock. Capture each opening's target, baseline, and owner in the
+  evidence.
 - **Steps:** 1. Submit the first opening while its operation waits on the
   lock. 2. Close it through an available dismissal and open the control
   again. 3. Release the original operation and inspect the second opening. 4.
-  Repeat with a failed original operation and keyboard-only cancel/reopen.
+  Repeat with a failed original operation and keyboard-only cancel/reopen. 5.
+  Repeat for two new-task openings and two report insert/edit openings,
+  including the same existing record reopened after dismissal.
 - **Expected results:** The original result cannot close, replace, or clear the
   new opening. Original baselines and owner checks still apply. Errors stay
   associated with the correct action; focus returns to the triggering control.
@@ -1991,3 +1995,74 @@ do not survive a full page reload, which can require a new conflict review.
   delete browser caches or service workers belonging to another origin.
 - **Status:** pending. The first build failed to resolve `workbox-window` and
   warned about `inlineDynamicImports` and an unmatched `dist` asset glob.
+
+### [ ] QA-071 — P0 — Trusted edge client addresses
+
+- **Purpose:** preserve per-client rate limits behind an explicitly trusted edge
+  without accepting forged forwarding headers from direct clients.
+- **Prerequisites:** newly owned isolated API/database; a free API port 18001;
+  exact trusted peer `127.0.0.3`; no real issuer account. Discover the final
+  launcher and edge commands from the completed source before execution.
+- **Inputs:** `TRUSTED_PROXY_IPS=127.0.0.3`; reserved client addresses
+  `198.51.100.10` and `198.51.100.11`; invalid values `unknown`, an empty
+  trusted-peer header, two header fields and a comma-separated address chain.
+- **Steps:** 1. Review startup validation and trusted peer matching. 2. From the
+  trusted loopback source, send supported requests with each reserved address as
+  the single `X-Forwarded-For` value. 3. Exhaust the existing ten-request auth
+  window for the first address without following issuer redirects; inspect the
+  next response and the second address. 4. Repeat from an untrusted source with
+  forged address values. 5. Send missing, malformed and duplicate forwarding
+  headers from the trusted source. 6. Check liveness, readiness and safe error
+  headers.
+- **Expected results:** separate trusted client addresses get separate existing
+  rate buckets. The exhausted bucket returns 429 with Retry-After. Direct
+  clients cannot choose their rate bucket through forwarding headers. Trusted
+  peers must provide exactly one valid address; invalid inputs return 400 and no
+  auth challenge or workspace write. Empty configuration trusts no peer. No rate
+  threshold is increased, global forwarding trust enabled or client address
+  placed in unbounded metric labels.
+- **Evidence:** sanitized status/header counts and source-address observations
+  under `qa-artifacts/QA-071/`; redact challenge cookies and redirect query
+  values. Inspect results for both client addresses and direct access.
+- **Cleanup:** do not follow issuer redirects. Keep the owned database for
+  remaining QA; temporary challenges expire. Stop only owned QA processes.
+- **Status:** pending. Trusted-proxy source repair is complete. The isolated
+  runtime pass in `qa-artifacts/QA-071/` covers forwarding-header rejection,
+  independent limits, forged-header resistance and edge rewriting. Empty and
+  invalid startup configuration and the final committed artifact still need
+  acceptance. The pass found missing documented 400 responses on public paths.
+
+### [ ] QA-072 — P1 — Separate pinned API and web containers
+
+- **Purpose:** Package the Axum API and Bun SSR as separate non-root processes
+  behind one origin, without changing the pinned Bun revision.
+- **Prerequisites:** Owned Podman resources; the exact trusted local Bun binary;
+  verified immutable base images; an isolated database and HTTPS edge. Never
+  load root `.env` into QA containers. Official registry research did not find
+  an independently available archive for the required Bun revision.
+- **Inputs:** Bun version `1.4.4`, revision `1.4.4-canary.1+a8fcd319b`, and
+  binary SHA-256
+  `14f268816e1b6a412d3715d8b9820bdb3030386ffdd35c46da1446898e0091c4`; web port
+  13001 and API port 18001; private configuration from the owned runtime.
+- **Steps:** 1. Inspect the completed container recipes and build-context
+  exclusions. 2. Build both images with existing commands documented in
+  README. 3. Verify the Bun version, revision and checksum inside the web
+  image. 4. Run both images on an owned private network behind the edge. 5.
+  Check root, API, auth and unknown-backend routing, readiness, assets and
+  database writes where approved test identities permit them. 6. Send SIGTERM
+  and inspect bounded shutdown and process exit. 7. Reject an altered Bun build
+  input.
+- **Expected results:** Builds use frozen or locked dependencies. Secrets,
+  repository history, local state and QA evidence do not enter image layers.
+  Only the edge exposes the application. The API and web bind their container
+  interfaces on the required ports, run without root, preserve paths and
+  cookies, and stop within documented grace periods. A mismatched Bun input
+  fails the build rather than changing the runtime pin.
+- **Evidence:** Save sanitized build, runtime, checksum, routing and shutdown
+  reports under `qa-artifacts/QA-072/`. Record exact images and source revision.
+- **Cleanup:** Stop and remove only owned containers, networks and temporary
+  build inputs. Keep the isolated database until the remaining QA completes.
+- **Status:** pending; separate runtime recipes and explicit context setup are
+  implemented. Image builds and runtime acceptance remain. Supplied local Bun
+  bytes can preserve the pin, but do not establish an independently retrievable
+  official artifact.
