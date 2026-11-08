@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 
 import { Box } from "@/components/ui/box"
+import { Button } from "@/components/ui/button"
 import { Container } from "@/components/ui/container"
 import { Heading } from "@/components/ui/heading"
+import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { useFocusSnapshot } from "@/features/focus/store"
@@ -24,10 +26,14 @@ export function FocusRoute() {
 
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
-      <Container variant="workspace">
+      <Container variant="focus">
         <Stack spacing="page">
-          <Heading render={<h1>Focus timer</h1>} />
-          <Link to="/">Return to workspace</Link>
+          <HStack layout="pageHeader">
+            <Heading render={<h1>Focus timer</h1>} />
+            <Button variant="ghost" size="xl" render={<Link to="/" />}>
+              Return to workspace
+            </Button>
+          </HStack>
           {error && <Text role="alert">{error}</Text>}
           {!hydrated ? (
             <output>Loading your workspace…</output>

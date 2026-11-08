@@ -24,6 +24,7 @@ const styles = stylex.create({
     paddingBlock: { default: 40, "@media (max-width: 640px)": 24 },
   },
   navigation: { paddingBlock: 16 },
+  focus: { maxInlineSize: 640 },
   fluid: { maxInlineSize: "none" },
 })
 
@@ -32,7 +33,10 @@ type ContainerElementProps = ComponentPropsWithoutRef<"div"> &
 
 export type ContainerProps = StyleXComponentProps<
   ContainerElementProps,
-  { fluid?: boolean; variant?: "default" | "workspace" | "navigation" }
+  {
+    fluid?: boolean
+    variant?: "default" | "workspace" | "navigation" | "focus"
+  }
 >
 
 export function Container({
@@ -51,8 +55,9 @@ export function Container({
           className,
           styles.root,
           variant !== "default" && styles.appWidth,
-          variant === "workspace" && styles.workspace,
+          (variant === "workspace" || variant === "focus") && styles.workspace,
           variant === "navigation" && styles.navigation,
+          variant === "focus" && styles.focus,
           fluid && styles.fluid,
           xstyle,
         ),
