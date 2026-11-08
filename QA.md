@@ -4,22 +4,25 @@
 
 Task: create a web-only reference app alternative with basic and premium
 features, Yopem UI and StyleX, guest use, and account sync. Exclude Todoist and
-webhooks. Implementation is in progress. Runtime QA has not run.
+webhooks. Core source workflows are integrated. Runtime QA has not run.
 
-Frontend scope: `apps/web/src/`, `packages/env/`, app-owned UI, and root Bun
-configuration. Routes are `/`, `/projects`, `/templates`, `/reports`, and
-`/settings`. Rust contract scope is `apps/server/src/contract.rs` and its
-offline OpenAPI exporter. HTTP handlers, account sync, and persistence are not
-complete. Do not treat contract export as a running API.
+Frontend scope: `apps/web/src/`, `packages/env/`, `packages/api/`, app-owned UI,
+and root Bun configuration. Routes are `/`, `/focus`, `/projects`, `/templates`,
+`/reports`, and `/settings`. Rust scope includes `apps/server/` and the focus,
+database, and migration crates. HTTP handlers, authentication, persistence, and
+account controls are implemented in source. Their compilation does not prove
+that services, issuer integration, or browser workflows work at runtime.
 
 Use `http://127.0.0.1:13001` for web QA. The required backend address is
-`http://127.0.0.1:18001`; web proxies `/api`, `/auth`, and `/openapi.json` to
-it. No development server was started for this work. Before an approved runtime
-pass, check existing listeners. Do not start another server or change ports.
-After approval, the existing root web command is `bun run dev`. An API start
-command remains blocked until its runtime entrypoint exists. Never use
-reference-site account data as fixtures. Confirm isolated database targets
-before any connection, migration, or seed.
+`http://127.0.0.1:18001`; web proxies `/api`, `/auth`, `/openapi.json`,
+`/health`, and `/ready` to it. No development server was started for this work.
+Before an approved runtime pass, check existing listeners. Do not start another
+server or change ports. Follow `README.md` for configuration and confirmed
+isolated PostgreSQL setup. After approval, `bun run db:migrate` applies
+migrations, then `bun run dev` starts the web and API. Guest-only development
+uses `bun run --cwd apps/web dev`. Run these commands from the repository root.
+Never use reference-site account data as fixtures. Confirm isolated database
+targets before any connection, migration, or seed.
 
 Runtime: Bun `1.4.4-canary.1+a8fcd319b`, pinned by `bun-toolchain.json`, and
 Rust `1.97.1`, pinned by `rust-toolchain.toml`. Use `bun.lock` and `Cargo.lock`.
@@ -115,6 +118,7 @@ actual result, and evidence path when a case runs.
 | Requirement or workflow                              | Pending or historical coverage                    |
 | ---------------------------------------------------- | ------------------------------------------------- |
 | Native tooling and required plugin support           | QA-001; historical compatibility result QA-002    |
+| Isolated staged and actual-origin push snapshots     | QA-062, QA-063                                    |
 | UI, StyleX, framework setup and component contracts  | QA-003, QA-021, QA-024, QA-036                    |
 | Timer completion, persistence and fractional timing  | QA-006–008, QA-027, QA-038–043                    |
 | Tasks, ordering, notes and finish estimates          | QA-009, QA-046, QA-050                            |
@@ -1446,8 +1450,9 @@ account's settings or records. Record blocked observations as unknown.
 3. Compact focus controls, live titles, idle clock, colors, projects, templates,
    reports, history editing, and downloads are integrated in source. Reference
    internals that were locked or unobserved remain unknown, not guessed.
-4. Local setup files and README commands are committed. Finish the small route
-   metadata increment, run the permitted full static gate, and commit it.
+4. Local setup files, README commands, and private-safe discovery metadata are
+   committed. Run the permitted full static gate after each final source change.
+   Record actual coverage without treating it as runtime QA.
 5. Leave runtime cases pending until separately approved. Source presence and
    static checks do not prove browser, storage, issuer, or deployment behavior.
 
@@ -1744,3 +1749,54 @@ do not survive a full page reload, which can require a new conflict review.
 - **Cleanup:** Restore environment settings and stop only case-started
   processes.
 - **Status:** pending; build, browser, and HTTP execution remain deferred.
+
+### [ ] QA-062 — P1 — Commit checks use only the staged snapshot
+
+- **Purpose:** Make commit checks inspect the exact staged tree and preserve
+  unrelated worktree, index, and untracked content.
+- **Prerequisites:** Pinned tooling and approval for the isolated native check
+  pass. Any deliberate failure fixtures require separate approval. No app,
+  database, browser, build, or test runner is needed.
+- **Inputs:** The actual staged tree ID; tracked configuration and lockfiles;
+  independently recorded index/worktree/untracked hashes. For a later approved
+  isolation regression, use staged and unstaged variants of one local fixture.
+- **Steps:** 1. Inspect `lefthook.yml` and its actual snapshot runner. 2. Record
+  input hashes. 3. Run the documented native staged-snapshot check. 4. Inspect
+  archived source, dependency workspace links, complete owning/dependent type
+  coverage, Rust checks, and cleanup. 5. Compare original hashes. Run deliberate
+  opposing staged/worktree variants only after fixture approval.
+- **Expected results:** Results belong to the staged tree, not dirty worktree
+  sources or borrowed workspace symlinks. Required configuration receives
+  explicit coverage. Native checks do not skip unsupported source silently.
+  Original content remains unchanged and temporary snapshots are removed.
+- **Evidence:** Save sanitized tree IDs, logs, dependency-link targets, and hash
+  comparisons in `qa-artifacts/QA-062/`.
+- **Cleanup:** Remove only owned temporary snapshots and approved fixtures.
+- **Status:** pending; previous hooks do not establish this isolation. Record
+  source repair and actual native snapshot coverage separately from fixtures.
+
+### [ ] QA-063 — P1 — Push checks cover each actual origin tip
+
+- **Purpose:** Check distinct commit tips sent to the configured origin,
+  including new branches and tags, instead of checking the working tree.
+- **Prerequisites:** Pinned tooling. Explicit approval for disposable Git
+  remotes and transport fixtures before executing push-behavior regressions. No
+  real remote write or application service is authorized by this case.
+- **Inputs:** Actual pre-push remote/ref input; two distinct commit tips;
+  duplicate tips; a new branch; an annotated tag; a deletion; and an unsupported
+  input.
+- **Steps:** 1. Inspect the installed hook's real stdin/remote argument
+  mapping. 2. Confirm the runner resolves the configured origin and dereferences
+  commit tips without using a guessed branch or current HEAD. 3. After fixture
+  approval, exercise the listed inputs against only disposable local remotes. 4.
+  Inspect full snapshot coverage per unique tip, rejected unsupported inputs,
+  and unchanged original workspace hashes.
+- **Expected results:** Every distinct pushed origin commit gets a complete
+  isolated native gate, including new branches and tags. Duplicate commit tips
+  need one gate; deletions do not check a nonexistent tree. Ambiguous inputs and
+  unsupported coverage fail closed. No real origin is modified during QA.
+- **Evidence:** Save sanitized ref inputs, resolved commit/tree IDs, gate logs,
+  and unchanged input hashes in `qa-artifacts/QA-063/`.
+- **Cleanup:** Remove only approved local transport fixtures and snapshots.
+- **Status:** pending; source implementation is in progress, and transport
+  fixtures remain unapproved.
