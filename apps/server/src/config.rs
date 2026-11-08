@@ -1,4 +1,9 @@
-use std::{env, error::Error, fmt, net::SocketAddr};
+use std::{
+    env,
+    error::Error,
+    fmt,
+    net::{IpAddr, SocketAddr},
+};
 
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use url::Url;
@@ -7,6 +12,7 @@ pub struct AppConfig {
     pub database_url: String,
     pub environment: String,
     pub bind_addr: SocketAddr,
+    pub trusted_proxy_ips: Vec<IpAddr>,
     pub public_origin: Url,
     pub auth: Option<AuthConfig>,
 }
@@ -51,6 +57,26 @@ impl AppConfig {
             .unwrap_or_else(|| "127.0.0.1:18001".to_owned())
             .parse()
             .map_err(|_| ConfigError("Invalid BIND_ADDR"))?;
+        let trusted_proxy_value = value("TRUSTED_PROXY_IPS")?.unwrap_or_default();
+        if trusted_proxy_value.len() > 1024 {
+            return Err(ConfigError("Invalid TRUSTED_PROXY_IPS"));
+        }
+        let trusted_proxy_ips = if trusted_proxy_value.is_empty() {
+            Vec::new()
+        } else {
+            let ips = trusted_proxy_value
+                .split(',')
+                .map(|ip| {
+                    ip.trim()
+                        .parse()
+                        .map_err(|_| ConfigError("Invalid TRUSTED_PROXY_IPS"))
+                })
+                .collect::<Result<Vec<IpAddr>, _>>()?;
+            if ips.len() > 16 {
+                return Err(ConfigError("Invalid TRUSTED_PROXY_IPS"));
+            }
+            ips
+        };
         let origin = value("PUBLIC_ORIGIN")?;
         if production && origin.is_none() {
             return Err(ConfigError("PUBLIC_ORIGIN is required in production"));
@@ -103,6 +129,7 @@ impl AppConfig {
             database_url,
             environment,
             bind_addr,
+            trusted_proxy_ips,
             public_origin,
             auth,
         })

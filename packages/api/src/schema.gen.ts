@@ -811,6 +811,14 @@ export interface operations {
           "application/json": components["schemas"]["HealthResponse"]
         }
       }
+      400: {
+        headers: {
+          "X-Request-ID"?: string
+        }
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"]
+        }
+      }
     }
   }
   openapi: {
@@ -828,6 +836,14 @@ export interface operations {
         }
         content: {
           "application/json": unknown
+        }
+      }
+      400: {
+        headers: {
+          "X-Request-ID"?: string
+        }
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"]
         }
       }
       429: {
@@ -872,6 +888,14 @@ export interface operations {
         }
         content: {
           "application/json": components["schemas"]["HealthResponse"]
+        }
+      }
+      400: {
+        headers: {
+          "X-Request-ID"?: string
+        }
+        content: {
+          "application/json": components["schemas"]["ErrorResponse"]
         }
       }
       429: {

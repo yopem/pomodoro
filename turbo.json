@@ -6,6 +6,7 @@
     "DATABASE_URL",
     "AUTH_*",
     "BIND_ADDR",
+    "TRUSTED_PROXY_IPS",
     "NODE_ENV"
   ],
   "tasks": {

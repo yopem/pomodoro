@@ -40,7 +40,13 @@ async fn run() -> Result<(), String> {
         .map(|auth| AuthService::new(db.clone(), auth).map(Arc::new))
         .transpose()
         .map_err(|_| "Could not configure account authentication".to_owned())?;
-    let app = http::router(db.clone(), auth, &config.public_origin, &config.environment);
+    let app = http::router(
+        db.clone(),
+        auth,
+        &config.public_origin,
+        &config.environment,
+        config.trusted_proxy_ips,
+    );
     let listener = TcpListener::bind(config.bind_addr)
         .await
         .map_err(|_| "Could not bind the API listener".to_owned())?;

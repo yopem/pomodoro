@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    net::{IpAddr, Ipv4Addr, SocketAddr},
+    net::{IpAddr, SocketAddr},
     sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
@@ -41,6 +41,7 @@ pub struct AppState {
     origin: String,
     secure: bool,
     environment: String,
+    trusted_proxy_ips: Vec<IpAddr>,
     requests: Arc<Semaphore>,
     rates: Arc<Mutex<HashMap<RateKey, RateWindow>>>,
 }
@@ -66,6 +67,7 @@ pub fn router(
     auth: Option<Arc<AuthService>>,
     origin: &Url,
     environment: &str,
+    trusted_proxy_ips: Vec<IpAddr>,
 ) -> Router {
     let state = AppState {
         db,
@@ -73,6 +75,7 @@ pub fn router(
         origin: origin.origin().ascii_serialization(),
         secure: origin.scheme() == "https",
         environment: environment.to_owned(),
+        trusted_proxy_ips,
         requests: Arc::new(Semaphore::new(16)),
         rates: Arc::new(Mutex::new(HashMap::new())),
     };
@@ -146,6 +149,19 @@ async fn boundary(State(state): State<AppState>, mut request: Request, next: Nex
     );
     let liveness = request.uri().path() == "/health" && *request.method() == Method::GET;
     let auth_callback = request.uri().path() == "/auth/callback";
+    let client_ip = request
+        .extensions()
+        .get::<ConnectInfo<SocketAddr>>()
+        .and_then(|peer| {
+            let ip = peer.0.ip();
+            if state.trusted_proxy_ips.contains(&ip) {
+                single_header(request.headers(), "x-forwarded-for")?
+                    .parse()
+                    .ok()
+            } else {
+                Some(ip)
+            }
+        });
     let route = request
         .extensions()
         .get::<MatchedPath>()
@@ -162,11 +178,14 @@ async fn boundary(State(state): State<AppState>, mut request: Request, next: Nex
         _ => "OTHER",
     };
     let response = async {
+        let Some(ip) = client_ip else {
+            return failure(StatusCode::BAD_REQUEST, "Invalid client address", request_id);
+        };
         if liveness {
             return next.run(request).await;
         }
         match state.requests.clone().try_acquire_owned() {
-            Ok(_permit) => tokio::time::timeout(Duration::from_secs(30), authorized_request(&state, request, next, request_id))
+            Ok(_permit) => tokio::time::timeout(Duration::from_secs(30), authorized_request(&state, request, next, request_id, ip))
                 .await.unwrap_or_else(|_| failure(StatusCode::GATEWAY_TIMEOUT, "The request timed out", request_id)),
             Err(_) => failure(StatusCode::SERVICE_UNAVAILABLE, "The server is busy. Retry shortly.", request_id),
         }
@@ -175,7 +194,7 @@ async fn boundary(State(state): State<AppState>, mut request: Request, next: Nex
     .await;
     let mut response = response;
     let headers = response.headers_mut();
-    if auth_callback {
+    if auth_callback && client_ip.is_some() {
         let clear = crate::platform::auth::clear_challenge_cookie(state.secure);
         if !headers
             .get_all(header::SET_COOKIE)
@@ -235,6 +254,7 @@ async fn authorized_request(
     mut request: Request,
     next: Next,
     id: Uuid,
+    ip: IpAddr,
 ) -> Response {
     let path = request.uri().path();
     let unsafe_method = !matches!(
@@ -248,10 +268,6 @@ async fn authorized_request(
             id,
         );
     }
-    let ip = request
-        .extensions()
-        .get::<ConnectInfo<SocketAddr>>()
-        .map_or(IpAddr::V4(Ipv4Addr::LOCALHOST), |value| value.0.ip());
     let authentication = matches!(path, "/auth/login" | "/auth/callback");
     if limited(
         state,
@@ -460,14 +476,14 @@ pub async fn import_workspace(
     }
 }
 
-#[utoipa::path(get, path = "/health", responses((status = 200, body = HealthResponse)))]
+#[utoipa::path(get, path = "/health", responses((status = 200, body = HealthResponse), (status = 400, body = ErrorResponse)))]
 pub async fn health() -> Json<HealthResponse> {
     Json(HealthResponse {
         status: "ok".to_owned(),
     })
 }
 
-#[utoipa::path(get, path = "/ready", responses((status = 200, body = HealthResponse), (status = 503, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
+#[utoipa::path(get, path = "/ready", responses((status = 200, body = HealthResponse), (status = 400, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 pub async fn ready(State(state): State<AppState>, Extension(id): Extension<Uuid>) -> Response {
     if pomodoro_db::ready(&state.db).await {
         Json(HealthResponse {
@@ -483,7 +499,7 @@ pub async fn ready(State(state): State<AppState>, Extension(id): Extension<Uuid>
     }
 }
 
-#[utoipa::path(get, path = "/openapi.json", responses((status = 200, description = "Generated OpenAPI specification", content_type = "application/json"), (status = 429, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
+#[utoipa::path(get, path = "/openapi.json", responses((status = 200, description = "Generated OpenAPI specification", content_type = "application/json"), (status = 400, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 pub async fn openapi() -> Json<utoipa::openapi::OpenApi> {
     Json(ApiDoc::openapi())
 }
