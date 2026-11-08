@@ -59,7 +59,11 @@ export class AccountApiError extends Error {
   readonly requestId?: string
 
   constructor(status: number, requestId?: string) {
-    super("The account request could not be completed")
+    super(
+      status === 413
+        ? "This workspace exceeds the 20,000,000-byte sync limit"
+        : "The account request could not be completed",
+    )
     this.name = "AccountApiError"
     this.status = status
     this.requestId = requestId
@@ -68,7 +72,18 @@ export class AccountApiError extends Error {
 
 function responseData(result: ApiResult) {
   if (!result.response.ok) {
-    const parsed = errorSchema.safeParse(result.error)
+    let error = result.error
+    const text = responseTextSchema.safeParse(error)
+
+    if (text.success) {
+      try {
+        error = JSON.parse(text.data)
+      } catch {
+        error = undefined
+      }
+    }
+
+    const parsed = errorSchema.safeParse(error)
     throw new AccountApiError(
       result.response.status,
       parsed.success ? (parsed.data.request_id ?? undefined) : undefined,
@@ -92,6 +107,16 @@ function validatedResponse<T>(schema: z.ZodType<T>, result: ApiResult) {
   }
 
   return parsed.data
+}
+
+function workspaceRequestBody<
+  T extends { workspace: Workspace; expected_revision: number },
+>(body: T) {
+  if (new TextEncoder().encode(JSON.stringify(body)).byteLength > 20_000_000) {
+    throw new AccountApiError(413)
+  }
+
+  return body
 }
 
 function workspaceResponse(result: ApiResult, userId: string) {
@@ -160,6 +185,7 @@ export function workspaceQueryOptions(userId: string) {
 
 export function saveWorkspaceMutationOptions() {
   return mutationOptions({
+    mutationKey: ["account", "save"],
     gcTime: 0,
     mutationFn: (input: SaveWorkspaceInput) =>
       accountRequest(async () => {
@@ -167,10 +193,10 @@ export function saveWorkspaceMutationOptions() {
 
         const result = await createBrowserApiClient().PUT("/api/workspace", {
           params: { header: { "X-Pomodoro-User": owner } },
-          body: {
+          body: workspaceRequestBody({
             workspace: workspaceSchema.parse(input.workspace),
             expected_revision: revisionSchema.parse(input.expected_revision),
-          },
+          }),
           parseAs: "text",
         })
 
@@ -182,6 +208,7 @@ export function saveWorkspaceMutationOptions() {
 
 export function importGuestMutationOptions() {
   return mutationOptions({
+    mutationKey: ["account", "import"],
     gcTime: 0,
     mutationFn: (input: ImportGuestInput) =>
       accountRequest(async () => {
@@ -191,11 +218,11 @@ export function importGuestMutationOptions() {
           "/api/workspace/import",
           {
             params: { header: { "X-Pomodoro-User": owner } },
-            body: {
+            body: workspaceRequestBody({
               workspace: workspaceSchema.parse(input.workspace),
               expected_revision: revisionSchema.parse(input.expected_revision),
               import_id: uuidSchema.parse(input.import_id),
-            },
+            }),
             parseAs: "text",
           },
         )
@@ -208,6 +235,7 @@ export function importGuestMutationOptions() {
 
 export function logoutMutationOptions() {
   return mutationOptions({
+    mutationKey: ["account", "logout"],
     gcTime: 0,
     mutationFn: (userId: string) =>
       accountRequest(async () => {
