@@ -9,7 +9,7 @@ aes-gcm = "=0.10.3"
 axum = "=0.8.9"
 base64 = "=0.22.1"
 jsonwebtoken = { version = "=10.4.0", default-features = false, features = [
-  "rust_crypto",
+  "aws_lc_rs",
 ] }
 pomodoro-db = { path = "../../crates/db" }
 pomodoro-focus = { path = "../../crates/focus" }
