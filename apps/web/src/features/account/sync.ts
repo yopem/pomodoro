@@ -73,7 +73,7 @@ const initialState: AccountSnapshot = {
 }
 
 function sameWorkspace(left: Workspace, right: Workspace) {
-  return JSON.stringify(left) === JSON.stringify(right)
+  return left === right || JSON.stringify(left) === JSON.stringify(right)
 }
 
 function createAccountController(client: QueryClient) {
