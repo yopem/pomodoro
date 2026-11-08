@@ -1612,3 +1612,25 @@ approved public-data feature merely because the reference has a tab.
   and recovery state in `qa-artifacts/QA-056/`.
 - **Cleanup:** Remove delay controls and restore isolated records and sessions.
 - **Status:** pending; browser and endpoint execution remain deferred.
+
+### [ ] QA-057 — P1 — Reject damaged backup encodings
+
+- **Purpose:** Reject invalid UTF-8 before a restore confirmation can silently
+  replace damaged bytes with a different valid character.
+- **Prerequisites:** Approved browser QA in an isolated guest workspace. Export
+  a baseline backup first. Use existing local tools to create case inputs; do
+  not add test infrastructure.
+- **Inputs:** A valid UTF-8 backup with Japanese and emoji text; the same file
+  with a UTF-8 BOM; and a copy whose title contains an invalid byte sequence
+  such as hexadecimal `C3 28`. Keep every file below 10,000,000 bytes.
+- **Steps:** 1. Open `/settings` and choose each file in Backup. 2. Prepare the
+  restore. 3. For valid files, inspect the confirmation and restore
+  explicitly. 4. For the damaged file, inspect the error and current workspace.
+- **Expected results:** Valid UTF-8 and its BOM preserve the exact text. Damaged
+  UTF-8 produces a read error before confirmation; no replacement character,
+  workspace write, account save, or backup deletion occurs. Existing JSON,
+  schema, owner, size, and confirmation guards still apply.
+- **Evidence:** Save input hashes, sanitized error screenshots, and before/after
+  workspace summaries in `qa-artifacts/QA-057/`.
+- **Cleanup:** Restore the baseline and remove only case-created files.
+- **Status:** pending; browser execution remains deferred until features end.

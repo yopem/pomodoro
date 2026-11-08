@@ -78,7 +78,8 @@ export function WorkspaceBackup({
         try {
           if (state.file.size > maxBackupBytes)
             throw new Error("Backup must be 10 MB or smaller")
-          const text = await state.file.text()
+          const bytes = await state.file.arrayBuffer()
+          const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes)
 
           return {
             ...state,
