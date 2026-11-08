@@ -23,6 +23,7 @@ import {
   replaceActiveWorkspace,
   saveTask,
   selectTask,
+  useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { TaskForm } from "@/features/tasks/components/task-form"
 import { ConfirmAction } from "@/features/timer/components/confirm-action"
@@ -80,6 +81,7 @@ export function TaskRow({
   onEdit: (task: Task) => void
   onConfirm: (confirmation: TaskConfirmation) => void
 }) {
+  const owner = useWorkspaceMutationOwner()
   const selectedTaskId = workspace.timer.selected_task_id
   const taskCount = workspace.tasks.length
 
@@ -87,12 +89,18 @@ export function TaskRow({
     async (_previous: string | null, action: TaskRowAction) => {
       try {
         if (action === "complete") {
-          await saveTask({
-            task: { ...task, completed: !task.completed },
-            expected: task,
-          })
+          await saveTask(
+            {
+              task: { ...task, completed: !task.completed },
+              expected: task,
+            },
+            { owner },
+          )
         } else if (action === "select") {
-          await selectTask({ id: task.id === selectedTaskId ? null : task.id })
+          await selectTask(
+            { id: task.id === selectedTaskId ? null : task.id },
+            { owner },
+          )
         } else if (action === "edit") {
           onEdit(task)
         } else if (action === "remove") {
@@ -107,7 +115,7 @@ export function TaskRow({
           if (current === undefined || other === undefined) return null
           ids[index] = other
           ids[destination] = current
-          await reorderTasks({ ids, expected })
+          await reorderTasks({ ids, expected }, { owner })
         }
 
         return null
@@ -254,6 +262,7 @@ export function TaskRow({
 }
 
 export function TaskList({ workspace }: { workspace: Workspace }) {
+  const owner = useWorkspaceMutationOwner()
   const [editing, setEditing] = useState<Task | "new" | null>(null)
 
   const [confirmation, setConfirmation] = useState<TaskConfirmation | null>(
@@ -280,7 +289,10 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
 
       try {
         if (request.kind === "delete") {
-          await deleteTask({ id: request.task.id, expected: request.task })
+          await deleteTask(
+            { id: request.task.id, expected: request.task },
+            { owner },
+          )
         } else {
           const next = structuredClone(original)
 
@@ -310,7 +322,10 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
               next.timer.selected_task_id = null
           }
 
-          await replaceActiveWorkspace({ expected: original, workspace: next })
+          await replaceActiveWorkspace(
+            { expected: original, workspace: next },
+            { owner },
+          )
         }
 
         return null

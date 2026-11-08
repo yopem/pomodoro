@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
-import { saveSession } from "@/features/focus/store"
+import { saveSession, useWorkspaceMutationOwner } from "@/features/focus/store"
 import { localDateText } from "@/lib/local-date"
 import { appStyles } from "@/styles/app.stylex"
 
@@ -61,6 +61,7 @@ export function SessionEditor({
   date: string
   onOpenChange: (open: boolean) => void
 }) {
+  const owner = useWorkspaceMutationOwner()
   const [error, setError] = useState<string | null>(null)
   const initialDate = session ? new Date(session.started_at_ms) : null
 
@@ -105,19 +106,22 @@ export function SessionEditor({
           : value.minutes * 60
 
         const project = projects.find((item) => item.id === value.project)
-        await saveSession({
-          expected: session,
-          session: {
-            id: session?.id ?? crypto.randomUUID(),
-            task_id: session?.task_id ?? null,
-            task_title: value.title.trim(),
-            project_id: project?.id ?? null,
-            project_name: project?.name ?? "",
-            started_at_ms: start.getTime(),
-            duration_seconds: duration,
-            completed: session?.completed ?? false,
+        await saveSession(
+          {
+            expected: session,
+            session: {
+              id: session?.id ?? crypto.randomUUID(),
+              task_id: session?.task_id ?? null,
+              task_title: value.title.trim(),
+              project_id: project?.id ?? null,
+              project_name: project?.name ?? "",
+              started_at_ms: start.getTime(),
+              duration_seconds: duration,
+              completed: session?.completed ?? false,
+            },
           },
-        })
+          { owner },
+        )
         onOpenChange(false)
       } catch (cause) {
         setError(

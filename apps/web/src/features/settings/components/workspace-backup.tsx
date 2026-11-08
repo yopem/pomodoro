@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { exportBackup } from "@/features/focus/reports"
-import { importBackup } from "@/features/focus/store"
+import { importBackup, useWorkspaceMutationOwner } from "@/features/focus/store"
 import { downloadText } from "@/lib/download"
 import { appStyles } from "@/styles/app.stylex"
 
@@ -59,6 +59,8 @@ export function WorkspaceBackup({
   workspace: Workspace
   identity: string | null
 }) {
+  const owner = useWorkspaceMutationOwner()
+
   const [state, dispatch, pending] = useActionState(
     async function handleBackupAction(
       state: BackupState,
@@ -110,11 +112,14 @@ export function WorkspaceBackup({
             throw new Error(
               "Workspace changed. Review it before restoring a backup.",
             )
-          await importBackup({
-            text: state.confirmation.text,
-            identity: state.confirmation.identity,
-            expected: state.confirmation.expected,
-          })
+          await importBackup(
+            {
+              text: state.confirmation.text,
+              identity: state.confirmation.identity,
+              expected: state.confirmation.expected,
+            },
+            { owner },
+          )
 
           return {
             ...state,

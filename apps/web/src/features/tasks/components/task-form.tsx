@@ -23,7 +23,7 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { Textarea } from "@/components/ui/textarea"
-import { saveTask } from "@/features/focus/store"
+import { saveTask, useWorkspaceMutationOwner } from "@/features/focus/store"
 
 const titleSchema = z
   .string()
@@ -62,6 +62,7 @@ export function TaskForm({
   projects: Project[]
   setEditing: Dispatch<SetStateAction<Task | "new" | null>>
 }) {
+  const owner = useWorkspaceMutationOwner()
   const formRef = useRef<HTMLFormElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -87,18 +88,21 @@ export function TaskForm({
           throw new Error(
             "This task changed while you were editing. Close and reopen it before saving.",
           )
-        await saveTask({
-          expected: task,
-          task: {
-            id: task?.id ?? crypto.randomUUID(),
-            title: value.title.trim(),
-            note: value.note,
-            estimate: Number(value.estimate),
-            project_id: value.project || null,
-            actual: task?.actual ?? 0,
-            completed: task?.completed ?? false,
+        await saveTask(
+          {
+            expected: task,
+            task: {
+              id: task?.id ?? crypto.randomUUID(),
+              title: value.title.trim(),
+              note: value.note,
+              estimate: Number(value.estimate),
+              project_id: value.project || null,
+              actual: task?.actual ?? 0,
+              completed: task?.completed ?? false,
+            },
           },
-        })
+          { owner },
+        )
         setEditing(null)
       } catch (cause) {
         setError(

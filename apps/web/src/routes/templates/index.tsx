@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router"
 import { startTransition, useActionState, useState } from "react"
 
 import type { Template } from "@/features/focus/schema"
+import type { WorkspaceOwner } from "@/features/focus/store"
 
 import { ConfirmAction } from "@/components/confirm-action"
 import { Box } from "@/components/ui/box"
@@ -16,6 +17,7 @@ import {
   applyTemplate,
   deleteTemplate,
   useFocusSnapshot,
+  useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { TemplateForm } from "@/features/templates/components/template-form"
 import { appStyles } from "@/styles/app.stylex"
@@ -46,6 +48,7 @@ export const Route = createFileRoute("/templates/")({
 
 export function TemplatesRoute() {
   const { workspace, hydrated } = useFocusSnapshot((snapshot) => snapshot)
+  const owner = useWorkspaceMutationOwner()
   const [editing, setEditing] = useState<Template | null>(null)
   const [open, setOpen] = useState(false)
   const [isNew, setIsNew] = useState(false)
@@ -88,7 +91,7 @@ export function TemplatesRoute() {
           return initialFeedback
         }
 
-        await applyTemplate({ id: template.id })
+        await applyTemplate({ id: template.id }, { owner })
 
         return { error: null, applied: template.name }
       } catch (cause) {
@@ -193,6 +196,7 @@ export function TemplatesRoute() {
                 description={`Delete ${template.name}? Existing tasks will remain.`}
                 targetId={template.id}
                 data={template}
+                owner={owner}
                 onConfirm={removeTemplate}
               >
                 Delete
@@ -213,6 +217,10 @@ export function TemplatesRoute() {
   )
 }
 
-async function removeTemplate(id: string, template: Template) {
-  await deleteTemplate({ id, expected: template })
+async function removeTemplate(
+  id: string,
+  template: Template,
+  owner: WorkspaceOwner,
+) {
+  await deleteTemplate({ id, expected: template }, { owner })
 }

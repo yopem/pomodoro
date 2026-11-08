@@ -7,6 +7,7 @@ import { startTransition, useActionState, useState } from "react"
 import { z } from "zod"
 
 import type { Project, Workspace } from "@/features/focus/schema"
+import type { WorkspaceOwner } from "@/features/focus/store"
 
 import { ConfirmAction } from "@/components/confirm-action"
 import { FieldMessages } from "@/components/field-messages"
@@ -31,6 +32,7 @@ import {
   deleteProject,
   saveProject,
   useFocusSnapshot,
+  useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { formatFocusTime } from "@/lib/focus-time"
 import { appStyles } from "@/styles/app.stylex"
@@ -135,12 +137,19 @@ export function ProjectsRoute() {
   )
 }
 
-async function removeProject(id: string, workspace: Workspace) {
+async function removeProject(
+  id: string,
+  workspace: Workspace,
+  owner: WorkspaceOwner,
+) {
   const expected = workspace.projects.find((project) => project.id === id)
 
   if (!expected) throw new Error("The project could not be found")
 
-  await deleteProject({ id, expected, expected_workspace: workspace })
+  await deleteProject(
+    { id, expected, expected_workspace: workspace },
+    { owner },
+  )
 }
 
 export function ProjectCard({
@@ -158,6 +167,8 @@ export function ProjectCard({
   onEdit: (project: Project) => void
   onOpenChange: (open: boolean) => void
 }) {
+  const owner = useWorkspaceMutationOwner()
+
   const [error, dispatch, pending] = useActionState(
     async (_previous: string | null, action: "edit" | "archive") => {
       if (action === "edit") {
@@ -168,10 +179,13 @@ export function ProjectCard({
       }
 
       try {
-        await saveProject({
-          expected: project,
-          project: { ...project, archived: !project.archived },
-        })
+        await saveProject(
+          {
+            expected: project,
+            project: { ...project, archived: !project.archived },
+          },
+          { owner },
+        )
 
         return null
       } catch (cause) {
@@ -232,6 +246,7 @@ export function ProjectCard({
           description={`Remove ${project.name} from your projects. Saved focus history will remain. Tasks will have no project.`}
           targetId={project.id}
           data={workspace}
+          owner={owner}
           onConfirm={removeProject}
         >
           Delete
@@ -258,6 +273,7 @@ export function ProjectForm({
   project: Project | null
   onSaved: () => void
 }) {
+  const owner = useWorkspaceMutationOwner()
   const [error, setError] = useState<string | null>(null)
 
   const defaults: Pick<Project, "name" | "color"> = {
@@ -272,15 +288,18 @@ export function ProjectForm({
       setError(null)
 
       try {
-        await saveProject({
-          expected: project,
-          project: {
-            id: project?.id ?? crypto.randomUUID(),
-            name: value.name.trim(),
-            color: value.color,
-            archived: project?.archived ?? false,
+        await saveProject(
+          {
+            expected: project,
+            project: {
+              id: project?.id ?? crypto.randomUUID(),
+              name: value.name.trim(),
+              color: value.color,
+              archived: project?.archived ?? false,
+            },
           },
-        })
+          { owner },
+        )
         onSaved()
       } catch (cause) {
         setError(

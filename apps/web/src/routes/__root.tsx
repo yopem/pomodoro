@@ -58,13 +58,17 @@ export const Route = createRootRouteWithContext<{
 export function RootContent() {
   const { queryClient } = Route.useRouteContext()
 
+  const workspaceGeneration = useFocusSnapshot(
+    (value) => value.owner.generation,
+  )
+
   return (
     <QueryClientProvider client={queryClient}>
       <a href="#main" {...stylex.props(styles.skipLink)}>
         Skip to content
       </a>
       <AppShell>
-        <Outlet />
+        <Outlet key={workspaceGeneration} />
       </AppShell>
     </QueryClientProvider>
   )

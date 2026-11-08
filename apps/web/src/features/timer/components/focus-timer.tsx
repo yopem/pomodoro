@@ -14,6 +14,7 @@ import {
   selectPhase,
   skipTimer,
   startTimer,
+  useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { ConfirmAction } from "@/features/timer/components/confirm-action"
 import { appStyles } from "@/styles/app.stylex"
@@ -67,6 +68,7 @@ export function FocusTimer({
   workspace: Workspace
   nowMs: number
 }) {
+  const owner = useWorkspaceMutationOwner()
   const { timer, settings, tasks } = workspace
   const [pending, setPending] = useState<Interruption | null>(null)
 
@@ -95,12 +97,12 @@ export function FocusTimer({
 
       try {
         if (command === "toggle") {
-          if (timer.deadline_ms === null) await startTimer()
-          else await pauseTimer()
-        } else if (interruption?.kind === "reset") await resetTimer()
-        else if (interruption?.kind === "skip") await skipTimer()
+          if (timer.deadline_ms === null) await startTimer({ owner })
+          else await pauseTimer({ owner })
+        } else if (interruption?.kind === "reset") await resetTimer({ owner })
+        else if (interruption?.kind === "skip") await skipTimer({ owner })
         else if (interruption?.kind === "phase")
-          await selectPhase({ phase: interruption.phase })
+          await selectPhase({ phase: interruption.phase }, { owner })
 
         return null
       } catch (cause) {

@@ -5,6 +5,7 @@ import { PencilIcon } from "lucide-react"
 import { startTransition, useActionState, useState } from "react"
 
 import type { Session } from "@/features/focus/schema"
+import type { WorkspaceOwner } from "@/features/focus/store"
 
 import { ConfirmAction } from "@/components/confirm-action"
 import { Button } from "@/components/ui/button"
@@ -21,7 +22,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Text } from "@/components/ui/text"
-import { deleteSession } from "@/features/focus/store"
+import {
+  deleteSession,
+  useWorkspaceMutationOwner,
+} from "@/features/focus/store"
 import { formatFocusTime } from "@/lib/focus-time"
 import { appStyles } from "@/styles/app.stylex"
 
@@ -44,8 +48,12 @@ const historyFormatters = {
   }),
 }
 
-async function removeSession(id: string, session: Session) {
-  await deleteSession({ id, expected: session })
+async function removeSession(
+  id: string,
+  session: Session,
+  owner: WorkspaceOwner,
+) {
+  await deleteSession({ id, expected: session }, { owner })
 }
 
 type HistoryAction =
@@ -71,6 +79,7 @@ export function ReportHistory({
   onOpenChange: (open: boolean) => void
 }) {
   const navigate = useNavigate({ from: "/reports/" })
+  const owner = useWorkspaceMutationOwner()
 
   const [error, dispatch, pending] = useActionState(
     async (_previous: string | null, action: HistoryAction) => {
@@ -176,6 +185,7 @@ export function ReportHistory({
                       description={`Remove ${formatFocusTime(session.duration_seconds)} of ${session.task_title} from reports. This does not change task pomodoro counts.`}
                       targetId={session.id}
                       data={session}
+                      owner={owner}
                       onConfirm={removeSession}
                     >
                       Delete

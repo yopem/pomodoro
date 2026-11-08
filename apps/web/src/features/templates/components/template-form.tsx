@@ -23,7 +23,7 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { Textarea } from "@/components/ui/textarea"
-import { saveTemplate } from "@/features/focus/store"
+import { saveTemplate, useWorkspaceMutationOwner } from "@/features/focus/store"
 
 const nameSchema = z.string().trim().min(1, "Enter a name").max(500)
 
@@ -49,6 +49,7 @@ export function useTemplateForm({
   expected,
   onOpenChange,
 }: Pick<TemplateFormProps, "template" | "expected" | "onOpenChange">) {
+  const owner = useWorkspaceMutationOwner()
   const formRef = useRef<HTMLFormElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,7 +70,7 @@ export function useTemplateForm({
       setError(null)
 
       try {
-        await saveTemplate({ template: value, expected })
+        await saveTemplate({ template: value, expected }, { owner })
         onOpenChange(false)
       } catch (cause) {
         setError(

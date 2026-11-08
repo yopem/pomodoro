@@ -15,7 +15,10 @@ import { Stack } from "@/components/ui/stack"
 import { Switch } from "@/components/ui/switch"
 import { Text } from "@/components/ui/text"
 import { settingsSchema } from "@/features/focus/schema"
-import { updateSettings } from "@/features/focus/store"
+import {
+  updateSettings,
+  useWorkspaceMutationOwner,
+} from "@/features/focus/store"
 import { appStyles } from "@/styles/app.stylex"
 
 const numbers = [
@@ -50,6 +53,7 @@ export function SettingsForm({
   settings: Settings
   onSaved: (message: string) => void
 }) {
+  const owner = useWorkspaceMutationOwner()
   const formRef = useRef<HTMLFormElement>(null)
   const baseline = useRef(settings)
   const [error, setError] = useState<string | null>(null)
@@ -69,7 +73,10 @@ export function SettingsForm({
       setError(null)
 
       try {
-        await updateSettings({ settings: value, expected: baseline.current })
+        await updateSettings(
+          { settings: value, expected: baseline.current },
+          { owner },
+        )
         baseline.current = value
         onSaved("Settings saved.")
       } catch (cause) {

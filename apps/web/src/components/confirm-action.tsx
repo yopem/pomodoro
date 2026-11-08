@@ -16,12 +16,13 @@ import {
 import { Text } from "@/components/ui/text"
 import { appStyles } from "@/styles/app.stylex"
 
-export function ConfirmAction<T>({
+export function ConfirmAction<T, Owner>({
   title,
   description,
   children,
   targetId,
   data,
+  owner,
   onConfirm,
 }: {
   title: string
@@ -29,7 +30,8 @@ export function ConfirmAction<T>({
   children: ReactNode
   targetId: string
   data: T
-  onConfirm: (id: string, data: T) => Promise<void>
+  owner: Owner
+  onConfirm: (id: string, data: T, owner: Owner) => Promise<void>
 }) {
   const [open, setOpen] = useState(false)
 
@@ -46,6 +48,7 @@ export function ConfirmAction<T>({
           description={description}
           targetId={targetId}
           data={data}
+          owner={owner}
           onConfirm={onConfirm}
           onOpenChange={setOpen}
         />
@@ -54,11 +57,12 @@ export function ConfirmAction<T>({
   )
 }
 
-export function ConfirmationContent<T>({
+export function ConfirmationContent<T, Owner>({
   title,
   description,
   targetId,
   data,
+  owner,
   onConfirm,
   onOpenChange,
 }: {
@@ -66,7 +70,8 @@ export function ConfirmationContent<T>({
   description: string
   targetId: string
   data: T
-  onConfirm: (id: string, data: T) => Promise<void>
+  owner: Owner
+  onConfirm: (id: string, data: T, owner: Owner) => Promise<void>
   onOpenChange: (open: boolean) => void
 }) {
   const [pending, setPending] = useState(false)
@@ -81,7 +86,7 @@ export function ConfirmationContent<T>({
       setError(null)
 
       try {
-        await onConfirm(targetId, data)
+        await onConfirm(targetId, data, owner)
         onOpenChange(false)
       } catch (cause) {
         setError(

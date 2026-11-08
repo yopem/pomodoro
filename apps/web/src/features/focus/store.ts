@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react"
+import { useState, useSyncExternalStore } from "react"
 
 import {
   closeFocusAudio,
@@ -27,7 +27,24 @@ import {
   workspaceSchema,
 } from "./schema"
 
+export interface WorkspaceOwner {
+  readonly identity: string | null
+  readonly generation: number
+}
+
+interface MutationOwnership {
+  owner: WorkspaceOwner
+}
+
+const initialOwner: WorkspaceOwner = Object.freeze({
+  identity: null,
+  generation: 0,
+})
+
+let activeOwner = initialOwner
+
 export interface FocusSnapshot {
+  owner: WorkspaceOwner
   identity: string | null
   workspace: Workspace
   hydrated: boolean
@@ -37,6 +54,7 @@ export interface FocusSnapshot {
 }
 
 const initialSnapshot: FocusSnapshot = {
+  owner: initialOwner,
   identity: null,
   workspace: createEmptyWorkspace(),
   hydrated: false,
@@ -55,15 +73,11 @@ const listeners = new Set<() => void>()
 
 const completionListeners = new Set<(phase: Timer["phase"]) => void>()
 
-function publish(next: Omit<FocusSnapshot, "identity">) {
+function publish(next: Omit<FocusSnapshot, "identity" | "owner">) {
   snapshot = {
     ...next,
-    identity:
-      activeKey === "pomodoro:workspace:guest"
-        ? null
-        : decodeURIComponent(
-            activeKey.slice("pomodoro:workspace:account:".length),
-          ),
+    identity: activeOwner.identity,
+    owner: activeOwner,
   }
 
   try {
@@ -195,6 +209,13 @@ export function useFocusSnapshot<T>(select: (value: FocusSnapshot) => T) {
   )
 }
 
+export function useWorkspaceMutationOwner() {
+  const owner = useFocusSnapshot((value) => value.owner)
+  const [initialOwner] = useState(owner)
+
+  return initialOwner
+}
+
 export function subscribeTimerCompletion(
   listener: (phase: Timer["phase"]) => void,
 ) {
@@ -212,15 +233,27 @@ async function locked<T>(key: string, work: () => T | Promise<T>): Promise<T> {
   return await navigator.locks.request(key, work)
 }
 
-async function mutate(change: (workspace: Workspace, nowMs: number) => void) {
+async function withWorkspaceOwnership(
+  { owner }: MutationOwnership,
+  work: (key: string) => void,
+) {
   if (typeof window === "undefined")
     throw new Error("The workspace is available in the browser only")
   const key = activeKey
 
-  try {
-    await locked(key, () => {
-      if (key !== activeKey) throw new Error("The active workspace changed")
+  await locked(key, () => {
+    if (owner !== activeOwner || key !== activeKey)
+      throw new Error("The active workspace changed")
+    work(key)
+  })
+}
 
+async function mutate(
+  change: (workspace: Workspace, nowMs: number) => void,
+  ownership: MutationOwnership,
+) {
+  try {
+    await withWorkspaceOwnership(ownership, (key) => {
       if (!snapshot.hydrated) throw new Error("Wait for the workspace to load")
       const stored = readWorkspace(key)
 
@@ -236,17 +269,19 @@ async function mutate(change: (workspace: Workspace, nowMs: number) => void) {
 
       const workspace = stored ?? structuredClone(snapshot.workspace)
       const nowMs = Date.now()
+
       change(workspace, nowMs)
       const valid = workspaceSchema.parse(workspace)
       window.localStorage.setItem(key, serializeWorkspace(valid))
       publish({ ...snapshot, workspace: valid, error: null, nowMs })
     })
   } catch (error) {
-    publish({
-      ...snapshot,
-      error:
-        error instanceof Error ? error.message : "Workspace operation failed",
-    })
+    if (ownership.owner === activeOwner)
+      publish({
+        ...snapshot,
+        error:
+          error instanceof Error ? error.message : "Workspace operation failed",
+      })
     throw error
   }
 }
@@ -268,13 +303,20 @@ export async function setActiveWorkspace(input: {
     throw new Error("Account identity is required")
 
   if (key !== activeKey) {
+    closeFocusAudio()
     activeKey = key
+    activeOwner = Object.freeze({
+      identity: input.identity,
+      generation: activeOwner.generation + 1,
+    })
     publish({
       ...initialSnapshot,
       workspace: createEmptyWorkspace(),
       nowMs: Date.now(),
     })
   }
+
+  const owner = activeOwner
 
   try {
     const incoming =
@@ -288,7 +330,8 @@ export async function setActiveWorkspace(input: {
         : workspaceSchema.parse(input.expected)
 
     await locked(key, () => {
-      if (key !== activeKey) throw new Error("The active workspace changed")
+      if (key !== activeKey || owner !== activeOwner)
+        throw new Error("The active workspace changed")
       const stored = readWorkspace(key)
 
       if (
@@ -336,7 +379,7 @@ export async function setActiveWorkspace(input: {
       })
     })
   } catch (cause) {
-    if (key === activeKey) {
+    if (key === activeKey && owner === activeOwner) {
       publish({
         ...snapshot,
         hydrated: true,
@@ -354,7 +397,7 @@ export async function setActiveWorkspace(input: {
     throw cause
   }
 
-  void finishElapsedTimer()
+  if (owner === activeOwner) void finishElapsedTimer()
 }
 
 export async function getPendingGuestWorkspace() {
@@ -366,10 +409,13 @@ export async function getPendingGuestWorkspace() {
   )
 }
 
-export async function replaceActiveWorkspace(input: {
-  expected: Workspace
-  workspace: unknown
-}) {
+export async function replaceActiveWorkspace(
+  input: {
+    expected: Workspace
+    workspace: unknown
+  },
+  ownership: MutationOwnership,
+) {
   const expected = workspaceSchema.parse(input.expected)
   const replacement = workspaceSchema.parse(input.workspace)
   await mutate((current) => {
@@ -377,14 +423,17 @@ export async function replaceActiveWorkspace(input: {
       throw new Error("Workspace changed before replacement")
     window.localStorage.setItem(`${activeKey}:backup`, JSON.stringify(current))
     Object.assign(current, replacement)
-  })
+  }, ownership)
 }
 
-export async function importBackup(input: {
-  text: string
-  expected: Workspace | null
-  identity: string | null
-}) {
+export async function importBackup(
+  input: {
+    text: string
+    expected: Workspace | null
+    identity: string | null
+  },
+  ownership: MutationOwnership,
+) {
   if (typeof window === "undefined")
     throw new Error("The workspace is available in the browser only")
 
@@ -411,8 +460,8 @@ export async function importBackup(input: {
       ? "pomodoro:workspace:guest"
       : `pomodoro:workspace:account:${encodeURIComponent(input.identity)}`
 
-  await locked(key, () => {
-    if (key !== activeKey)
+  await withWorkspaceOwnership(ownership, (activeWorkspaceKey) => {
+    if (key !== activeWorkspaceKey)
       throw new Error(
         "The active workspace changed. Review it before restoring a backup.",
       )
@@ -451,7 +500,8 @@ export async function importBackup(input: {
       nowMs: Date.now(),
     })
   })
-  void finishElapsedTimer()
+
+  if (ownership.owner === activeOwner) void finishElapsedTimer()
 }
 
 function phaseSeconds(workspace: Workspace, phase: Timer["phase"]) {
@@ -574,11 +624,12 @@ let reminding = false
 async function remindFocus() {
   if (reminding || focusNotificationPermission() !== "granted") return
   const key = activeKey
+  const owner = activeOwner
   reminding = true
 
   try {
     const notify = await locked(key, () => {
-      if (key !== activeKey) return false
+      if (owner !== activeOwner || key !== activeKey) return false
       const workspace = readWorkspace(key)
 
       if (!workspace) return false
@@ -609,17 +660,18 @@ async function remindFocus() {
       return true
     })
 
-    if (notify)
+    if (notify && owner === activeOwner)
       showFocusNotification({
         title: "Focus reminder",
         body: "Your focus timer is running.",
       })
   } catch (error) {
-    publish({
-      ...snapshot,
-      error:
-        error instanceof Error ? error.message : "Workspace operation failed",
-    })
+    if (owner === activeOwner)
+      publish({
+        ...snapshot,
+        error:
+          error instanceof Error ? error.message : "Workspace operation failed",
+      })
   } finally {
     reminding = false
   }
@@ -673,17 +725,20 @@ async function finishElapsedTimer() {
     snapshot.workspace.timer.deadline_ms > Date.now()
   )
     return
-  const key = activeKey
+  const owner = activeOwner
 
   completing = true
   let completion: ReturnType<typeof completeIfElapsed> = null
 
   try {
-    await mutate((workspace, nowMs) => {
-      completion = completeIfElapsed(workspace, nowMs)
-    })
+    await mutate(
+      (workspace, nowMs) => {
+        completion = completeIfElapsed(workspace, nowMs)
+      },
+      { owner },
+    )
 
-    if (completion && key === activeKey) deliverCompletion(completion)
+    if (completion && owner === activeOwner) deliverCompletion(completion)
   } catch {
     return
   } finally {
@@ -693,8 +748,9 @@ async function finishElapsedTimer() {
 
 async function changeTimer(
   change: (workspace: Workspace, nowMs: number) => void,
+  ownership: MutationOwnership,
 ) {
-  const key = activeKey
+  const { owner } = ownership
   const expected = JSON.stringify(snapshot.workspace.timer)
   let completion: ReturnType<typeof completeIfElapsed> = null
   await mutate((workspace, nowMs) => {
@@ -705,33 +761,37 @@ async function changeTimer(
     completion = completeIfElapsed(workspace, nowMs)
 
     if (!completion) change(workspace, nowMs)
-  })
+  }, ownership)
 
-  if (completion && key === activeKey) deliverCompletion(completion)
+  if (completion && owner === activeOwner) deliverCompletion(completion)
 }
 
-export async function startTimer() {
-  unlockFocusAudio()
-  await changeTimer((workspace, nowMs) => startTimerRun(workspace, nowMs))
+export async function startTimer(ownership: MutationOwnership) {
+  if (ownership.owner === activeOwner) unlockFocusAudio()
+  await changeTimer(
+    (workspace, nowMs) => startTimerRun(workspace, nowMs),
+    ownership,
+  )
 }
 
-export async function pauseTimer() {
+export async function pauseTimer(ownership: MutationOwnership) {
   await changeTimer((workspace, nowMs) => {
     const timer = workspace.timer
 
     if (timer.deadline_ms === null) return
     timer.remaining_seconds = remaining(timer, nowMs)
     timer.deadline_ms = null
-  })
+  }, ownership)
 }
 
-export async function skipTimer() {
-  await changeTimer((workspace, nowMs) =>
-    advance(workspace, nowMs, false, false),
+export async function skipTimer(ownership: MutationOwnership) {
+  await changeTimer(
+    (workspace, nowMs) => advance(workspace, nowMs, false, false),
+    ownership,
   )
 }
 
-export async function resetTimer() {
+export async function resetTimer(ownership: MutationOwnership) {
   await changeTimer((workspace, nowMs) => {
     recordFocus(workspace, nowMs, false)
     const timer = workspace.timer
@@ -739,10 +799,13 @@ export async function resetTimer() {
     timer.deadline_ms = null
     timer.run_id = null
     timer.started_at_ms = null
-  })
+  }, ownership)
 }
 
-export async function selectPhase(input: { phase: Timer["phase"] }) {
+export async function selectPhase(
+  input: { phase: Timer["phase"] },
+  ownership: MutationOwnership,
+) {
   await changeTimer((workspace, nowMs) => {
     recordFocus(workspace, nowMs, false)
     workspace.timer.phase = input.phase
@@ -750,13 +813,16 @@ export async function selectPhase(input: { phase: Timer["phase"] }) {
     workspace.timer.deadline_ms = null
     workspace.timer.run_id = null
     workspace.timer.started_at_ms = null
-  })
+  }, ownership)
 }
 
-export async function updateSettings(input: {
-  settings: Settings
-  expected: Settings
-}) {
+export async function updateSettings(
+  input: {
+    settings: Settings
+    expected: Settings
+  },
+  ownership: MutationOwnership,
+) {
   const settings = settingsSchema.parse(input.settings)
   const expected = settingsSchema.parse(input.expected)
   await mutate((workspace) => {
@@ -779,10 +845,13 @@ export async function updateSettings(input: {
         workspace,
         workspace.timer.phase,
       )
-  })
+  }, ownership)
 }
 
-export async function saveTask(input: { task: Task; expected: Task | null }) {
+export async function saveTask(
+  input: { task: Task; expected: Task | null },
+  ownership: MutationOwnership,
+) {
   const task = taskSchema.parse(input.task)
 
   const expected =
@@ -811,10 +880,13 @@ export async function saveTask(input: { task: Task; expected: Task | null }) {
         ...workspace.tasks.filter((item) => item.id !== task.id),
         task,
       ]
-  })
+  }, ownership)
 }
 
-export async function deleteTask(input: { id: string; expected: Task }) {
+export async function deleteTask(
+  input: { id: string; expected: Task },
+  ownership: MutationOwnership,
+) {
   const expected = taskSchema.parse(input.expected)
   await mutate((workspace) => {
     const current = workspace.tasks.find((item) => item.id === input.id)
@@ -831,10 +903,13 @@ export async function deleteTask(input: { id: string; expected: Task }) {
 
     if (workspace.timer.selected_task_id === input.id)
       workspace.timer.selected_task_id = null
-  })
+  }, ownership)
 }
 
-export async function selectTask(input: { id: string | null }) {
+export async function selectTask(
+  input: { id: string | null },
+  ownership: MutationOwnership,
+) {
   await mutate((workspace) => {
     if (workspace.timer.run_id && workspace.timer.selected_task_id !== input.id)
       throw new Error(
@@ -847,13 +922,16 @@ export async function selectTask(input: { id: string | null }) {
     )
       throw new Error("Select an unfinished task")
     workspace.timer.selected_task_id = input.id
-  })
+  }, ownership)
 }
 
-export async function reorderTasks(input: {
-  ids: string[]
-  expected: string[]
-}) {
+export async function reorderTasks(
+  input: {
+    ids: string[]
+    expected: string[]
+  },
+  ownership: MutationOwnership,
+) {
   await mutate((workspace) => {
     if (
       JSON.stringify(workspace.tasks.map((task) => task.id)) !==
@@ -874,13 +952,16 @@ export async function reorderTasks(input: {
 
       return task
     })
-  })
+  }, ownership)
 }
 
-export async function saveProject(input: {
-  project: Project
-  expected: Project | null
-}) {
+export async function saveProject(
+  input: {
+    project: Project
+    expected: Project | null
+  },
+  ownership: MutationOwnership,
+) {
   const project = projectSchema.parse(input.project)
 
   const expected =
@@ -896,14 +977,17 @@ export async function saveProject(input: {
 
     if (index < 0) workspace.projects.push(project)
     else workspace.projects[index] = project
-  })
+  }, ownership)
 }
 
-export async function deleteProject(input: {
-  id: string
-  expected: Project
-  expected_workspace: Workspace
-}) {
+export async function deleteProject(
+  input: {
+    id: string
+    expected: Project
+    expected_workspace: Workspace
+  },
+  ownership: MutationOwnership,
+) {
   const expected = projectSchema.parse(input.expected)
   const expectedWorkspace = workspaceSchema.parse(input.expected_workspace)
   await mutate((workspace) => {
@@ -928,13 +1012,16 @@ export async function deleteProject(input: {
     for (const template of workspace.templates)
       for (const task of template.tasks)
         if (task.project_id === input.id) task.project_id = null
-  })
+  }, ownership)
 }
 
-export async function saveTemplate(input: {
-  template: Template
-  expected: Template | null
-}) {
+export async function saveTemplate(
+  input: {
+    template: Template
+    expected: Template | null
+  },
+  ownership: MutationOwnership,
+) {
   const template = templateSchema.parse(input.template)
 
   const expected =
@@ -962,13 +1049,16 @@ export async function saveTemplate(input: {
 
     if (index < 0) workspace.templates.push(template)
     else workspace.templates[index] = template
-  })
+  }, ownership)
 }
 
-export async function deleteTemplate(input: {
-  id: string
-  expected: Template
-}) {
+export async function deleteTemplate(
+  input: {
+    id: string
+    expected: Template
+  },
+  ownership: MutationOwnership,
+) {
   const expected = templateSchema.parse(input.expected)
   await mutate((workspace) => {
     const current = workspace.templates.find((item) => item.id === input.id)
@@ -981,10 +1071,13 @@ export async function deleteTemplate(input: {
     workspace.templates = workspace.templates.filter(
       (item) => item.id !== input.id,
     )
-  })
+  }, ownership)
 }
 
-export async function applyTemplate(input: { id: string }) {
+export async function applyTemplate(
+  input: { id: string },
+  ownership: MutationOwnership,
+) {
   await mutate((workspace) => {
     const template = workspace.templates.find((item) => item.id === input.id)
 
@@ -1003,13 +1096,16 @@ export async function applyTemplate(input: { id: string }) {
         completed: false,
       })
     }
-  })
+  }, ownership)
 }
 
-export async function saveSession(input: {
-  session: Session
-  expected: Session | null
-}) {
+export async function saveSession(
+  input: {
+    session: Session
+    expected: Session | null
+  },
+  ownership: MutationOwnership,
+) {
   const session = sessionSchema.parse(input.session)
 
   const expected =
@@ -1028,10 +1124,13 @@ export async function saveSession(input: {
 
     if (index < 0) workspace.sessions.push(session)
     else workspace.sessions[index] = session
-  })
+  }, ownership)
 }
 
-export async function deleteSession(input: { id: string; expected: Session }) {
+export async function deleteSession(
+  input: { id: string; expected: Session },
+  ownership: MutationOwnership,
+) {
   const expected = sessionSchema.parse(input.expected)
   await mutate((workspace) => {
     const current = workspace.sessions.find((item) => item.id === input.id)
@@ -1044,5 +1143,5 @@ export async function deleteSession(input: { id: string; expected: Session }) {
     workspace.sessions = workspace.sessions.filter(
       (item) => item.id !== input.id,
     )
-  })
+  }, ownership)
 }
