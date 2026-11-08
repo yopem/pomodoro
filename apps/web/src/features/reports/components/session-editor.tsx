@@ -17,9 +17,6 @@ import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { saveSession, useWorkspaceMutationOwner } from "@/features/focus/store"
 import { localDateText } from "@/lib/local-date"
-import { appStyles } from "@/styles/app.stylex"
-
-const helpStyles = [appStyles.small, appStyles.muted]
 
 function isSubmitting(state: { isSubmitting: boolean }) {
   return state.isSubmitting
@@ -249,7 +246,7 @@ export function SessionEditor({
             </Field>
           )}
         </form.Field>
-        <HStack xstyle={appStyles.row}>
+        <HStack layout="row">
           <form.Field name="start">
             {(field) => (
               <Field>
@@ -304,7 +301,7 @@ export function SessionEditor({
                 aria-invalid={field.state.meta.errors.length > 0}
                 aria-describedby="session-minutes-help session-minutes-error"
               />
-              <Text id="session-minutes-help" xstyle={helpStyles}>
+              <Text id="session-minutes-help" size="small" tone="muted">
                 Start and end times override minutes when both are set.
               </Text>
               <FieldMessages
@@ -315,11 +312,11 @@ export function SessionEditor({
           )}
         </form.Field>
         {error && (
-          <Text role="alert" xstyle={appStyles.error}>
+          <Text role="alert" tone="destructive">
             {error}
           </Text>
         )}
-        <HStack xstyle={appStyles.actions}>
+        <HStack layout="actions">
           <Button variant="outline" onClick={events.cancel}>
             Cancel
           </Button>
