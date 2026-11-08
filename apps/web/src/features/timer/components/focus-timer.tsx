@@ -205,7 +205,7 @@ export function FocusTimer({
                   key={value}
                   value={value}
                   variant={timer.phase === value ? "default" : "ghost"}
-                  size="xl"
+                  size="sm"
                   aria-pressed={timer.phase === value}
                   disabled={busy}
                   onClick={request}
