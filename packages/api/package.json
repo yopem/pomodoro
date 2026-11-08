@@ -1,0 +1,24 @@
+{
+  "name": "@pomodoro/api",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./client": "./src/client.ts"
+  },
+  "scripts": {
+    "generate": "bun scripts/generate.ts",
+    "lint": "bun lint --no-script",
+    "lint:fix": "bun lint --no-script --fix",
+    "format:check": "bun fmt --no-script --check",
+    "format:write": "bun fmt --no-script",
+    "typecheck": "bun check --no-script -p tsconfig.json && bun check --no-script -p tsconfig.tools.json"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5.9.3"
+  }
+}
