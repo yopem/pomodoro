@@ -3,6 +3,7 @@ import type { QueryClient } from "@tanstack/react-query"
 import type { RegisteredRouter } from "@tanstack/react-router"
 import type { ReactNode } from "react"
 
+import { CSPProvider } from "@base-ui/react/csp-provider"
 import * as stylex from "@stylexjs/stylex"
 import { QueryClientProvider } from "@tanstack/react-query"
 import {
@@ -139,18 +140,20 @@ export function RootDocument({ children }: { children: ReactNode }) {
         <DocumentTitle timer={timer} nowMs={nowMs} hydrated={hydrated} />
       </head>
       <body {...stylexProps(undefined, rootStyles.body)}>
-        <ThemeProvider
-          theme={settings.theme}
-          ready={hydrated}
-          mirrorPreference={error === null}
-          forcedTheme={
-            settings.dark_while_running && timer.deadline_ms !== null
-              ? "dark"
-              : undefined
-          }
-        >
-          {children}
-        </ThemeProvider>
+        <CSPProvider nonce={nonce}>
+          <ThemeProvider
+            theme={settings.theme}
+            ready={hydrated}
+            mirrorPreference={error === null}
+            forcedTheme={
+              settings.dark_while_running && timer.deadline_ms !== null
+                ? "dark"
+                : undefined
+            }
+          >
+            {children}
+          </ThemeProvider>
+        </CSPProvider>
         <Scripts />
       </body>
     </html>
