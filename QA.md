@@ -1488,3 +1488,125 @@ approved public-data feature merely because the reference has a tab.
 - **Cleanup:** Remove the isolated manual session and undo only approved
   page-local clock controls. Restore the original selected report date.
 - **Status:** pending; execution needs approved browser prerequisites.
+
+### [ ] QA-052 — P1 — Workspace request envelope boundary
+
+- **Purpose:** Cover typed save/import transport validation and safe error
+  correlation in `features/account/queries.ts`. The client guard must agree with
+  the API's 20,000,000-byte body limit, not replace server enforcement.
+- **Prerequisites:** Explicitly approved isolated API/client QA. Use a verified
+  account and the actual generated DTOs. Discover an approved way to call the
+  existing query mutations with schema-valid large inputs before execution; no
+  new harness or test library is authorized by this plan.
+- **Inputs:** Schema-valid save/import envelopes of exactly 20,000,000 and
+  20,000,001 UTF-8 bytes, including wrapper fields and import ID. Include
+  Japanese text and emoji. Also use a documented JSON error with a safe request
+  UUID, and a non-JSON upstream error. Exact fixture construction is blocked
+  until the approved client-call mechanism is recorded.
+- **Steps:** 1. Record the mechanism and exact fixture byte counts. 2. Invoke
+  save and import with each boundary input. 3. Inspect the network log for
+  rejected requests and stored revisions for all calls. 4. Inspect the safe
+  client error after JSON and non-JSON failures.
+- **Expected results:** Over-limit envelopes fail before fetch with a useful
+  size error and no write or revision change. The exact limit is not rejected by
+  the client size guard; the API still enforces all other validation. Count
+  UTF-8 bytes, not UTF-16 string length. Valid JSON error IDs remain available
+  for support. Non-JSON failures retain a safe generic error and do not leak
+  response text or trigger automatic retries.
+- **Evidence:** Save sanitized byte counts, request traces, revision responses,
+  and error fields in `qa-artifacts/QA-052/`.
+- **Cleanup:** Remove isolated records and restore their baseline. Retain no
+  large payloads or private workspaces in committed files.
+- **Status:** blocked on an approved client-call mechanism and runtime QA.
+
+### [ ] QA-053 — P0 — Session changes supersede pending account work
+
+- **Purpose:** Cover sync-controller epochs, query cancellation, account
+  markers, and owner invalidation during reads, writes, import, and logout.
+- **Prerequisites:** Approved isolated browser/API QA with two local accounts A
+  and B, two project-group tabs, and approved request delay controls. Never use
+  production identities. Record the approved delay mechanism first.
+- **Inputs:** Distinct task names `A private` and `B private`; a pending A write
+  or import, then a verified B login in the other tab. Repeat A to B to A.
+- **Steps:** 1. Delay each account operation in turn. 2. Change the shared
+  session through the other tab. 3. Observe marker-driven partition hiding and
+  owner changes. 4. Release responses out of order and trigger focus/online
+  refreshes. 5. Confirm the newest session query is not canceled by older
+  cleanup.
+- **Expected results:** No A response updates B's workspace, stamps, feedback,
+  or query data. Old commands reject after owner changes. In-flight old work
+  cannot report import/logout completion in a newer context. Query cleanup is
+  synchronous or scoped; a stale continuation never cancels a newer discovery.
+  Offline discovery does not pretend to establish an anonymous session.
+- **Evidence:** Save sanitized operation order, owner generations, request user
+  headers, screenshots, and query state in `qa-artifacts/QA-053/`.
+- **Cleanup:** Restore both isolated workspaces and sessions; remove delay
+  controls and close only case-created tabs.
+- **Status:** pending; runtime prerequisites are not approved yet.
+
+### [ ] QA-054 — P1 — Recover a lost save acknowledgment
+
+- **Purpose:** Preserve later local edits when a sent account save committed but
+  its response was lost. Cover serialized autosave and uncertain recovery.
+- **Prerequisites:** Approved isolated browser/API QA and an approved way to
+  drop a response after the server commits, without duplicating requests.
+- **Inputs:** Task `Save baseline`, then change its note from `sent` to `later`
+  while its first account save is in flight. Record the original revision.
+- **Steps:** 1. Send the `sent` baseline and delay its response. 2. Make the
+  `later` edit locally. 3. Drop the committed response. 4. Retry sync and
+  inspect the fetched server hash/revision before the next write. 5. Repeat with
+  a genuinely different remote edit and a server revision that did not advance.
+- **Expected results:** A matching accepted baseline is acknowledged without
+  replacing the later local workspace. The later edit saves with a fresh CAS
+  revision. Different remote work becomes an explicit conflict. A retry first
+  reads the server; it never blindly repeats a mutation. No parallel save loop
+  runs, and completion of an older worker cannot clear a newer worker handle.
+- **Evidence:** Save sanitized payload hashes, revisions, request order, and
+  final task notes in `qa-artifacts/QA-054/`.
+- **Cleanup:** Restore isolated notes and remove response-delay controls.
+- **Status:** pending; runtime prerequisites are not approved yet.
+
+### [ ] QA-055 — P1 — Retain import identity across uncertain results
+
+- **Purpose:** Cover explicit guest-import retries and server receipts that
+  return a newer current workspace rather than the original import result.
+- **Prerequisites:** Approved isolated browser/API QA with guest data and one
+  verified account; approved response-loss controls and a second account tab.
+- **Inputs:** Guest task `Guest import`, one 25-minute guest session, an
+  original prepared import ID, and a later remote task `After import`.
+- **Steps:** 1. Confirm import and drop its committed response. 2. Close and
+  reopen its dialog, then retry with the same ID and payload. 3. Add
+  `After import` remotely before a receipt replay. 4. Repeat with local edits
+  made while import is in flight. 5. Resolve any conflict explicitly and prepare
+  a fresh import only when the old plan is definitively stale or resolved.
+- **Expected results:** Retries retain the original ID, payload, and expected
+  revision. The receipt is proof of that import, not proof that its returned
+  workspace is the original result. New local edits are never overwritten. New
+  remote work survives a safe pull or remains available in conflict state. Guest
+  source data remains, history IDs do not duplicate, and obsolete plans can be
+  replaced without silently retrying an uncertain mutation with a new ID.
+- **Evidence:** Save sanitized IDs, revisions, task/session counts, and final
+  local/remote summaries in `qa-artifacts/QA-055/`.
+- **Cleanup:** Restore both workspaces and remove response-loss controls.
+- **Status:** pending; runtime prerequisites are not approved yet.
+
+### [ ] QA-056 — P1 — Account requests have a bounded browser lifetime
+
+- **Purpose:** Keep blocked account requests from holding sync or session
+  recovery forever. Cover the browser API client and existing cancellation.
+- **Prerequisites:** Approved isolated browser/API QA and approved request delay
+  controls. Keep the browser active when measuring the timeout.
+- **Inputs:** A session read, workspace read, save, import, and logout whose
+  response is delayed beyond 30 seconds; also a caller-canceled read.
+- **Steps:** 1. Delay each response in turn and record elapsed active time. 2.
+  Observe rejection at the browser deadline. 3. Cancel a read earlier and verify
+  that cancellation is not replaced by a new timeout. 4. Restore the network and
+  use explicit sync/session recovery.
+- **Expected results:** Fetch combines the caller's abort signal with a
+  30-second browser timeout. No action waits forever or retries automatically. A
+  timed-out mutation remains uncertain until server state or its retained
+  receipt is checked; the UI never claims that it rolled back or saved.
+- **Evidence:** Save sanitized elapsed times, abort/error fields, request order,
+  and recovery state in `qa-artifacts/QA-056/`.
+- **Cleanup:** Remove delay controls and restore isolated records and sessions.
+- **Status:** pending; browser and endpoint execution remain deferred.
