@@ -17,7 +17,9 @@ import { Card, CardPanel } from "@/components/ui/card"
 import { Container } from "@/components/ui/container"
 import {
   Dialog,
+  DialogFooter,
   DialogHeader,
+  DialogPanel,
   DialogPopup,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -132,18 +134,11 @@ export function ProjectsRoute() {
         </Stack>
       </Container>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogPopup>
-          <DialogHeader>
-            <DialogTitle>
-              {editing ? "Edit project" : "Add project"}
-            </DialogTitle>
-          </DialogHeader>
-          <ProjectForm
-            key={editing?.id ?? "new"}
-            project={editing}
-            onSaved={events.close}
-          />
-        </DialogPopup>
+        <ProjectForm
+          key={editing?.id ?? "new"}
+          project={editing}
+          onSaved={events.close}
+        />
       </Dialog>
     </Box>
   )
@@ -357,67 +352,72 @@ export function ProjectForm({
   })
 
   return (
-    <Form noValidate onSubmit={events.submit}>
-      <Stack>
-        <form.Field name="name">
-          {(field) => (
-            <Field invalid={field.state.meta.errors.length > 0}>
-              <FieldLabel htmlFor="project-name">Project name</FieldLabel>
-              <Input
-                id="project-name"
-                name={field.name}
-                value={field.state.value}
-                onChange={events.changeName}
-                onBlur={field.handleBlur}
-                aria-invalid={field.state.meta.errors.length > 0}
-                aria-describedby="project-name-error"
-                maxLength={500}
-              />
-              <FieldMessages
-                id="project-name-error"
-                errors={field.state.meta.errors}
-              />
-            </Field>
-          )}
-        </form.Field>
-        <form.Field name="color">
-          {(field) => (
-            <Field>
-              <FieldLabel htmlFor="project-color">Project color</FieldLabel>
-              <NativeSelect
-                id="project-color"
-                value={field.state.value}
-                onChange={events.changeColor}
-                onBlur={field.handleBlur}
-              >
-                <option value="green">Green</option>
-                <option value="blue">Blue</option>
-                <option value="orange">Orange</option>
-                <option value="red">Red</option>
-                <option value="yellow">Yellow</option>
-                <option value="gray">Gray</option>
-              </NativeSelect>
-            </Field>
-          )}
-        </form.Field>
-        {error && (
-          <Text role="alert" tone="destructive">
-            {error}
-          </Text>
-        )}
-        <HStack layout="actions">
-          <Button variant="outline" onClick={events.cancel}>
-            Cancel
-          </Button>
-          <form.Subscribe>
-            {(state) => (
-              <Button type="submit" loading={state.isSubmitting}>
-                Save project
-              </Button>
+    <DialogPopup render={<Form noValidate onSubmit={events.submit} />}>
+      <DialogHeader>
+        <DialogTitle>{project ? "Edit project" : "Add project"}</DialogTitle>
+      </DialogHeader>
+      <DialogPanel>
+        <Stack>
+          <form.Field name="name">
+            {(field) => (
+              <Field invalid={field.state.meta.errors.length > 0}>
+                <FieldLabel htmlFor="project-name">Project name</FieldLabel>
+                <Input
+                  id="project-name"
+                  name={field.name}
+                  value={field.state.value}
+                  onChange={events.changeName}
+                  onBlur={field.handleBlur}
+                  aria-invalid={field.state.meta.errors.length > 0}
+                  aria-describedby="project-name-error"
+                  maxLength={500}
+                />
+                <FieldMessages
+                  id="project-name-error"
+                  errors={field.state.meta.errors}
+                />
+              </Field>
             )}
-          </form.Subscribe>
-        </HStack>
-      </Stack>
-    </Form>
+          </form.Field>
+          <form.Field name="color">
+            {(field) => (
+              <Field>
+                <FieldLabel htmlFor="project-color">Project color</FieldLabel>
+                <NativeSelect
+                  id="project-color"
+                  value={field.state.value}
+                  onChange={events.changeColor}
+                  onBlur={field.handleBlur}
+                >
+                  <option value="green">Green</option>
+                  <option value="blue">Blue</option>
+                  <option value="orange">Orange</option>
+                  <option value="red">Red</option>
+                  <option value="yellow">Yellow</option>
+                  <option value="gray">Gray</option>
+                </NativeSelect>
+              </Field>
+            )}
+          </form.Field>
+          {error && (
+            <Text role="alert" tone="destructive">
+              {error}
+            </Text>
+          )}
+        </Stack>
+      </DialogPanel>
+      <DialogFooter>
+        <Button variant="outline" onClick={events.cancel}>
+          Cancel
+        </Button>
+        <form.Subscribe>
+          {(state) => (
+            <Button type="submit" loading={state.isSubmitting}>
+              Save project
+            </Button>
+          )}
+        </form.Subscribe>
+      </DialogFooter>
+    </DialogPopup>
   )
 }
