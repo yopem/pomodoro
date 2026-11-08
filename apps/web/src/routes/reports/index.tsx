@@ -7,16 +7,20 @@ import type { Session } from "@/features/focus/schema"
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
 import { Card, CardPanel } from "@/components/ui/card"
+import { Container } from "@/components/ui/container"
 import {
   Dialog,
   DialogHeader,
   DialogPopup,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty"
+import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
 import { Progress } from "@/components/ui/progress"
 import { Stack } from "@/components/ui/stack"
+import { Stat, StatLabel, StatValue } from "@/components/ui/stat"
 import { Text } from "@/components/ui/text"
 import {
   activityDays,
@@ -36,9 +40,6 @@ import { ReportHistory } from "@/features/reports/components/report-history"
 import { SessionEditor } from "@/features/reports/components/session-editor"
 import { formatFocusTime } from "@/lib/focus-time"
 import { localDateText } from "@/lib/local-date"
-import { appStyles } from "@/styles/app.stylex"
-
-const smallMutedStyles = [appStyles.small, appStyles.muted]
 
 const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -109,10 +110,12 @@ export function ReportsRoute() {
   if (!hydrated)
     return (
       <Box render={<main id="main" tabIndex={-1} />}>
-        <Stack xstyle={appStyles.page}>
-          <Heading render={<h1>Reports</h1>} />
-          <output>Loading your focus history…</output>
-        </Stack>
+        <Container variant="workspace">
+          <Stack spacing="page">
+            <Heading render={<h1>Reports</h1>} />
+            <output>Loading your focus history…</output>
+          </Stack>
+        </Container>
       </Box>
     )
 
@@ -152,95 +155,109 @@ export function ReportsRoute() {
 
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
-      <Stack xstyle={appStyles.page}>
-        <HStack xstyle={appStyles.pageHeader}>
-          <Stack xstyle={appStyles.compact}>
-            <Text xstyle={appStyles.eyebrow}>A record of your attention</Text>
-            <Heading render={<h1>Focus reports</h1>} />
-            <Text xstyle={appStyles.muted}>
-              Small sessions add up. Here is your actual time.
-            </Text>
-          </Stack>
-          <HStack xstyle={appStyles.row}>
-            <CsvExport sessions={projectSessions} range={range} />
-            <Button onClick={addFocus}>
-              <PlusIcon size={18} aria-hidden="true" /> Add focus time
-            </Button>
-          </HStack>
-        </HStack>
-        <ReportFilters
-          dateText={dateText}
-          rangeLabel={rangeLabel}
-          projectNames={projectNames}
-          weekStart={workspace.settings.week_start}
-        />
-        <Box render={<section aria-label="Focus summary" />}>
-          <HStack wrap>
-            <ReportMetric
-              label="Time focused"
-              value={formatFocusTime(summary.totalSeconds)}
-            />
-            <ReportMetric
-              label="Active days in this period"
-              value={String(activityDays(sessions))}
-            />
-            <ReportMetric
-              label="Current daily streak"
-              value={`${currentStreak({ sessions: workspace.sessions, now: new Date(nowMs) })} days`}
-            />
-          </HStack>
-        </Box>
-        <Box render={<section aria-label="Focus charts" />}>
-          <HStack wrap>
-            <Stack xstyle={appStyles.section}>
-              <Heading>Focus over time</Heading>
-              <FocusTimeline
-                sessions={sessions}
-                rangeStart={range.startMs}
-                rangeEnd={range.endMs}
-                period={search.period}
-              />
+      <Container variant="workspace">
+        <Stack spacing="page">
+          <HStack layout="pageHeader">
+            <Stack spacing="compact">
+              <Text variant="eyebrow">A record of your attention</Text>
+              <Heading render={<h1>Focus reports</h1>} />
+              <Text tone="muted">
+                Small sessions add up. Here is your actual time.
+              </Text>
             </Stack>
-            <Stack xstyle={appStyles.section}>
-              <Heading>Time by project</Heading>
-              {summary.projects.length === 0 ? (
-                <Text xstyle={appStyles.muted}>
-                  Your first focus session will appear here.
-                </Text>
-              ) : (
-                summary.projects.map((project) => (
-                  <Stack
-                    key={`${project.projectId}:${project.projectName}`}
-                    xstyle={appStyles.compact}
-                  >
-                    <HStack xstyle={appStyles.spread}>
-                      <Text>{project.projectName || "No project"}</Text>
-                      <Text xstyle={appStyles.mono}>
-                        {formatFocusTime(project.seconds)}
-                      </Text>
-                    </HStack>
-                    <Progress
-                      value={project.seconds}
-                      max={Math.max(1, summary.totalSeconds)}
-                      aria-label={`${project.projectName || "No project"}: ${formatFocusTime(project.seconds)}`}
+            <HStack layout="row">
+              <CsvExport sessions={projectSessions} range={range} />
+              <Button onClick={addFocus}>
+                <PlusIcon size={18} aria-hidden="true" /> Add focus time
+              </Button>
+            </HStack>
+          </HStack>
+          <ReportFilters
+            dateText={dateText}
+            rangeLabel={rangeLabel}
+            projectNames={projectNames}
+            weekStart={workspace.settings.week_start}
+          />
+          <Box render={<section aria-label="Focus summary" />}>
+            <HStack wrap>
+              <ReportMetric
+                label="Time focused"
+                value={formatFocusTime(summary.totalSeconds)}
+              />
+              <ReportMetric
+                label="Active days in this period"
+                value={String(activityDays(sessions))}
+              />
+              <ReportMetric
+                label="Current daily streak"
+                value={`${currentStreak({ sessions: workspace.sessions, now: new Date(nowMs) })} days`}
+              />
+            </HStack>
+          </Box>
+          <Box render={<section aria-label="Focus charts" />}>
+            <Grid variant="workspace">
+              <Card>
+                <CardPanel>
+                  <Stack>
+                    <Heading>Focus over time</Heading>
+                    <FocusTimeline
+                      sessions={sessions}
+                      rangeStart={range.startMs}
+                      rangeEnd={range.endMs}
+                      period={search.period}
                     />
                   </Stack>
-                ))
-              )}
-            </Stack>
-          </HStack>
-        </Box>
-        <ReportHistory
-          history={history}
-          total={sorted.length}
-          page={page}
-          pages={pages}
-          rangeLabel={rangeLabel}
-          hourFormat={workspace.settings.hour_format}
-          onEdit={setEditing}
-          onOpenChange={setEditorOpen}
-        />
-      </Stack>
+                </CardPanel>
+              </Card>
+              <Card>
+                <CardPanel>
+                  <Stack>
+                    <Heading>Time by project</Heading>
+                    {summary.projects.length === 0 ? (
+                      <Empty>
+                        <EmptyHeader>
+                          <EmptyDescription>
+                            Your first focus session will appear here.
+                          </EmptyDescription>
+                        </EmptyHeader>
+                      </Empty>
+                    ) : (
+                      summary.projects.map((project) => (
+                        <Stack
+                          key={`${project.projectId}:${project.projectName}`}
+                          spacing="compact"
+                        >
+                          <HStack layout="spread">
+                            <Text>{project.projectName || "No project"}</Text>
+                            <Text format="numeric">
+                              {formatFocusTime(project.seconds)}
+                            </Text>
+                          </HStack>
+                          <Progress
+                            value={project.seconds}
+                            max={Math.max(1, summary.totalSeconds)}
+                            aria-label={`${project.projectName || "No project"}: ${formatFocusTime(project.seconds)}`}
+                          />
+                        </Stack>
+                      ))
+                    )}
+                  </Stack>
+                </CardPanel>
+              </Card>
+            </Grid>
+          </Box>
+          <ReportHistory
+            history={history}
+            total={sorted.length}
+            page={page}
+            pages={pages}
+            rangeLabel={rangeLabel}
+            hourFormat={workspace.settings.hour_format}
+            onEdit={setEditing}
+            onOpenChange={setEditorOpen}
+          />
+        </Stack>
+      </Container>
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
         <DialogPopup>
           <DialogHeader>
@@ -271,8 +288,10 @@ export function ReportMetric({
   return (
     <Card>
       <CardPanel>
-        <Text xstyle={smallMutedStyles}>{label}</Text>
-        <Heading render={<p>{value}</p>} />
+        <Stat>
+          <StatLabel>{label}</StatLabel>
+          <StatValue>{value}</StatValue>
+        </Stat>
       </CardPanel>
     </Card>
   )
