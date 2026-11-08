@@ -15,70 +15,92 @@ export function FocusBrowserControls() {
   const [popupBlocked, setPopupBlocked] = useState(false)
   const [pending, setPending] = useState(false)
 
-  const [events] = useState(function createEvents() {
-    let fullscreenPending = false
+  const [{ toggleFullscreen, listenForFullscreenEscape, openFocusWindow }] =
+    useState(function createEvents() {
+      let fullscreenPending = false
 
-    async function toggleFullscreen() {
-      if (fullscreenPending) return
+      async function toggleFullscreen() {
+        if (fullscreenPending) return
 
-      setError(null)
+        setError(null)
 
-      if (
-        !document.fullscreenEnabled ||
-        !document.documentElement.requestFullscreen ||
-        !document.exitFullscreen
-      ) {
-        setError("Full screen is not supported or is unavailable.")
+        if (
+          !document.fullscreenEnabled ||
+          !document.documentElement.requestFullscreen ||
+          !document.exitFullscreen
+        ) {
+          setError("Full screen is not supported or is unavailable.")
 
-        return
+          return
+        }
+
+        fullscreenPending = true
+        setPending(true)
+
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen()
+          else await document.documentElement.requestFullscreen()
+        } catch {
+          setError(
+            "Full screen could not be changed. Check browser permissions.",
+          )
+        } finally {
+          fullscreenPending = false
+          setPending(false)
+        }
       }
 
-      fullscreenPending = true
-      setPending(true)
-
-      try {
-        if (document.fullscreenElement) await document.exitFullscreen()
-        else await document.documentElement.requestFullscreen()
-      } catch {
-        setError("Full screen could not be changed. Check browser permissions.")
-      } finally {
-        fullscreenPending = false
-        setPending(false)
+      function dismissFullscreen(event: KeyboardEvent) {
+        if (
+          event.key === "Escape" &&
+          !event.defaultPrevented &&
+          document.fullscreenElement
+        ) {
+          event.preventDefault()
+          void toggleFullscreen()
+        }
       }
-    }
 
-    function openFocusWindow() {
-      setPopupBlocked(false)
-      setError(null)
+      function listenForFullscreenEscape(element: HTMLDivElement | null) {
+        if (!element) return
 
-      try {
-        const href = router.buildLocation({ to: "/focus" }).href
+        document.addEventListener("keydown", dismissFullscreen)
 
-        const opened = window.open(
-          href,
-          "pomodoro-focus",
-          "popup,width=640,height=780",
-        )
-
-        if (!opened) setPopupBlocked(true)
-      } catch {
-        setPopupBlocked(true)
+        return () => document.removeEventListener("keydown", dismissFullscreen)
       }
-    }
 
-    return { toggleFullscreen, openFocusWindow }
-  })
+      function openFocusWindow() {
+        setPopupBlocked(false)
+        setError(null)
+
+        try {
+          const href = router.buildLocation({ to: "/focus" }).href
+
+          const opened = window.open(
+            href,
+            "pomodoro-focus",
+            "popup,width=640,height=780",
+          )
+
+          if (!opened) setPopupBlocked(true)
+        } catch {
+          setPopupBlocked(true)
+        }
+      }
+
+      return { toggleFullscreen, listenForFullscreenEscape, openFocusWindow }
+    })
 
   return (
-    <HStack wrap>
+    <HStack wrap ref={listenForFullscreenEscape}>
       <Button
         variant="outline"
         aria-disabled={pending}
-        onClick={events.toggleFullscreen}
+        onClick={toggleFullscreen}
       >
         {fullscreen ? "Exit full screen" : "Full screen"}
       </Button>
-      <Button variant="outline" onClick={events.openFocusWindow}>
+      <Button variant="outline" onClick={openFocusWindow}>
         Focus window
       </Button>
       {error && (
