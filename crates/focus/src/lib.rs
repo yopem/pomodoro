@@ -516,7 +516,7 @@ impl Workspace {
         ] {
             range(value, min, max, field)?;
         }
-        let timer = &self.timer;
+        let timer = &mut self.timer;
         let phase_minutes = match timer.phase {
             TimerPhase::Focus => settings.focus_minutes,
             TimerPhase::ShortBreak => settings.short_minutes,
@@ -526,6 +526,9 @@ impl Workspace {
             || !(0.0..=f64::from(phase_minutes) * 60.0).contains(&timer.remaining_seconds)
         {
             return Err(ValidationError::InvalidField("timer.remaining_seconds"));
+        }
+        if timer.remaining_seconds == 0.0 {
+            timer.remaining_seconds = 0.0;
         }
         if let Some(value) = timer.deadline_ms {
             timestamp(value, "timer.deadline_ms")?;
