@@ -14,7 +14,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Text } from "@/components/ui/text"
-import { appStyles } from "@/styles/app.stylex"
 
 export function ConfirmAction<T, Owner>({
   title,
@@ -110,7 +109,7 @@ export function ConfirmationContent<T, Owner>({
         <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
       {error && (
-        <Text role="alert" xstyle={appStyles.error}>
+        <Text role="alert" tone="destructive">
           {error}
         </Text>
       )}
