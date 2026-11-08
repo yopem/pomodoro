@@ -2,6 +2,15 @@ import type { AccountUser } from "@/features/account/queries"
 import type { Workspace } from "@/features/focus/schema"
 import type { WorkspaceOwner } from "@/features/focus/store"
 
+export class ImportPlanChangedError extends Error {
+  constructor(
+    message = "The import preparation changed. Close it and prepare the import again",
+  ) {
+    super(message)
+    this.name = "ImportPlanChangedError"
+  }
+}
+
 export interface AccountSnapshot {
   user: AccountUser | null
   status:

@@ -26,6 +26,7 @@ import {
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
+import { ImportPlanChangedError } from "@/features/account/sync-contract"
 import {
   useFocusSnapshot,
   useWorkspaceMutationOwner,
@@ -177,7 +178,11 @@ export function AccountActions({
             <Button
               variant="outline"
               loading={pending}
-              disabled={state.status === "conflict"}
+              disabled={
+                state.status === "conflict" ||
+                state.status === "loading" ||
+                state.status === "syncing"
+              }
               onClick={commands.sync}
             >
               {state.status === "error" || state.status === "offline"
@@ -400,7 +405,16 @@ export function ImportContent({
           : current,
       )
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Import failed")
+      const message = cause instanceof Error ? cause.message : "Import failed"
+      setError(message)
+
+      if (cause instanceof ImportPlanChangedError) {
+        setDialog((current) =>
+          current?.id === dialog.id && current.plan === plan
+            ? { ...current, plan: null, error: message }
+            : current,
+        )
+      }
     } finally {
       inFlight.current = false
       setPending(false)
