@@ -6,6 +6,7 @@ import { Card, CardPanel } from "@/components/ui/card"
 import { Container } from "@/components/ui/container"
 import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
+import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import {
   Stat,
@@ -107,43 +108,53 @@ export function TimerRoute() {
     <Box render={<main id="main" tabIndex={-1} />}>
       <Container variant="workspace">
         <Stack spacing="page">
-          <Stack spacing="compact">
-            <Text variant="eyebrow">Your workspace</Text>
-            <Heading render={<h1>Focus timer</h1>} />
-            <Text tone="muted">Make space for the work that matters.</Text>
-          </Stack>
-          <FocusBrowserControls />
-          <Grid variant="workspace">
-            <FocusTimer workspace={workspace} nowMs={nowMs} />
-            <Card render={<section aria-labelledby="summary-heading" />}>
-              <CardPanel render={<Stack />}>
-                <Heading id="summary-heading">Today at a glance</Heading>
-                <Stat>
-                  <StatLabel>Focus recorded</StatLabel>
-                  <StatValue>{formatFocusTime(today)}</StatValue>
-                </Stat>
-                <Stat>
-                  <StatLabel>Remaining estimate</StatLabel>
-                  <StatValue>{remaining} focus sessions</StatValue>
-                </Stat>
-                <Stat>
-                  <StatLabel>Estimated finish</StatLabel>
-                  <StatValue>
-                    {finish === null
-                      ? "No remaining estimates"
-                      : (workspace.settings.hour_format === "12h"
-                          ? finishTime12
-                          : finishTime24
-                        ).format(finish)}
-                  </StatValue>
-                  <StatDescription>
-                    Assumes you continue without extra pauses.
-                  </StatDescription>
-                </Stat>
-              </CardPanel>
-            </Card>
+          <HStack layout="pageHeader">
+            <Stack spacing="compact">
+              <Heading render={<h1>Focus timer</h1>} />
+              <Text tone="muted">
+                Work in {workspace.settings.focus_minutes}-minute intervals.
+              </Text>
+            </Stack>
+            <FocusBrowserControls />
+          </HStack>
+          <Grid variant="focus">
+            <Stack spacing="page">
+              <FocusTimer workspace={workspace} nowMs={nowMs} />
+              <Card render={<section aria-label="Today's focus summary" />}>
+                <CardPanel>
+                  <Grid variant="metrics">
+                    <Stat>
+                      <StatLabel>Focus today</StatLabel>
+                      <StatValue size="compact">
+                        {formatFocusTime(today)}
+                      </StatValue>
+                    </Stat>
+                    <Stat>
+                      <StatLabel>Sessions left</StatLabel>
+                      <StatValue size="compact">{remaining}</StatValue>
+                    </Stat>
+                    <Stat>
+                      <StatLabel>Estimated finish</StatLabel>
+                      <StatValue size="compact">
+                        {finish === null
+                          ? "—"
+                          : (workspace.settings.hour_format === "12h"
+                              ? finishTime12
+                              : finishTime24
+                            ).format(finish)}
+                      </StatValue>
+                      <StatDescription>
+                        {finish === null
+                          ? "No remaining estimates"
+                          : "Includes planned breaks"}
+                      </StatDescription>
+                    </Stat>
+                  </Grid>
+                </CardPanel>
+              </Card>
+            </Stack>
+            <TaskList workspace={workspace} />
           </Grid>
-          <TaskList workspace={workspace} />
         </Stack>
       </Container>
     </Box>

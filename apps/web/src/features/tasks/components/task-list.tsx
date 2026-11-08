@@ -363,10 +363,15 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
             <Text tone="muted">Choose what to focus on next.</Text>
           </Box>
           <HStack layout="row">
-            <Button variant="outline" size="xl" onClick={events.toggleHidden}>
+            <Button variant="ghost" size="xl" onClick={events.toggleHidden}>
               {hidden ? "Show tasks" : "Hide tasks"}
             </Button>
-            <Button size="xl" disabled={busy} onClick={events.addTask}>
+            <Button
+              variant="outline"
+              size="xl"
+              disabled={busy}
+              onClick={events.addTask}
+            >
               <PlusIcon size={16} aria-hidden="true" /> Add task
             </Button>
           </HStack>
@@ -379,56 +384,62 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
         {!hidden && (
           <>
             {tasks.length === 0 ? (
-              <Empty>
-                <EmptyHeader>
-                  <EmptyDescription>
-                    No tasks yet. Add one or use a template.
-                  </EmptyDescription>
-                </EmptyHeader>
-                <Link to="/templates">Browse templates</Link>
-              </Empty>
+              <Card>
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyDescription>
+                      No tasks yet. Add one or use a template.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  <Button variant="outline" render={<Link to="/templates" />}>
+                    Browse templates
+                  </Button>
+                </Empty>
+              </Card>
             ) : (
-              <List variant="plain">
-                {tasks.map((task, index) => (
-                  <TaskRow
-                    key={task.id}
-                    task={task}
-                    index={index}
-                    workspace={workspace}
-                    busy={busy}
-                    onEdit={setEditing}
-                    onConfirm={setConfirmation}
-                  />
-                ))}
-              </List>
+              <>
+                <List variant="plain">
+                  {tasks.map((task, index) => (
+                    <TaskRow
+                      key={task.id}
+                      task={task}
+                      index={index}
+                      workspace={workspace}
+                      busy={busy}
+                      onEdit={setEditing}
+                      onConfirm={setConfirmation}
+                    />
+                  ))}
+                </List>
+                <HStack layout="row">
+                  <Link to="/templates">Apply a template</Link>
+                  <Button
+                    variant="ghost"
+                    size="xl"
+                    disabled={busy || !tasks.some((task) => task.completed)}
+                    onClick={events.clearCompleted}
+                  >
+                    Clear completed
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xl"
+                    disabled={busy || !tasks.some((task) => task.actual > 0)}
+                    onClick={events.clearActual}
+                  >
+                    Clear actual counts
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xl"
+                    disabled={busy || !tasks.length}
+                    onClick={events.clearAll}
+                  >
+                    Clear all tasks
+                  </Button>
+                </HStack>
+              </>
             )}
-            <HStack layout="row">
-              <Link to="/templates">Apply a template</Link>
-              <Button
-                variant="ghost"
-                size="xl"
-                disabled={busy || !tasks.some((task) => task.completed)}
-                onClick={events.clearCompleted}
-              >
-                Clear completed
-              </Button>
-              <Button
-                variant="ghost"
-                size="xl"
-                disabled={busy || !tasks.some((task) => task.actual > 0)}
-                onClick={events.clearActual}
-              >
-                Clear actual counts
-              </Button>
-              <Button
-                variant="ghost"
-                size="xl"
-                disabled={busy || !tasks.length}
-                onClick={events.clearAll}
-              >
-                Clear all tasks
-              </Button>
-            </HStack>
           </>
         )}
       </Stack>

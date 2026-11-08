@@ -27,7 +27,7 @@ import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
   timer: {
-    marginBlock: { default: 48, "@media (max-width: 640px)": 32 },
+    marginBlock: { default: 24, "@media (max-width: 640px)": 16 },
   },
   phases: {
     border: 0,
@@ -36,9 +36,9 @@ const styles = stylex.create({
     minInlineSize: 0,
   },
   countdown: {
-    fontFamily: tokens["--font-mono"],
+    fontFamily: tokens["--font-sans"],
     fontVariantNumeric: "tabular-nums",
-    fontSize: "clamp(4rem, 12vw, 8rem)",
+    fontSize: "clamp(4rem, 10vw, 7rem)",
     fontWeight: 600,
     letterSpacing: "-0.06em",
     lineHeight: 1,
@@ -223,7 +223,7 @@ export function FocusTimer({
           >
             {clock}
           </output>
-          <Text tone="success">
+          <Text tone="muted">
             {selected ? `Focusing on ${selected.title}` : "No task selected"}
           </Text>
           <HStack layout="centered">
