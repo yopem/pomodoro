@@ -28,9 +28,6 @@ import { Text } from "@/components/ui/text"
 import { exportSessionsCsv } from "@/features/focus/reports"
 import { downloadText } from "@/lib/download"
 import { localDateText } from "@/lib/local-date"
-import { appStyles } from "@/styles/app.stylex"
-
-const exportHintStyles = [appStyles.small, appStyles.muted]
 
 const exportSchema = z
   .object({
@@ -249,16 +246,16 @@ export function CsvExportForm({
             </Field>
           )}
         </form.Field>
-        <Text xstyle={exportHintStyles}>
+        <Text size="small" tone="muted">
           Exports use your local dates and the current project filter.
           Spreadsheet formulas in names are escaped.
         </Text>
         {error && (
-          <Text role="alert" xstyle={appStyles.error}>
+          <Text role="alert" tone="destructive">
             {error}
           </Text>
         )}
-        <HStack xstyle={appStyles.actions}>
+        <HStack layout="actions">
           <Button variant="outline" onClick={events.cancel}>
             Cancel
           </Button>
