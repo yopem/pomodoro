@@ -112,27 +112,34 @@ actual result, and evidence path when a case runs.
 
 ## Coverage map and remaining cases
 
-| Requirement or workflow                                       | Coverage                                                 |
-| ------------------------------------------------------------- | -------------------------------------------------------- |
-| Native tooling and required plugin support                    | QA-001, QA-002                                           |
-| Yopem UI, StyleX, and framework setup                         | QA-003                                                   |
-| Timer, breaks, persistence, background/reload recovery        | Pending implementation plan                              |
-| Tasks, estimates, notes, completion, order, finish estimate   | Pending implementation plan                              |
-| Projects and unlimited task templates                         | Pending implementation plan                              |
-| Daily/weekly/monthly/yearly reports and project totals        | Pending implementation plan                              |
-| History editing and CSV downloads                             | Pending reference inspection and implementation plan     |
-| Guest use, local data failure, multiple tabs, backup          | Pending persistence decision                             |
-| Optional account login and synchronization                    | Blocked: issuer client and subject contract not supplied |
-| Settings, audio, notifications and focused window             | Pending supported browser behavior plan                  |
-| Responsive UI, keyboard, focus, screen reader, reduced motion | Pending application UI plan                              |
-| PWA manifest, offline fallback, update and cache exclusions   | Pending application setup                                |
-| SSR metadata, canonical host, sitemap, analytics privacy      | Pending application configuration                        |
-| App builds, lint, format, typecheck and regressions           | Deferred: application QA not approved                    |
+| Requirement or workflow                              | Pending or historical coverage                    |
+| ---------------------------------------------------- | ------------------------------------------------- |
+| Native tooling and required plugin support           | QA-001; historical compatibility result QA-002    |
+| UI, StyleX, framework setup and component contracts  | QA-003, QA-021, QA-024, QA-036                    |
+| Timer completion, persistence and fractional timing  | QA-006–008, QA-027, QA-038–043                    |
+| Tasks, ordering, notes and finish estimates          | QA-009, QA-046, QA-050                            |
+| Projects and reusable templates without a paid quota | QA-010, QA-011, QA-049                            |
+| Reports, streaks, dates and database history         | QA-012, QA-026, QA-044, QA-051                    |
+| Manual history and formula-safe CSV downloads        | QA-013, QA-014                                    |
+| Guest storage, backups and partition isolation       | QA-004, QA-005, QA-028–031, QA-057                |
+| OAuth, authorization and account changes             | QA-015, QA-016, QA-034, QA-035, QA-045, QA-053    |
+| Atomic sync, lost responses and recovery fences      | QA-017, QA-052, QA-054, QA-056, QA-058, QA-059    |
+| Explicit idempotent guest import                     | QA-018, QA-055                                    |
+| Sounds, notifications and compact focus controls     | QA-019, QA-048                                    |
+| PWA fallback, update and private cache exclusions    | QA-020, QA-025                                    |
+| Request-local SSR nonce and security headers         | QA-037                                            |
+| Generated HTTP contracts and boundary values         | QA-022, QA-023, QA-032, QA-033, QA-047            |
+| Isolated local database and manual migrations        | QA-060                                            |
+| Public metadata, canonical host and sitemap privacy  | QA-061                                            |
+| Build and runtime integration                        | Pending approved build and applicable cases above |
 
-Payments are not requested: premium capabilities belong to the requested app,
-not a new paid tier. Todoist, webhooks, mobile, desktop, and extension apps are
-out of scope. Backend authorization and API cases depend on the account/sync
-scope; do not invent an HTTP contract or issuer details.
+Payments are not requested. The requested capabilities have no paid tier.
+External task integrations, webhooks, native apps, and public rankings are not
+included in this release. Do not infer consent to publish account data from a
+reference tab. Analytics is not requested or loaded; public placeholders do not
+enable third-party scripts. Live issuer compatibility and callback permission
+remain external prerequisites. Use the canonical Rust/OpenAPI contract for
+application requests, not guessed payloads.
 
 ## Planned application cases
 
@@ -1431,18 +1438,24 @@ account's settings or records. Record blocked observations as unknown.
 
 ### Work order and completion gate
 
-1. Finish and commit the backend and real generated contract in coherent slices.
-2. Implement and commit the account controller and integrate the existing UI.
-3. Integrate focus controls/title and complete the remaining reference research.
-4. Close source-level gaps identified by the tracker. Run permitted static
-   checks and commit every completed slice before starting another feature.
-5. Leave runtime cases pending until separately approved. Never report a source
-   file, a subagent handoff, or compilation alone as a finished user workflow.
+1. Backend services, reviewed migrations, and real generated contracts are
+   committed. Database execution and live issuer compatibility remain
+   unverified.
+2. The guarded account controller and its shell controls are integrated and
+   committed, including explicit import, conflict choices, and logout.
+3. Compact focus controls, live titles, idle clock, colors, projects, templates,
+   reports, history editing, and downloads are integrated in source. Reference
+   internals that were locked or unobserved remain unknown, not guessed.
+4. Local setup files and README commands are committed. Finish the small route
+   metadata increment, run the permitted full static gate, and commit it.
+5. Leave runtime cases pending until separately approved. Source presence and
+   static checks do not prove browser, storage, issuer, or deployment behavior.
 
-Todoist, webhooks, ads, premium billing, native mobile apps, and a mobile push
-alarm service are outside the agreed initial release. Projects, yearly reports,
-and downloads are included without a paywall. Ranking is not assumed to be an
-approved public-data feature merely because the reference has a tab.
+External task integrations, webhooks, ads, paid tiers, native apps, and a mobile
+push alarm service remain outside the initial release. Projects, yearly reports,
+and downloads are included without a paywall. Template count and byte limits
+protect resources; they are not a paid quota. In-memory uncertain request facts
+do not survive a full page reload, which can require a new conflict review.
 
 ### [ ] QA-050 — P2 — Idle and paused finish estimates stay current
 
@@ -1706,3 +1719,28 @@ approved public-data feature merely because the reference has a tab.
 - **Cleanup:** Stop only case-started processes and containers. Preserve the
   named volume unless separate destructive-cleanup approval is given.
 - **Status:** pending; service startup and migrations remain unapproved.
+
+### [ ] QA-061 — P1 — Keep public metadata separate from personal routes
+
+- **Purpose:** Provide canonical public metadata without indexing personal
+  workspace screens, staging URLs, query strings, or private content.
+- **Prerequisites:** Approved production-like build and browser/HTTP QA with a
+  clean HTTPS `PUBLIC_ORIGIN`, plus a separate non-production environment. Keep
+  account data isolated and use only nonpersonal example task titles.
+- **Inputs:** `/`, `/focus`, `/projects`, `/templates`, `/reports`, `/settings`,
+  `/robots.txt`, and `/sitemap.xml`; a valid report query and an unknown path.
+- **Steps:** 1. Inspect server-rendered route heads before hydration. 2. Fetch
+  robots and sitemap through the public web origin. 3. Repeat in non-production
+  and after opening a report query. 4. Run QA-048 title checks while a timer is
+  active, then navigate to personal routes.
+- **Expected results:** Production sitemap contains only the homepage with a
+  safe canonical origin. Personal routes are noindex and never enter sitemap.
+  Descriptions and social metadata contain no user data or query strings.
+  Non-production disallows indexing. MIME types, statuses, request IDs, and
+  existing security headers remain correct. Live timer titles and normal route
+  titles keep working, without duplicate canonical or title elements.
+- **Evidence:** Save sanitized SSR heads, XML, robots text, headers, and title
+  observations in `qa-artifacts/QA-061/`.
+- **Cleanup:** Restore environment settings and stop only case-started
+  processes.
+- **Status:** pending; build, browser, and HTTP execution remain deferred.
