@@ -1,4 +1,3 @@
-import * as stylex from "@stylexjs/stylex"
 import { Link } from "@tanstack/react-router"
 import {
   ArrowDownIcon,
@@ -13,8 +12,11 @@ import type { Task, Workspace } from "@/features/focus/schema"
 
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
+import { Card, CardPanel } from "@/components/ui/card"
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
+import { List } from "@/components/ui/list"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import {
@@ -27,34 +29,6 @@ import {
 } from "@/features/focus/store"
 import { TaskForm } from "@/features/tasks/components/task-form"
 import { ConfirmAction } from "@/features/timer/components/confirm-action"
-import { appStyles } from "@/styles/app.stylex"
-import { tokens } from "@/styles/tokens.stylex"
-
-const styles = stylex.create({
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 12,
-    listStyle: "none",
-    margin: 0,
-    padding: 0,
-  },
-  task: {
-    borderColor: tokens["--border"],
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderRadius: tokens["--radius-md"],
-    padding: 16,
-    minInlineSize: 0,
-  },
-  selected: { borderColor: tokens["--success-foreground"] },
-  title: { overflowWrap: "anywhere", fontWeight: 600 },
-  completed: {
-    textDecorationLine: "line-through",
-    color: tokens["--muted-foreground"],
-  },
-  note: { whiteSpace: "pre-wrap", overflowWrap: "anywhere" },
-})
 
 type Confirmation =
   { kind: "delete"; task: Task } | { kind: "completed" | "actual" | "all" }
@@ -159,105 +133,89 @@ export function TaskRow({
   const disabled = busy || pending
 
   return (
-    <Box
-      render={
-        <li
-          {...stylex.props(
-            styles.task,
-            task.id === selectedTaskId && styles.selected,
-          )}
-        />
-      }
-    >
-      <Stack xstyle={appStyles.compact}>
-        <HStack xstyle={appStyles.spread}>
-          <Box>
-            <Box
-              render={
-                <span
-                  {...stylex.props(
-                    styles.title,
-                    task.completed && styles.completed,
-                  )}
-                />
-              }
-            >
-              {task.title}
+    <Card render={<li />} selected={task.id === selectedTaskId}>
+      <CardPanel density="compact">
+        <Stack spacing="compact">
+          <HStack layout="spread">
+            <Box>
+              <Text
+                variant="label"
+                tone={task.completed ? "muted" : "default"}
+                decoration={task.completed ? "strike" : "none"}
+              >
+                {task.title}
+              </Text>
+              {task.id === selectedTaskId && <Text>Selected</Text>}
             </Box>
-            {task.id === selectedTaskId && (
-              <Box render={<span />}> · Selected</Box>
-            )}
-          </Box>
-          <Text xstyle={appStyles.small}>
-            {task.actual} / {task.estimate} sessions
-          </Text>
-        </HStack>
-        {task.note && (
-          <Box render={<p {...stylex.props(styles.note)} />}>{task.note}</Box>
-        )}
-        <HStack xstyle={appStyles.row}>
-          <Button
-            variant={task.completed ? "secondary" : "outline"}
-            size="xl"
-            disabled={disabled}
-            onClick={events.toggleCompleted}
-          >
-            {task.completed ? "Mark incomplete" : "Complete"}
-          </Button>
-          {(!task.completed || task.id === selectedTaskId) && (
+            <Text size="small">
+              {task.actual} / {task.estimate} sessions
+            </Text>
+          </HStack>
+          {task.note && <Text variant="note">{task.note}</Text>}
+          <HStack layout="row">
             <Button
-              variant={task.id === selectedTaskId ? "secondary" : "ghost"}
+              variant={task.completed ? "secondary" : "outline"}
               size="xl"
               disabled={disabled}
-              onClick={events.toggleSelected}
+              onClick={events.toggleCompleted}
             >
-              {task.id === selectedTaskId ? "Deselect" : "Select"}
+              {task.completed ? "Mark incomplete" : "Complete"}
             </Button>
+            {(!task.completed || task.id === selectedTaskId) && (
+              <Button
+                variant={task.id === selectedTaskId ? "secondary" : "ghost"}
+                size="xl"
+                disabled={disabled}
+                onClick={events.toggleSelected}
+              >
+                {task.id === selectedTaskId ? "Deselect" : "Select"}
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon-xl"
+              disabled={disabled}
+              aria-label={`Edit ${task.title}`}
+              onClick={events.edit}
+            >
+              <PencilIcon size={16} aria-hidden="true" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-xl"
+              disabled={disabled || index === 0}
+              aria-label={`Move ${task.title} up`}
+              onClick={events.moveUp}
+            >
+              <ArrowUpIcon size={16} aria-hidden="true" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-xl"
+              disabled={disabled || index === taskCount - 1}
+              aria-label={`Move ${task.title} down`}
+              onClick={events.moveDown}
+            >
+              <ArrowDownIcon size={16} aria-hidden="true" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-xl"
+              disabled={disabled}
+              aria-label={`Delete ${task.title}`}
+              onClick={events.remove}
+            >
+              <TrashIcon size={16} aria-hidden="true" />
+            </Button>
+          </HStack>
+          {error && (
+            <Text role="alert" tone="destructive">
+              {error}
+            </Text>
           )}
-          <Button
-            variant="ghost"
-            size="icon-xl"
-            disabled={disabled}
-            aria-label={`Edit ${task.title}`}
-            onClick={events.edit}
-          >
-            <PencilIcon size={16} aria-hidden="true" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-xl"
-            disabled={disabled || index === 0}
-            aria-label={`Move ${task.title} up`}
-            onClick={events.moveUp}
-          >
-            <ArrowUpIcon size={16} aria-hidden="true" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-xl"
-            disabled={disabled || index === taskCount - 1}
-            aria-label={`Move ${task.title} down`}
-            onClick={events.moveDown}
-          >
-            <ArrowDownIcon size={16} aria-hidden="true" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-xl"
-            disabled={disabled}
-            aria-label={`Delete ${task.title}`}
-            onClick={events.remove}
-          >
-            <TrashIcon size={16} aria-hidden="true" />
-          </Button>
-        </HStack>
-        {error && (
-          <Text role="alert" xstyle={appStyles.error}>
-            {error}
-          </Text>
-        )}
-      </Stack>
-    </Box>
+        </Stack>
+      </CardPanel>
+    </Card>
   )
 }
 
@@ -399,12 +357,12 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
   return (
     <Box render={<section aria-labelledby="tasks-heading" />}>
       <Stack>
-        <HStack xstyle={appStyles.spread}>
+        <HStack layout="spread">
           <Box>
             <Heading id="tasks-heading">Tasks</Heading>
-            <Text xstyle={appStyles.muted}>Choose what to focus on next.</Text>
+            <Text tone="muted">Choose what to focus on next.</Text>
           </Box>
-          <HStack xstyle={appStyles.row}>
+          <HStack layout="row">
             <Button variant="outline" size="xl" onClick={events.toggleHidden}>
               {hidden ? "Show tasks" : "Hide tasks"}
             </Button>
@@ -414,19 +372,23 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
           </HStack>
         </HStack>
         {error && (
-          <Text role="alert" xstyle={appStyles.error}>
+          <Text role="alert" tone="destructive">
             {error}
           </Text>
         )}
         {!hidden && (
           <>
             {tasks.length === 0 ? (
-              <Stack xstyle={appStyles.empty}>
-                <Text>No tasks yet. Add one or use a template.</Text>
+              <Empty>
+                <EmptyHeader>
+                  <EmptyDescription>
+                    No tasks yet. Add one or use a template.
+                  </EmptyDescription>
+                </EmptyHeader>
                 <Link to="/templates">Browse templates</Link>
-              </Stack>
+              </Empty>
             ) : (
-              <Box render={<ul {...stylex.props(styles.list)} />}>
+              <List variant="plain">
                 {tasks.map((task, index) => (
                   <TaskRow
                     key={task.id}
@@ -438,9 +400,9 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
                     onConfirm={setConfirmation}
                   />
                 ))}
-              </Box>
+              </List>
             )}
-            <HStack xstyle={appStyles.row}>
+            <HStack layout="row">
               <Link to="/templates">Apply a template</Link>
               <Button
                 variant="ghost"
