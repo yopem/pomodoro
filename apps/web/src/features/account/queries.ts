@@ -41,6 +41,7 @@ const errorSchema = z.strictObject({
 })
 
 interface SaveWorkspaceInput {
+  beforeSend: () => void
   userId: string
   workspace: Workspace
   expected_revision: number
@@ -190,21 +191,26 @@ export function saveWorkspaceMutationOptions() {
     mutationKey: ["account", "save"],
     networkMode: "always",
     gcTime: 0,
-    mutationFn: (input: SaveWorkspaceInput) =>
-      accountRequest(async () => {
-        const owner = uuidSchema.parse(input.userId)
+    mutationFn: (input: SaveWorkspaceInput) => {
+      const owner = uuidSchema.parse(input.userId)
 
+      const body = workspaceRequestBody({
+        workspace: workspaceSchema.parse(input.workspace),
+        expected_revision: revisionSchema.parse(input.expected_revision),
+      })
+
+      input.beforeSend()
+
+      return accountRequest(async () => {
         const result = await createBrowserApiClient().PUT("/api/workspace", {
           params: { header: { "X-Pomodoro-User": owner } },
-          body: workspaceRequestBody({
-            workspace: workspaceSchema.parse(input.workspace),
-            expected_revision: revisionSchema.parse(input.expected_revision),
-          }),
+          body,
           parseAs: "text",
         })
 
         return workspaceResponse(result, owner)
-      }),
+      })
+    },
     retry: false,
   })
 }
@@ -214,25 +220,30 @@ export function importGuestMutationOptions() {
     mutationKey: ["account", "import"],
     networkMode: "always",
     gcTime: 0,
-    mutationFn: (input: ImportGuestInput) =>
-      accountRequest(async () => {
-        const owner = uuidSchema.parse(input.userId)
+    mutationFn: (input: ImportGuestInput) => {
+      const owner = uuidSchema.parse(input.userId)
 
+      const body = workspaceRequestBody({
+        workspace: workspaceSchema.parse(input.workspace),
+        expected_revision: revisionSchema.parse(input.expected_revision),
+        import_id: uuidSchema.parse(input.import_id),
+      })
+
+      input.beforeSend()
+
+      return accountRequest(async () => {
         const result = await createBrowserApiClient().POST(
           "/api/workspace/import",
           {
             params: { header: { "X-Pomodoro-User": owner } },
-            body: workspaceRequestBody({
-              workspace: workspaceSchema.parse(input.workspace),
-              expected_revision: revisionSchema.parse(input.expected_revision),
-              import_id: uuidSchema.parse(input.import_id),
-            }),
+            body,
             parseAs: "text",
           },
         )
 
         return workspaceResponse(result, owner)
-      }),
+      })
+    },
     retry: false,
   })
 }
@@ -242,22 +253,21 @@ export function logoutMutationOptions() {
     mutationKey: ["account", "logout"],
     networkMode: "always",
     gcTime: 0,
-    mutationFn: (userId: string) =>
-      accountRequest(async () => {
-        const owner = uuidSchema.parse(userId)
+    mutationFn: (input: { userId: string; beforeSend: () => void }) => {
+      const owner = uuidSchema.parse(input.userId)
+      input.beforeSend()
 
+      return accountRequest(async () => {
         const result = await createBrowserApiClient().POST("/auth/logout", {
           params: { header: { "X-Pomodoro-User": owner } },
         })
 
-        if (!result.response.ok) {
-          responseData(result)
-        }
+        if (!result.response.ok) responseData(result)
 
-        if (result.response.status !== 204) {
+        if (result.response.status !== 204)
           throw new AccountApiError(result.response.status)
-        }
-      }),
+      })
+    },
     retry: false,
   })
 }
