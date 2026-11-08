@@ -13,14 +13,23 @@ import { ConfirmAction } from "@/components/confirm-action"
 import { FieldMessages } from "@/components/field-messages"
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
+import { Card, CardPanel } from "@/components/ui/card"
+import { Container } from "@/components/ui/container"
 import {
   Dialog,
   DialogHeader,
   DialogPopup,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+} from "@/components/ui/empty"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Form } from "@/components/ui/form"
+import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
 import { Input } from "@/components/ui/input"
@@ -35,11 +44,6 @@ import {
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { formatFocusTime } from "@/lib/focus-time"
-import { appStyles } from "@/styles/app.stylex"
-
-const emptyStyles = [appStyles.section, appStyles.empty]
-
-const mutedSmallStyles = [appStyles.small, appStyles.muted]
 
 export const Route = createFileRoute("/projects/")({
   head: () => ({ meta: [{ title: "Projects — Pomodoro" }] }),
@@ -66,59 +70,68 @@ export function ProjectsRoute() {
 
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
-      <Stack xstyle={appStyles.page}>
-        <HStack xstyle={appStyles.pageHeader}>
-          <Stack xstyle={appStyles.compact}>
-            <Text xstyle={appStyles.eyebrow}>Make room for your work</Text>
-            <Heading render={<h1>Projects</h1>} />
-            <Text xstyle={appStyles.muted}>See where your focus goes.</Text>
-          </Stack>
-          <Button disabled={!hydrated} onClick={events.add}>
-            <PlusIcon size={18} aria-hidden="true" /> Add project
-          </Button>
-        </HStack>
-        {workspace.projects.length === 0 ? (
-          <Stack xstyle={emptyStyles}>
-            <FolderIcon size={32} aria-hidden="true" />
-            <Heading>Your projects start here</Heading>
-            <Text xstyle={appStyles.muted}>
-              Add a project, then assign tasks to track its focus time.
-            </Text>
-          </Stack>
-        ) : (
-          <Box
-            render={<section aria-label="Project list" />}
-            xstyle={appStyles.grid}
-          >
-            {workspace.projects.map((project) => {
-              const seconds = workspace.sessions.reduce(
-                (total, session) =>
-                  total +
-                  (session.project_id === project.id
-                    ? session.duration_seconds
-                    : 0),
-                0,
-              )
+      <Container variant="workspace">
+        <Stack spacing="page">
+          <HStack layout="pageHeader">
+            <Stack spacing="compact">
+              <Text variant="eyebrow">Make room for your work</Text>
+              <Heading render={<h1>Projects</h1>} />
+              <Text tone="muted">See where your focus goes.</Text>
+            </Stack>
+            <Button disabled={!hydrated} onClick={events.add}>
+              <PlusIcon size={18} aria-hidden="true" /> Add project
+            </Button>
+          </HStack>
+          {workspace.projects.length === 0 ? (
+            <Card>
+              <CardPanel>
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia>
+                      <FolderIcon size={32} aria-hidden="true" />
+                    </EmptyMedia>
+                    <Heading>Your projects start here</Heading>
+                    <EmptyDescription>
+                      Add a project, then assign tasks to track its focus time.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </CardPanel>
+            </Card>
+          ) : (
+            <Box render={<section aria-label="Project list" />}>
+              <Grid variant="workspace">
+                {workspace.projects.map((project) => {
+                  const seconds = workspace.sessions.reduce(
+                    (total, session) =>
+                      total +
+                      (session.project_id === project.id
+                        ? session.duration_seconds
+                        : 0),
+                    0,
+                  )
 
-              const tasks = workspace.tasks.filter(
-                (task) => task.project_id === project.id && !task.completed,
-              ).length
+                  const tasks = workspace.tasks.filter(
+                    (task) => task.project_id === project.id && !task.completed,
+                  ).length
 
-              return (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  workspace={workspace}
-                  seconds={seconds}
-                  tasks={tasks}
-                  onEdit={setEditing}
-                  onOpenChange={setOpen}
-                />
-              )
-            })}
-          </Box>
-        )}
-      </Stack>
+                  return (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      workspace={workspace}
+                      seconds={seconds}
+                      tasks={tasks}
+                      onEdit={setEditing}
+                      onOpenChange={setOpen}
+                    />
+                  )
+                })}
+              </Grid>
+            </Box>
+          )}
+        </Stack>
+      </Container>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogPopup>
           <DialogHeader>
@@ -210,54 +223,56 @@ export function ProjectCard({
   })
 
   return (
-    <Stack xstyle={appStyles.section}>
-      <HStack xstyle={appStyles.spread}>
-        <Heading>{project.name}</Heading>
-        <Text xstyle={mutedSmallStyles}>
-          {project.archived ? "Archived" : "Active"}
-        </Text>
-      </HStack>
-      <HStack xstyle={appStyles.row}>
-        <Text>{formatFocusTime(seconds)} focused</Text>
-        <Text xstyle={appStyles.muted}>
-          {tasks} open {tasks === 1 ? "task" : "tasks"}
-        </Text>
-      </HStack>
-      <HStack xstyle={appStyles.row}>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={pending}
-          onClick={events.edit}
-        >
-          <PencilIcon size={16} aria-hidden="true" /> Edit
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={pending}
-          onClick={events.archive}
-        >
-          <ArchiveIcon size={16} aria-hidden="true" />{" "}
-          {project.archived ? "Restore" : "Archive"}
-        </Button>
-        <ConfirmAction
-          title="Delete project"
-          description={`Remove ${project.name} from your projects. Saved focus history will remain. Tasks will have no project.`}
-          targetId={project.id}
-          data={workspace}
-          owner={owner}
-          onConfirm={removeProject}
-        >
-          Delete
-        </ConfirmAction>
-      </HStack>
-      {error && (
-        <Text role="alert" xstyle={appStyles.error}>
-          {error}
-        </Text>
-      )}
-    </Stack>
+    <Card>
+      <CardPanel render={<Stack />}>
+        <HStack layout="spread">
+          <Heading>{project.name}</Heading>
+          <Text size="small" tone="muted">
+            {project.archived ? "Archived" : "Active"}
+          </Text>
+        </HStack>
+        <HStack layout="row">
+          <Text>{formatFocusTime(seconds)} focused</Text>
+          <Text tone="muted">
+            {tasks} open {tasks === 1 ? "task" : "tasks"}
+          </Text>
+        </HStack>
+        <HStack layout="row">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={events.edit}
+          >
+            <PencilIcon size={16} aria-hidden="true" /> Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={pending}
+            onClick={events.archive}
+          >
+            <ArchiveIcon size={16} aria-hidden="true" />{" "}
+            {project.archived ? "Restore" : "Archive"}
+          </Button>
+          <ConfirmAction
+            title="Delete project"
+            description={`Remove ${project.name} from your projects. Saved focus history will remain. Tasks will have no project.`}
+            targetId={project.id}
+            data={workspace}
+            owner={owner}
+            onConfirm={removeProject}
+          >
+            Delete
+          </ConfirmAction>
+        </HStack>
+        {error && (
+          <Text role="alert" tone="destructive">
+            {error}
+          </Text>
+        )}
+      </CardPanel>
+    </Card>
   )
 }
 
@@ -381,11 +396,11 @@ export function ProjectForm({
           )}
         </form.Field>
         {error && (
-          <Text role="alert" xstyle={appStyles.error}>
+          <Text role="alert" tone="destructive">
             {error}
           </Text>
         )}
-        <HStack xstyle={appStyles.actions}>
+        <HStack layout="actions">
           <Button variant="outline" onClick={events.cancel}>
             Cancel
           </Button>
