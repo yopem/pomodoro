@@ -158,157 +158,157 @@ export function TaskForm({
 
   return (
     <Dialog open onOpenChange={events.changeOpen}>
-      <DialogPopup>
+      <DialogPopup
+        render={<form ref={formRef} noValidate onSubmit={events.submit} />}
+      >
         <DialogHeader>
           <DialogTitle>{task ? "Edit task" : "Add task"}</DialogTitle>
           <DialogDescription>
             Plan the work and the focus intervals it may need.
           </DialogDescription>
         </DialogHeader>
-        <form ref={formRef} noValidate onSubmit={events.submit}>
-          <DialogPanel>
-            <Stack>
-              <form.Field name="title" validators={titleValidators}>
-                {(field) => {
-                  return (
-                    <Field invalid={field.state.meta.errors.length > 0}>
-                      <FieldLabel htmlFor="task-title">Task name</FieldLabel>
-                      <Input
-                        id="task-title"
-                        name={field.name}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={events.changeTitle}
-                        aria-invalid={field.state.meta.errors.length > 0}
-                        aria-describedby={
-                          field.state.meta.errors.length
-                            ? "task-title-error"
-                            : undefined
-                        }
+        <DialogPanel>
+          <Stack>
+            <form.Field name="title" validators={titleValidators}>
+              {(field) => {
+                return (
+                  <Field invalid={field.state.meta.errors.length > 0}>
+                    <FieldLabel htmlFor="task-title">Task name</FieldLabel>
+                    <Input
+                      id="task-title"
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeTitle}
+                      aria-invalid={field.state.meta.errors.length > 0}
+                      aria-describedby={
+                        field.state.meta.errors.length
+                          ? "task-title-error"
+                          : undefined
+                      }
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <FieldMessages
+                        id="task-title-error"
+                        errors={field.state.meta.errors}
                       />
-                      {field.state.meta.errors.length > 0 && (
-                        <FieldMessages
-                          id="task-title-error"
-                          errors={field.state.meta.errors}
-                        />
-                      )}
-                    </Field>
-                  )
-                }}
-              </form.Field>
-              <form.Field name="estimate" validators={estimateValidators}>
-                {(field) => {
-                  return (
-                    <Field invalid={field.state.meta.errors.length > 0}>
-                      <FieldLabel htmlFor="task-estimate">
-                        Estimated focus sessions
-                      </FieldLabel>
-                      <Input
-                        id="task-estimate"
-                        name={field.name}
-                        type="number"
-                        min={1}
-                        max={10000}
-                        step={1}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={events.changeEstimate}
-                        aria-invalid={field.state.meta.errors.length > 0}
-                        aria-describedby={
-                          field.state.meta.errors.length
-                            ? "task-estimate-error"
-                            : undefined
-                        }
+                    )}
+                  </Field>
+                )
+              }}
+            </form.Field>
+            <form.Field name="estimate" validators={estimateValidators}>
+              {(field) => {
+                return (
+                  <Field invalid={field.state.meta.errors.length > 0}>
+                    <FieldLabel htmlFor="task-estimate">
+                      Estimated focus sessions
+                    </FieldLabel>
+                    <Input
+                      id="task-estimate"
+                      name={field.name}
+                      type="number"
+                      min={1}
+                      max={10000}
+                      step={1}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeEstimate}
+                      aria-invalid={field.state.meta.errors.length > 0}
+                      aria-describedby={
+                        field.state.meta.errors.length
+                          ? "task-estimate-error"
+                          : undefined
+                      }
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <FieldMessages
+                        id="task-estimate-error"
+                        errors={field.state.meta.errors}
                       />
-                      {field.state.meta.errors.length > 0 && (
-                        <FieldMessages
-                          id="task-estimate-error"
-                          errors={field.state.meta.errors}
-                        />
-                      )}
-                    </Field>
-                  )
-                }}
-              </form.Field>
-              <form.Field name="note" validators={noteValidators}>
-                {(field) => {
-                  return (
-                    <Field invalid={field.state.meta.errors.length > 0}>
-                      <FieldLabel htmlFor="task-note">
-                        Notes (optional)
-                      </FieldLabel>
-                      <Textarea
-                        id="task-note"
-                        name={field.name}
-                        rows={3}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={events.changeNote}
-                        aria-invalid={field.state.meta.errors.length > 0}
-                        aria-describedby={
-                          field.state.meta.errors.length
-                            ? "task-note-error"
-                            : undefined
-                        }
+                    )}
+                  </Field>
+                )
+              }}
+            </form.Field>
+            <form.Field name="note" validators={noteValidators}>
+              {(field) => {
+                return (
+                  <Field invalid={field.state.meta.errors.length > 0}>
+                    <FieldLabel htmlFor="task-note">
+                      Notes (optional)
+                    </FieldLabel>
+                    <Textarea
+                      id="task-note"
+                      name={field.name}
+                      rows={3}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeNote}
+                      aria-invalid={field.state.meta.errors.length > 0}
+                      aria-describedby={
+                        field.state.meta.errors.length
+                          ? "task-note-error"
+                          : undefined
+                      }
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <FieldMessages
+                        id="task-note-error"
+                        errors={field.state.meta.errors}
                       />
-                      {field.state.meta.errors.length > 0 && (
-                        <FieldMessages
-                          id="task-note-error"
-                          errors={field.state.meta.errors}
-                        />
-                      )}
-                    </Field>
-                  )
-                }}
-              </form.Field>
-              <form.Field name="project">
-                {(field) => {
-                  return (
-                    <Field>
-                      <FieldLabel htmlFor="task-project">
-                        Project (optional)
-                      </FieldLabel>
-                      <NativeSelect
-                        id="task-project"
-                        name={field.name}
-                        value={field.state.value}
-                        onBlur={field.handleBlur}
-                        onChange={events.changeProject}
-                      >
-                        <option value="">No project</option>
-                        {projects
-                          .filter(
-                            (project) =>
-                              !project.archived ||
-                              project.id === task?.project_id,
-                          )
-                          .map((project) => (
-                            <option key={project.id} value={project.id}>
-                              {project.name}
-                              {project.archived ? " (archived)" : ""}
-                            </option>
-                          ))}
-                      </NativeSelect>
-                    </Field>
-                  )
-                }}
-              </form.Field>
-              {error && <Text role="alert">{error}</Text>}
-            </Stack>
-          </DialogPanel>
-          <DialogFooter>
-            <Button variant="outline" onClick={events.close}>
-              Cancel
-            </Button>
-            <form.Subscribe selector={selectSubmitting}>
-              {(submitting) => (
-                <Button type="submit" loading={submitting}>
-                  Save task
-                </Button>
-              )}
-            </form.Subscribe>
-          </DialogFooter>
-        </form>
+                    )}
+                  </Field>
+                )
+              }}
+            </form.Field>
+            <form.Field name="project">
+              {(field) => {
+                return (
+                  <Field>
+                    <FieldLabel htmlFor="task-project">
+                      Project (optional)
+                    </FieldLabel>
+                    <NativeSelect
+                      id="task-project"
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeProject}
+                    >
+                      <option value="">No project</option>
+                      {projects
+                        .filter(
+                          (project) =>
+                            !project.archived ||
+                            project.id === task?.project_id,
+                        )
+                        .map((project) => (
+                          <option key={project.id} value={project.id}>
+                            {project.name}
+                            {project.archived ? " (archived)" : ""}
+                          </option>
+                        ))}
+                    </NativeSelect>
+                  </Field>
+                )
+              }}
+            </form.Field>
+            {error && <Text role="alert">{error}</Text>}
+          </Stack>
+        </DialogPanel>
+        <DialogFooter>
+          <Button variant="outline" onClick={events.close}>
+            Cancel
+          </Button>
+          <form.Subscribe selector={selectSubmitting}>
+            {(submitting) => (
+              <Button type="submit" loading={submitting}>
+                Save task
+              </Button>
+            )}
+          </form.Subscribe>
+        </DialogFooter>
       </DialogPopup>
     </Dialog>
   )
