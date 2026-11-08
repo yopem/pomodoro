@@ -152,7 +152,7 @@ function tick() {
   }
 }
 
-function subscribe(listener: () => void) {
+export function subscribeFocusSnapshot(listener: () => void) {
   listeners.add(listener)
 
   if (listeners.size === 1 && typeof window !== "undefined") {
@@ -194,7 +194,7 @@ function subscribe(listener: () => void) {
   }
 }
 
-function getSnapshot() {
+export function getFocusSnapshot() {
   return snapshot
 }
 
@@ -204,8 +204,8 @@ function getServerSnapshot() {
 
 export function useFocusSnapshot<T>(select: (value: FocusSnapshot) => T) {
   return useSyncExternalStore(
-    subscribe,
-    () => select(getSnapshot()),
+    subscribeFocusSnapshot,
+    () => select(getFocusSnapshot()),
     () => select(getServerSnapshot()),
   )
 }
