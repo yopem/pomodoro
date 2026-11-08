@@ -1,0 +1,13 @@
+{
+  "name": "@pomodoro/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "cargo run --locked --bin pomodoro-server",
+    "build": "cargo build --release --locked --bin pomodoro-server",
+    "lint": "cargo clippy --workspace --all-targets --locked -- -D warnings",
+    "format:check": "cargo fmt --all -- --check",
+    "format:write": "cargo fmt --all",
+    "typecheck": "cargo check --workspace --all-targets --locked"
+  }
+}
