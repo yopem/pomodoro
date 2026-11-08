@@ -23,6 +23,14 @@ fn deserialize_optional_uuid<'de, D: Deserializer<'de>>(
     value.map(|value| parse_uuid(&value)).transpose()
 }
 
+fn deserialize_revision<'de, D: Deserializer<'de>>(deserializer: D) -> Result<i64, D::Error> {
+    let value = i64::deserialize(deserializer)?;
+    if !(0..=9_007_199_254_740_991).contains(&value) {
+        return Err(serde::de::Error::custom("invalid revision"));
+    }
+    Ok(value)
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct UserDto {
@@ -44,6 +52,8 @@ pub struct SessionResponse {
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct WorkspaceResponse {
+    #[serde(deserialize_with = "deserialize_uuid")]
+    pub user_id: Uuid,
     pub workspace: Workspace,
     pub revision: i64,
 }
@@ -52,6 +62,8 @@ pub struct WorkspaceResponse {
 #[serde(deny_unknown_fields)]
 pub struct SaveWorkspaceRequest {
     pub workspace: Workspace,
+    #[schema(minimum = 0, maximum = 9007199254740991_i64)]
+    #[serde(deserialize_with = "deserialize_revision")]
     pub expected_revision: i64,
 }
 
@@ -59,6 +71,8 @@ pub struct SaveWorkspaceRequest {
 #[serde(deny_unknown_fields)]
 pub struct ImportWorkspaceRequest {
     pub workspace: Workspace,
+    #[schema(minimum = 0, maximum = 9007199254740991_i64)]
+    #[serde(deserialize_with = "deserialize_revision")]
     pub expected_revision: i64,
     #[serde(deserialize_with = "deserialize_uuid")]
     pub import_id: Uuid,
