@@ -23,6 +23,7 @@ import {
   type Template,
   templateSchema,
   type Timer,
+  timerSchema,
   type Workspace,
   workspaceSchema,
 } from "./schema"
@@ -748,10 +749,11 @@ async function finishElapsedTimer() {
 
 async function changeTimer(
   change: (workspace: Workspace, nowMs: number) => void,
+  expectedTimer: Timer,
   ownership: MutationOwnership,
 ) {
   const { owner } = ownership
-  const expected = JSON.stringify(snapshot.workspace.timer)
+  const expected = JSON.stringify(expectedTimer)
   let completion: ReturnType<typeof completeIfElapsed> = null
   await mutate((workspace, nowMs) => {
     if (JSON.stringify(workspace.timer) !== expected)
@@ -766,54 +768,87 @@ async function changeTimer(
   if (completion && owner === activeOwner) deliverCompletion(completion)
 }
 
-export async function startTimer(ownership: MutationOwnership) {
+export async function startTimer(
+  input: { expected: Timer },
+  ownership: MutationOwnership,
+) {
+  const expected = timerSchema.parse(input.expected)
+
   if (ownership.owner === activeOwner) unlockFocusAudio()
   await changeTimer(
     (workspace, nowMs) => startTimerRun(workspace, nowMs),
+    expected,
     ownership,
   )
 }
 
-export async function pauseTimer(ownership: MutationOwnership) {
-  await changeTimer((workspace, nowMs) => {
-    const timer = workspace.timer
+export async function pauseTimer(
+  input: { expected: Timer },
+  ownership: MutationOwnership,
+) {
+  const expected = timerSchema.parse(input.expected)
+  await changeTimer(
+    (workspace, nowMs) => {
+      const timer = workspace.timer
 
-    if (timer.deadline_ms === null) return
-    timer.remaining_seconds = remaining(timer, nowMs)
-    timer.deadline_ms = null
-  }, ownership)
+      if (timer.deadline_ms === null) return
+      timer.remaining_seconds = remaining(timer, nowMs)
+      timer.deadline_ms = null
+    },
+    expected,
+    ownership,
+  )
 }
 
-export async function skipTimer(ownership: MutationOwnership) {
+export async function skipTimer(
+  input: { expected: Timer },
+  ownership: MutationOwnership,
+) {
+  const expected = timerSchema.parse(input.expected)
   await changeTimer(
     (workspace, nowMs) => advance(workspace, nowMs, false, false),
+    expected,
     ownership,
   )
 }
 
-export async function resetTimer(ownership: MutationOwnership) {
-  await changeTimer((workspace, nowMs) => {
-    recordFocus(workspace, nowMs, false)
-    const timer = workspace.timer
-    timer.remaining_seconds = phaseSeconds(workspace, timer.phase)
-    timer.deadline_ms = null
-    timer.run_id = null
-    timer.started_at_ms = null
-  }, ownership)
+export async function resetTimer(
+  input: { expected: Timer },
+  ownership: MutationOwnership,
+) {
+  const expected = timerSchema.parse(input.expected)
+  await changeTimer(
+    (workspace, nowMs) => {
+      recordFocus(workspace, nowMs, false)
+      const timer = workspace.timer
+      timer.remaining_seconds = phaseSeconds(workspace, timer.phase)
+      timer.deadline_ms = null
+      timer.run_id = null
+      timer.started_at_ms = null
+    },
+    expected,
+    ownership,
+  )
 }
 
 export async function selectPhase(
-  input: { phase: Timer["phase"] },
+  input: { phase: Timer["phase"]; expected: Timer },
   ownership: MutationOwnership,
 ) {
-  await changeTimer((workspace, nowMs) => {
-    recordFocus(workspace, nowMs, false)
-    workspace.timer.phase = input.phase
-    workspace.timer.remaining_seconds = phaseSeconds(workspace, input.phase)
-    workspace.timer.deadline_ms = null
-    workspace.timer.run_id = null
-    workspace.timer.started_at_ms = null
-  }, ownership)
+  const expected = timerSchema.parse(input.expected)
+  const { phase } = input
+  await changeTimer(
+    (workspace, nowMs) => {
+      recordFocus(workspace, nowMs, false)
+      workspace.timer.phase = phase
+      workspace.timer.remaining_seconds = phaseSeconds(workspace, phase)
+      workspace.timer.deadline_ms = null
+      workspace.timer.run_id = null
+      workspace.timer.started_at_ms = null
+    },
+    expected,
+    ownership,
+  )
 }
 
 export async function updateSettings(

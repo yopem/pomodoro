@@ -4,6 +4,7 @@ import * as stylex from "@stylexjs/stylex"
 import { startTransition, useActionState, useState } from "react"
 
 import type { Timer, Workspace } from "@/features/focus/schema"
+import type { WorkspaceOwner } from "@/features/focus/store"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardPanel } from "@/components/ui/card"
@@ -19,6 +20,7 @@ import {
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { ConfirmAction } from "@/features/timer/components/confirm-action"
+import { useEventCallback } from "@/hooks/use-event-callback"
 import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
@@ -52,6 +54,64 @@ type Interruption =
   | { kind: "skip" }
   | { kind: "phase"; phase: Timer["phase"] }
 
+type TimerRequest = (Interruption | { kind: "start" } | { kind: "pause" }) & {
+  expected: Timer
+  owner: WorkspaceOwner
+  id: string
+}
+
+interface TimerDialog {
+  request: TimerRequest
+  open: boolean
+}
+
+export function TimerConfirmation({
+  request,
+  open,
+  dispatch,
+  setPending,
+}: {
+  request: TimerRequest
+  open: boolean
+  dispatch: (request: TimerRequest) => void
+  setPending: React.Dispatch<React.SetStateAction<TimerDialog | null>>
+}) {
+  const [events] = useState(function createConfirmationEvents() {
+    function clear() {
+      setPending((current) =>
+        current?.request === request ? { request, open: false } : current,
+      )
+    }
+
+    function confirm() {
+      clear()
+      startTransition(() => dispatch(request))
+    }
+
+    function openChange(open: boolean) {
+      if (!open) clear()
+    }
+
+    return { confirm, openChange }
+  })
+
+  let action = "Change phase"
+
+  if (request.kind === "reset") action = "Reset timer"
+  else if (request.kind === "skip") action = "Skip session"
+
+  return (
+    <ConfirmAction
+      open={open}
+      onOpenChange={events.openChange}
+      title="Interrupt this focus session?"
+      description="Elapsed focus time is saved as an incomplete session. It will not count as a completed focus session."
+      action={action}
+      onConfirm={events.confirm}
+    />
+  )
+}
+
 export function FocusTimer({
   workspace,
   nowMs,
@@ -61,39 +121,21 @@ export function FocusTimer({
 }) {
   const owner = useWorkspaceMutationOwner()
   const { timer, settings, tasks } = workspace
-  const [pending, setPending] = useState<Interruption | null>(null)
+  const [pending, setPending] = useState<TimerDialog | null>(null)
 
   const [error, dispatch, busy] = useActionState(
-    async (
-      _error: string | null,
-      command: Interruption | "toggle" | "confirm",
-    ) => {
-      let interruption: Interruption | null = null
-
-      if (command === "confirm") {
-        interruption = pending
-        setPending(null)
-      } else if (command !== "toggle") {
-        if (command.kind === "phase" && command.phase === timer.phase)
-          return null
-
-        if (timer.phase === "focus" && timer.run_id !== null) {
-          setPending(command)
-
-          return null
-        }
-
-        interruption = command
-      }
+    async (_error: string | null, request: TimerRequest) => {
+      const { expected, owner } = request
 
       try {
-        if (command === "toggle") {
-          if (timer.deadline_ms === null) await startTimer({ owner })
-          else await pauseTimer({ owner })
-        } else if (interruption?.kind === "reset") await resetTimer({ owner })
-        else if (interruption?.kind === "skip") await skipTimer({ owner })
-        else if (interruption?.kind === "phase")
-          await selectPhase({ phase: interruption.phase }, { owner })
+        if (request.kind === "start") await startTimer({ expected }, { owner })
+        else if (request.kind === "pause")
+          await pauseTimer({ expected }, { owner })
+        else if (request.kind === "reset")
+          await resetTimer({ expected }, { owner })
+        else if (request.kind === "skip")
+          await skipTimer({ expected }, { owner })
+        else await selectPhase({ expected, phase: request.phase }, { owner })
 
         return null
       } catch (cause) {
@@ -105,32 +147,41 @@ export function FocusTimer({
     null,
   )
 
-  const [events] = useState(function createTimerEvents() {
-    function request(event: MouseEvent<HTMLButtonElement>) {
-      const value = event.currentTarget.value
+  const request = useEventCallback((event: MouseEvent<HTMLButtonElement>) => {
+    const value = event.currentTarget.value
+    let command: Interruption | { kind: "start" } | { kind: "pause" }
 
-      startTransition(() => {
-        if (value === "toggle") dispatch("toggle")
-        else if (value === "reset" || value === "skip")
-          dispatch({ kind: value })
-        else if (
-          value === "focus" ||
-          value === "short_break" ||
-          value === "long_break"
-        )
-          dispatch({ kind: "phase", phase: value })
-      })
+    if (value === "toggle")
+      command = { kind: timer.deadline_ms === null ? "start" : "pause" }
+    else if (value === "reset" || value === "skip") command = { kind: value }
+    else if (
+      value === "focus" ||
+      value === "short_break" ||
+      value === "long_break"
+    ) {
+      if (value === timer.phase) return
+      command = { kind: "phase", phase: value }
+    } else return
+
+    const captured: TimerRequest = Object.freeze({
+      ...command,
+      expected: Object.freeze({ ...timer }),
+      owner,
+      id: crypto.randomUUID(),
+    })
+
+    if (
+      command.kind !== "start" &&
+      command.kind !== "pause" &&
+      timer.phase === "focus" &&
+      timer.run_id !== null
+    ) {
+      setPending({ request: captured, open: true })
+
+      return
     }
 
-    function confirm() {
-      startTransition(() => dispatch("confirm"))
-    }
-
-    function openChange(open: boolean) {
-      if (!open) setPending(null)
-    }
-
-    return { request, confirm, openChange }
+    startTransition(() => dispatch(captured))
   })
 
   const remaining =
@@ -143,11 +194,6 @@ export function FocusTimer({
 
   const currentCycle =
     timer.completed_focus_count % settings.long_break_interval
-
-  let actionLabel = "Change phase"
-
-  if (pending?.kind === "reset") actionLabel = "Reset timer"
-  else if (pending?.kind === "skip") actionLabel = "Skip session"
 
   return (
     <Card render={<section aria-label="Focus timer" />}>
@@ -163,7 +209,7 @@ export function FocusTimer({
                   size="xl"
                   aria-pressed={timer.phase === phase.value}
                   disabled={busy}
-                  onClick={events.request}
+                  onClick={request}
                 >
                   {phase.label}
                 </Button>
@@ -182,12 +228,7 @@ export function FocusTimer({
             {selected ? `Focusing on ${selected.title}` : "No task selected"}
           </Text>
           <HStack layout="centered">
-            <Button
-              size="xl"
-              value="toggle"
-              disabled={busy}
-              onClick={events.request}
-            >
+            <Button size="xl" value="toggle" disabled={busy} onClick={request}>
               {timer.deadline_ms === null
                 ? timer.run_id
                   ? "Resume"
@@ -199,7 +240,7 @@ export function FocusTimer({
               size="xl"
               value="reset"
               disabled={busy}
-              onClick={events.request}
+              onClick={request}
             >
               Reset
             </Button>
@@ -208,7 +249,7 @@ export function FocusTimer({
               size="xl"
               value="skip"
               disabled={busy}
-              onClick={events.request}
+              onClick={request}
             >
               Skip
             </Button>
@@ -225,14 +266,15 @@ export function FocusTimer({
           )}
         </Stack>
       </CardPanel>
-      <ConfirmAction
-        open={pending !== null}
-        onOpenChange={events.openChange}
-        title="Interrupt this focus session?"
-        description="Elapsed focus time is saved as an incomplete session. It will not count as a completed focus session."
-        action={actionLabel}
-        onConfirm={events.confirm}
-      />
+      {pending && (
+        <TimerConfirmation
+          key={pending.request.id}
+          request={pending.request}
+          open={pending.open}
+          dispatch={dispatch}
+          setPending={setPending}
+        />
+      )}
     </Card>
   )
 }
