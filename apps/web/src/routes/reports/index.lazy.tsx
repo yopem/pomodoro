@@ -134,6 +134,12 @@ export function ReportsRoute() {
 
   const sessions = sessionsInRange(projectSessions, range)
   const summary = summarizeSessions(sessions)
+
+  const streak = currentStreak({
+    sessions: workspace.sessions,
+    now: new Date(nowMs),
+  })
+
   const sorted = sessions.toSorted((a, b) => b.started_at_ms - a.started_at_ms)
   const pages = Math.max(1, Math.ceil(sorted.length / 20))
   const page = Math.min(search.page, pages)
@@ -190,7 +196,7 @@ export function ReportsRoute() {
                 />
                 <ReportMetric
                   label="Current daily streak"
-                  value={`${currentStreak({ sessions: workspace.sessions, now: new Date(nowMs) })} days`}
+                  value={`${streak} ${streak === 1 ? "day" : "days"}`}
                 />
               </HStack>
             </CardPanel>

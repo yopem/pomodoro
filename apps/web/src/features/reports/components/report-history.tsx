@@ -197,7 +197,8 @@ export function ReportHistory({
           )}
           <HStack layout="spread">
             <Text size="small" tone="muted">
-              {total} records · Page {page} of {pages}
+              {total} {total === 1 ? "record" : "records"} · Page {page} of{" "}
+              {pages}
             </Text>
             <HStack>
               <Button
