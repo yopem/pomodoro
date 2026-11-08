@@ -9,6 +9,8 @@ import { Box } from "@/components/ui/box"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
+import { AccountControls } from "@/features/account/components/account-controls"
+import { useAccountController } from "@/features/account/sync"
 import { useFocusSnapshot } from "@/features/focus/store"
 import { PwaUpdates } from "@/features/pwa/updates"
 import { tokens } from "@/styles/tokens.stylex"
@@ -22,6 +24,7 @@ function isFocusRoute(state: RegisteredRouter["state"]) {
 export function AppShell({ children }: { children: ReactNode }) {
   const compact = useRouterState({ select: isFocusRoute })
   const snapshot = useFocusSnapshot((value) => value)
+  const { controller, state } = useAccountController()
 
   return (
     <Stack>
@@ -58,7 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             </HStack>
           </Box>
-          <Text>Guest mode</Text>
+          <AccountControls controller={controller} state={state} />
         </HStack>
       </Box>
       {snapshot.error && <Text role="alert">{snapshot.error}</Text>}

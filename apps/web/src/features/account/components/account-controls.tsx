@@ -98,7 +98,7 @@ function accountStatus(state: AccountSnapshot) {
     case "error":
       return "Account sync needs attention. Changes may not be synced."
     case "conflict":
-      return "Local and account work differ. Choose which version to keep."
+      return "Review the account versions before sync can continue."
     case "loading":
       return "Checking account. You can continue working on this device."
   }
