@@ -144,12 +144,18 @@ function storageChanged(event: StorageEvent) {
 function tick() {
   const nowMs = Date.now()
 
-  if (snapshot.workspace.timer.deadline_ms !== null) {
-    publish({ ...snapshot, nowMs })
+  if (snapshot.workspace.timer.deadline_ms === null) {
+    if (Math.floor(nowMs / 60_000) !== Math.floor(snapshot.nowMs / 60_000)) {
+      publish({ ...snapshot, nowMs })
+    }
 
-    if (snapshot.workspace.timer.deadline_ms <= nowMs) void finishElapsedTimer()
-    else void remindFocus()
+    return
   }
+
+  publish({ ...snapshot, nowMs })
+
+  if (snapshot.workspace.timer.deadline_ms <= nowMs) void finishElapsedTimer()
+  else void remindFocus()
 }
 
 export function subscribeFocusSnapshot(listener: () => void) {

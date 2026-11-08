@@ -1443,3 +1443,48 @@ Todoist, webhooks, ads, premium billing, native mobile apps, and a mobile push
 alarm service are outside the agreed initial release. Projects, yearly reports,
 and downloads are included without a paywall. Ranking is not assumed to be an
 approved public-data feature merely because the reference has a tab.
+
+### [ ] QA-050 — P2 — Idle and paused finish estimates stay current
+
+- **Purpose:** Cover clock updates in `features/focus/store.ts` and the `/`
+  finish estimate without advancing a stopped timer or changing saved work.
+- **Prerequisites:** Approved isolated browser QA at the configured web origin.
+  Use a guest workspace with default 25/5/15 durations and no history. Use a
+  local minute boundary; no system-clock change is required.
+- **Inputs:** One incomplete task named `Estimate check`, estimate 1, actual 0.
+  Start with an idle focus timer. Repeat with the same timer paused after start.
+- **Steps:** 1. Open `/` and record the displayed finish time, timer value,
+  workspace data, and network log just before a minute boundary. 2. Do not click
+  a control. Wait across the next minute. 3. Start and pause the timer, then
+  repeat the observation across another minute boundary.
+- **Expected results:** The finish estimate advances by one displayed minute
+  within the next clock tick. The idle or paused countdown stays unchanged. Task
+  actual counts, history, persisted workspace, and owner stay unchanged. A
+  clock-only update must not trigger an account save or change sync status.
+- **Evidence:** Save before/after screenshots and sanitized network records in
+  `qa-artifacts/QA-050/`. Inspect displayed minutes and absence of saves.
+- **Cleanup:** Remove the isolated task and restore guest settings. Stop only
+  processes started for the case.
+- **Status:** pending; browser and endpoint execution remain deferred.
+
+### [ ] QA-051 — P1 — Today summary changes at local midnight
+
+- **Purpose:** Cover the `/` Today at a glance date boundary while the timer is
+  idle. Preserve saved history instead of counting yesterday as today.
+- **Prerequisites:** Approved isolated browser QA near local midnight, or an
+  approved isolated clock-control mechanism. Discover and record any clock tool
+  before use. Do not change the shared machine clock. Keep analytics off.
+- **Inputs:** One 25-minute manual session on the current local date. No running
+  timer. Record the exact local date and timezone in the evidence.
+- **Steps:** 1. Create the isolated session through Reports. 2. Open `/` before
+  local midnight and confirm Focus recorded is 25m. 3. Keep the page open and
+  idle across local midnight. 4. Inspect Today at a glance and open Reports with
+  the previous date selected.
+- **Expected results:** Focus recorded changes to 0m on the first clock tick
+  after midnight. The prior date retains its 25-minute session with the same ID.
+  No new session, task completion, workspace write, or timer run appears.
+- **Evidence:** Save dated screenshots and the prior-date report in
+  `qa-artifacts/QA-051/`; inspect date, timezone, totals, and stable session ID.
+- **Cleanup:** Remove the isolated manual session and undo only approved
+  page-local clock controls. Restore the original selected report date.
+- **Status:** pending; execution needs approved browser prerequisites.
