@@ -14,7 +14,6 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Text } from "@/components/ui/text"
 import { localDateRange } from "@/features/focus/reports"
 import { localDateText } from "@/lib/local-date"
-import { appStyles } from "@/styles/app.stylex"
 
 export const periodSchema = z.enum(["day", "week", "month", "year"])
 
@@ -149,7 +148,7 @@ export function ReportFilters({
 
   return (
     <>
-      <HStack xstyle={appStyles.spread}>
+      <HStack layout="spread">
         <Box render={<fieldset aria-label="Report period" />}>
           <HStack wrap>
             {periodSchema.options.map((period) => (
@@ -167,7 +166,7 @@ export function ReportFilters({
             ))}
           </HStack>
         </Box>
-        <HStack xstyle={appStyles.row}>
+        <HStack layout="row">
           <Field>
             <FieldLabel htmlFor="report-date">Date</FieldLabel>
             <Input
@@ -197,7 +196,7 @@ export function ReportFilters({
           </Field>
         </HStack>
       </HStack>
-      <HStack xstyle={appStyles.spread}>
+      <HStack layout="spread">
         <Button
           variant="outline"
           size="icon"
