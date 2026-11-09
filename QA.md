@@ -3738,3 +3738,67 @@ not affected by this source-only change.
   the temporary peer was closed. Evidence is under
   `qa-artifacts/QA-119/current-authenticated/`. This does not establish the
   separately held-active-request QA-090 or every uncertainty branch.
+
+### [ ] QA-120 — P1 — Official project Bun revision is reproducible
+
+- **Purpose:** Resolve the mismatch between the declared official Bun package
+  and the revision of the previously tested host binary. The user approved a
+  project-only revision update on 2026-11-09, conditional on successful checks.
+- **Prerequisites:** Leave global Bun, shell profiles and system tools
+  unchanged. Use a new owned private cache and a clean committed archive. Read
+  registry integrity metadata and exact platform package before selecting bytes.
+- **Inputs:** Declared `bun@1.4.4-canary.20261104.1` and corresponding official
+  Linux x64 platform package. The observed published binary revision differs
+  from `a8fcd319b`; discover and record the full actual revision/checksums.
+- **Steps:**
+  1. Record the current global executable path, checksum, version and revision.
+  2. Verify the official package bytes against published integrity, extract only
+     into the private cache and run its version/revision commands.
+  3. With only subprocess PATH changed, execute the actual configured native
+     lint, format and workspace types, explicit ignored-config coverage, route
+     generation, production web build and required Rust static gates.
+  4. Recheck the global executable and profiles. Only after compatibility
+     passes, align the project pin, packaging recipe and documented bootstrap.
+  5. Rebuild from the committed pin and rerun relevant browser and installed
+     hook regressions; identify earlier evidence tested with the old runtime.
+- **Expected results:** The declared artifact installs exact verified bytes
+  reproducibly. No rules, hook checks or type safety are weakened. The global
+  installation and unrelated files remain unchanged. All required checks succeed
+  without warnings before adopting the candidate.
+- **Evidence:** `qa-artifacts/QA-120/`; record registry URLs/integrity, binary
+  checksums, exact revisions, sanitized gates and protected-file comparisons.
+- **Cleanup:** Retain the verified cache for approved project commands; remove
+  only disposable compatibility archives and owned failed candidates.
+- **Status:** Pending. Approval permits project-scoped verification and changes,
+  not global installation or automatic acceptance of another runtime.
+
+### [ ] QA-121 — P1 — CI installs pinned tools and enforces release gates
+
+- **Purpose:** Add the missing CI workflow without treating unresolved audits or
+  an unverified runtime download as successful release checks.
+- **Prerequisites:** QA-120 verified artifact metadata and project pin; inspect
+  actual root/workspace scripts and snapshot gate. No database or credentials
+  are needed for static checks, offline OpenAPI export or required builds.
+- **Inputs:** A clean commit checkout, exact Bun artifact/checksum and pinned
+  Rust toolchain. Current moderate minimatch and low deepmerge findings remain
+  unresolved and must not be hidden, filtered or marked fixed.
+- **Steps:**
+  1. Review a minimum-permission workflow with immutable action references and
+     no persisted checkout credential. Verify its bootstrap locally from the
+     same committed pin without global tool changes.
+  2. Run the actual isolated committed-tree gate, owning workspace typechecks,
+     formatting, zero-warning lint, explicit config coverage and builds.
+  3. Run offline OpenAPI/client drift checks without starting services.
+  4. Run the native package audit with its real exit status. Inspect workflow
+     syntax and command coverage. A hosted run requires a permitted real push;
+     do not push project refs merely to test the workflow.
+- **Expected results:** Required failures block the workflow. No test suites,
+  database connections, migrations, deployment, secret logs or bypasses occur.
+  Successful local command execution is not reported as a hosted CI pass.
+- **Evidence:** `qa-artifacts/QA-121/`; save bootstrap validation, exact
+  commands, gate/build/export results, audit exit and any permitted hosted run
+  URL.
+- **Cleanup:** Remove only owned local CI-like fixtures and temporary files.
+- **Status:** Pending. No `.github/` workflow exists at planning. Hosted
+  execution needs a separately permitted push; audit findings can still block
+  release after workflow setup.
