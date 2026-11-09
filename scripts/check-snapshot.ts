@@ -1,494 +1,181 @@
-import type { ChildProcess } from "node:child_process"
+import type { ChildProcess, Serializable } from "node:child_process"
 
-import { spawn, spawnSync } from "node:child_process"
-import {
-  chmodSync,
-  copyFileSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  realpathSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs"
-import { tmpdir } from "node:os"
-import { dirname, extname, isAbsolute, join, resolve } from "node:path"
+import { spawn } from "node:child_process"
+import { readFileSync } from "node:fs"
+import { fileURLToPath } from "node:url"
 
-import { readSnapshotEnvironment } from "./env.ts"
+async function runSnapshotOwner() {
+  if (process.platform === "win32")
+    throw new Error("The snapshot gate requires POSIX process-group support")
 
-const repository = process.cwd()
+  if (process.platform !== "linux")
+    throw new Error(
+      "The snapshot gate requires Linux process ancestry monitoring",
+    )
 
-const configuration = readSnapshotEnvironment(repository)
+  function identity(pid: number) {
+    const stat = readFileSync(`/proc/${pid}/stat`, "utf8")
+    const end = stat.lastIndexOf(")")
+    const fields = stat.slice(end + 2).split(" ")
+    const state = fields[0]
+    const parent = Number(fields[1])
+    const start = fields[19]
 
-const gitEnvironment = configuration.git
+    if (end < 0 || !state || !Number.isSafeInteger(parent) || !start)
+      throw new Error("Process ancestry is unavailable")
 
-const temporaryDirectories = new Set<string>()
+    return { pid, parent, start, state }
+  }
 
-const runningChecks = new Set<ChildProcess>()
+  const ancestry: ReturnType<typeof identity>[] = []
+  let pid = process.pid
 
-let interrupted = false
+  while (pid > 1) {
+    const current = identity(pid)
 
-let interruption = Promise.resolve()
+    if (current.state === "Z" || current.parent < 1 || current.parent === pid)
+      throw new Error("Process ancestry is unavailable")
+    ancestry.push(current)
+    pid = current.parent
+  }
 
-function signalChecks(signal: NodeJS.Signals) {
-  for (const child of runningChecks) {
-    if (!child.pid) continue
+  function ownerAvailable() {
+    try {
+      return ancestry.every((original) => {
+        const current = identity(original.pid)
+
+        return (
+          current.state !== "Z" &&
+          current.state !== "X" &&
+          current.start === original.start &&
+          current.parent === original.parent
+        )
+      })
+    } catch {
+      return false
+    }
+  }
+
+  if (!ownerAvailable()) throw new Error("Process ancestry is unavailable")
+
+  let worker: ChildProcess | undefined
+  let cancelled = false
+  let failed = false
+  let ready = false
+  let completed = false
+
+  function disconnectWorker() {
+    const child = worker
+
+    if (!child?.connected) return
 
     try {
-      process.kill(-child.pid, signal)
-    } catch (cause) {
-      if (!(
-        cause instanceof Error &&
-        "code" in cause &&
-        cause.code === "ESRCH"
-      )) {
-        console.error("Could not stop an owned check process group")
-      }
-    }
-  }
-}
-
-function interruptChecks(signal: NodeJS.Signals) {
-  if (interrupted) return
-  interrupted = true
-  process.exitCode = 1
-  signalChecks(signal)
-  interruption = new Promise<void>((resolve) => {
-    setTimeout(() => {
-      signalChecks("SIGKILL")
-      resolve()
-    }, 1000)
-  })
-}
-
-process.once("SIGINT", () => interruptChecks("SIGINT"))
-
-process.once("SIGTERM", () => interruptChecks("SIGTERM"))
-
-function gitBytes(args: string[], env = gitEnvironment) {
-  const result = spawnSync("git", args, {
-    cwd: repository,
-    env,
-    maxBuffer: 32 * 1024 * 1024,
-  })
-
-  if (result.error) throw result.error
-
-  if (result.status !== 0) {
-    throw new Error("Git could not resolve the required snapshot")
-  }
-
-  return result.stdout
-}
-
-function gitText(args: string[], env = gitEnvironment) {
-  return gitBytes(args, env).toString("utf8").trimEnd()
-}
-
-async function checkCommand(
-  command: string[],
-  cwd: string,
-  env: NodeJS.ProcessEnv,
-) {
-  const [program, ...args] = command
-
-  if (!program || interrupted) throw new Error("The check cannot start")
-  await new Promise<void>((resolve, reject) => {
-    const child = spawn(program, args, {
-      cwd,
-      env,
-      stdio: "inherit",
-      detached: true,
-    })
-
-    runningChecks.add(child)
-    child.once("error", (cause) => {
-      runningChecks.delete(child)
-      reject(cause)
-    })
-    child.once("close", (code) => {
-      runningChecks.delete(child)
-
-      if (code !== 0 || interrupted)
-        reject(new Error(`${program} check failed`))
-      else resolve()
-    })
-  })
-}
-
-function temporaryDirectory(prefix: string) {
-  const directory = mkdtempSync(join(tmpdir(), prefix))
-  temporaryDirectories.add(directory)
-
-  return directory
-}
-
-function stagedTree() {
-  const directory = temporaryDirectory("pomodoro-index-")
-
-  const index = gitText([
-    "rev-parse",
-    "--path-format=absolute",
-    "--git-path",
-    "index",
-  ])
-
-  const copiedIndex = join(directory, "index")
-  copyFileSync(index, copiedIndex)
-
-  return gitText(["write-tree"], {
-    ...gitEnvironment,
-    GIT_INDEX_FILE: copiedIndex,
-  })
-}
-
-function pushedOriginCommits() {
-  const remoteName = configuration.remoteName
-  const remoteUrl = configuration.remoteUrl
-
-  if (!remoteName || !remoteUrl) {
-    throw new Error("The installed hook did not capture the push remote")
-  }
-
-  if (remoteName !== "origin") {
-    const remotes = gitText(["remote"]).split("\n")
-
-    const originUrls = remotes.includes("origin")
-      ? gitText(["remote", "get-url", "--push", "--all", "origin"]).split("\n")
-      : []
-
-    if (!originUrls.includes(remoteUrl)) {
-      console.info("Snapshot gate: this push does not target origin")
-
-      return []
+      child.disconnect()
+    } catch {
+      failed = true
     }
   }
 
-  const input = readFileSync(0, "utf8").trim()
+  function send(message: string | string[]) {
+    const child = worker
 
-  if (!input) throw new Error("The push has no ref input to verify")
-  const commits = new Set<string>()
-  const objectFormat = gitText(["rev-parse", "--show-object-format"])
+    if (!child?.connected) {
+      failed = true
 
-  if (objectFormat !== "sha1" && objectFormat !== "sha256") {
-    throw new Error("Unsupported Git object format")
+      return
+    }
+
+    try {
+      child.send(message, (error) => {
+        if (!error) return
+
+        failed = true
+        disconnectWorker()
+      })
+    } catch {
+      failed = true
+      disconnectWorker()
+    }
   }
 
-  const objectIdLength = objectFormat === "sha1" ? 40 : 64
-
-  for (const line of input.split("\n")) {
-    const fields = line.split(" ")
-
-    if (fields.length !== 4) throw new Error("Unsupported push ref input")
-    const [localRef, localId, remoteRef, remoteId] = fields
-
-    if (
-      !localRef ||
-      !remoteRef ||
-      !localId ||
-      !remoteId ||
-      !/^[a-f0-9]+$/.test(localId) ||
-      !/^[a-f0-9]+$/.test(remoteId) ||
-      localId.length !== objectIdLength ||
-      remoteId.length !== objectIdLength ||
-      !/^(refs\/heads\/|refs\/tags\/)/.test(remoteRef)
-    ) {
-      throw new Error("Unsupported push ref input")
-    }
-
-    gitText(["check-ref-format", remoteRef])
-
-    if (/^0+$/.test(localId)) {
-      if (localRef !== "(delete)" || /^0+$/.test(remoteId)) {
-        throw new Error("Unsupported push ref input")
-      }
-
-      continue
-    }
-
-    if (
-      localRef === "(delete)" ||
-      gitText([
-        "rev-parse",
-        "--verify",
-        "--end-of-options",
-        `${localRef}^{object}`,
-      ]) !== localId
-    ) {
-      throw new Error("Unsupported push ref input")
-    }
-
-    const commit = gitText(["rev-parse", "--verify", `${localId}^{commit}`])
-    commits.add(commit)
+  function cancel() {
+    cancelled = true
+    send("cancel")
   }
 
-  return [...commits]
-}
+  process.once("SIGINT", cancel)
+  process.once("SIGTERM", cancel)
+  process.stdout.once("error", cancel)
+  process.stderr.once("error", cancel)
 
-function snapshotFiles(tree: string, directory: string) {
-  const entries = gitText(["ls-tree", "-rz", "--full-tree", tree]).split("\0")
-  const files: string[] = []
+  const deadline = setTimeout(cancel, 10_000)
 
-  for (const entry of entries) {
-    if (!entry) continue
-    const match = /^(100644|100755) blob ([a-f0-9]+)\t(.+)$/s.exec(entry)
+  const ancestryMonitor = setInterval(() => {
+    if (!ownerAvailable()) cancel()
+  }, 100)
 
-    if (!match) throw new Error("Unsupported snapshot entry or linked source")
-    const [, mode, object, path] = match
+  try {
+    return await new Promise<number>((resolve) => {
+      worker = spawn(
+        process.execPath,
+        [
+          "--no-env-file",
+          fileURLToPath(new URL("./snapshot-check-worker.ts", import.meta.url)),
+        ],
+        {
+          cwd: process.cwd(),
+          detached: true,
+          serialization: "json",
+          stdio: ["inherit", "inherit", "inherit", "ipc"],
+        },
+      )
+      const child = worker
 
-    if (
-      !mode ||
-      !object ||
-      !path ||
-      isAbsolute(path) ||
-      path.includes("\\") ||
-      path.includes("\ufffd") ||
-      path
-        .split("/")
-        .some((part) =>
-          [".", "..", ".git", "node_modules"].includes(part.toLowerCase()),
+      child.once("error", () => {
+        failed = true
+        disconnectWorker()
+
+        if (!child.pid) resolve(1)
+      })
+      child.on("message", (message: Serializable) => {
+        if (message === "ready" && !ready) {
+          ready = true
+          clearTimeout(deadline)
+          send(cancelled ? "cancel" : process.argv.slice(2))
+        } else if (message === "complete" && ready && !completed) {
+          completed = true
+        } else {
+          failed = true
+          cancel()
+        }
+      })
+      child.once("disconnect", () => {
+        if (!completed) failed = true
+      })
+      child.once("close", (code, signal) => {
+        if (!ownerAvailable()) cancelled = true
+        resolve(
+          cancelled || failed || !completed || signal || code === null
+            ? 1
+            : code,
         )
-    ) {
-      throw new Error("Unsupported snapshot path")
-    }
+      })
 
-    const destination = join(directory, path)
-    mkdirSync(dirname(destination), { recursive: true })
-    writeFileSync(destination, gitBytes(["cat-file", "blob", object]), {
-      flag: "wx",
+      if (cancelled) send("cancel")
     })
-    chmodSync(destination, mode === "100755" ? 0o755 : 0o644)
-    files.push(path)
+  } finally {
+    clearTimeout(deadline)
+    clearInterval(ancestryMonitor)
+    process.removeListener("SIGINT", cancel)
+    process.removeListener("SIGTERM", cancel)
+    process.stdout.removeListener("error", cancel)
+    process.stderr.removeListener("error", cancel)
   }
-
-  return files
-}
-
-async function checkSnapshot(tree: string) {
-  if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(tree)) {
-    throw new Error("Unsupported snapshot object ID")
-  }
-
-  const directory = temporaryDirectory("pomodoro-snapshot-")
-  const files = snapshotFiles(tree, directory)
-
-  const environment: NodeJS.ProcessEnv = {
-    ...configuration.isolated,
-    PWD: directory,
-    INIT_CWD: directory,
-    CARGO_TARGET_DIR: join(directory, "target"),
-  }
-
-  const toolchain = readFileSync(join(directory, "bun-toolchain.json"), "utf8")
-  const revision = /"revision"\s*:\s*"([a-f0-9]+)"/.exec(toolchain)?.[1]
-  const runtime = spawnSync("bun", ["--revision"], { encoding: "utf8" })
-
-  if (runtime.error) throw runtime.error
-
-  if (runtime.status !== 0 || !revision || !runtime.stdout.includes(revision)) {
-    throw new Error("The snapshot requires its pinned Bun revision")
-  }
-
-  console.info(`Checking isolated snapshot ${tree}`)
-  await checkCommand(
-    ["git", "init", "--quiet", "--initial-branch=snapshot", "--template="],
-    directory,
-    environment,
-  )
-  await checkCommand(
-    [
-      "git",
-      "config",
-      "--local",
-      "core.hooksPath",
-      join(directory, ".git/hooks"),
-    ],
-    directory,
-    environment,
-  )
-  await checkCommand(
-    ["bun", "install", "--frozen-lockfile"],
-    directory,
-    environment,
-  )
-
-  for (const workspace of [
-    { link: "apps/web/node_modules/@pomodoro/api", target: "packages/api" },
-    { link: "apps/web/node_modules/@pomodoro/env", target: "packages/env" },
-  ]) {
-    if (
-      realpathSync(join(directory, workspace.link)) !==
-      realpathSync(join(directory, workspace.target))
-    ) {
-      throw new Error("A workspace dependency resolves outside its snapshot")
-    }
-  }
-
-  console.info("Workspace links resolve inside the isolated snapshot")
-  const sourcePolicy = readFileSync(join(directory, "bunfig.toml"), "utf8")
-  const expandedPolicy = sourcePolicy.replaceAll('  "**/*.config.*",\n', "")
-
-  if (expandedPolicy.includes("**/*.config.*")) {
-    throw new Error("The snapshot config-file ignore could not be expanded")
-  }
-
-  const policy = join(directory, ".snapshot-policy.toml")
-  writeFileSync(policy, expandedPolicy, { flag: "wx" })
-
-  const sourceFiles = files.filter((path) =>
-    /\.(?:[cm]?js|jsx|ts|tsx)$/.test(path),
-  )
-
-  const formatFiles = files.filter((path) =>
-    /\.(?:[cm]?js|jsx|ts|tsx|css|html|json|jsonc|md|toml|ya?ml|webmanifest)$/.test(
-      path,
-    ),
-  )
-
-  const supported = new Set([
-    ".css",
-    ".html",
-    ".json",
-    ".jsonc",
-    ".md",
-    ".png",
-    ".rs",
-    ".svg",
-    ".toml",
-    ".ts",
-    ".tsx",
-    ".webmanifest",
-    ".yaml",
-    ".yml",
-    ".js",
-    ".jsx",
-    ".mjs",
-    ".cjs",
-  ])
-
-  for (const path of files) {
-    if (
-      !supported.has(extname(path)) &&
-      ![
-        ".gitignore",
-        ".lefthookrc",
-        ".env.example",
-        "bun.lock",
-        "Cargo.lock",
-      ].includes(path)
-    ) {
-      throw new Error(`No snapshot check mapping exists for ${path}`)
-    }
-  }
-
-  await checkCommand(["bun", "run", "typecheck"], directory, environment)
-
-  if (sourceFiles.length) {
-    await checkCommand(
-      [
-        "bun",
-        `--config=${policy}`,
-        "lint",
-        "--no-script",
-        "--no-ignore",
-        "--type-aware",
-        "--max-warnings=0",
-        ...sourceFiles.map((path) => `./${path}`),
-      ],
-      directory,
-      environment,
-    )
-  }
-
-  if (formatFiles.length) {
-    await checkCommand(
-      [
-        "bun",
-        `--config=${policy}`,
-        "fmt",
-        "--no-script",
-        "--check",
-        ...formatFiles.map((path) => `./${path}`),
-      ],
-      directory,
-      environment,
-    )
-  }
-
-  if (files.includes(".lefthookrc")) {
-    const rc = readFileSync(join(directory, ".lefthookrc"), "utf8")
-
-    if (/\r|[\t ]+\n/.test(rc) || !rc.endsWith("\n")) {
-      throw new Error("The hook rc has invalid whitespace")
-    }
-
-    await checkCommand(["sh", "-n", "./.lefthookrc"], directory, environment)
-  }
-
-  await checkCommand(
-    ["cargo", "fmt", "--all", "--", "--check"],
-    directory,
-    environment,
-  )
-  await checkCommand(
-    [
-      "cargo",
-      "clippy",
-      "--workspace",
-      "--all-targets",
-      "--locked",
-      "--",
-      "-D",
-      "warnings",
-    ],
-    directory,
-    environment,
-  )
 }
 
 try {
-  if (process.platform === "win32") {
-    throw new Error("The snapshot gate requires POSIX process-group support")
-  }
-
-  const mode = process.argv[2]
-
-  if (
-    resolve(gitText(["rev-parse", "--show-toplevel"])) !== resolve(repository)
-  ) {
-    throw new Error("Run the snapshot gate from the repository root")
-  }
-
-  let snapshots: string[]
-
-  if (mode === "--staged" && process.argv.length === 3)
-    snapshots = [stagedTree()]
-  else if (mode === "--pre-push" && process.argv.length === 3)
-    snapshots = pushedOriginCommits()
-  else if (
-    mode === "--commit" &&
-    process.argv.length === 4 &&
-    process.argv[3]
-  ) {
-    const object = process.argv[3]
-
-    if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(object)) {
-      throw new Error("A full commit object ID is required")
-    }
-
-    snapshots = [gitText(["rev-parse", "--verify", `${object}^{commit}`])]
-  } else throw new Error("Use --staged, --pre-push, or --commit with a full ID")
-
-  for (const snapshot of snapshots) await checkSnapshot(snapshot)
-} catch (cause) {
-  console.error(
-    cause instanceof Error ? cause.message : "Snapshot check failed",
-  )
+  process.exitCode = await runSnapshotOwner()
+} catch {
+  console.error("The snapshot owner could not complete its checks")
   process.exitCode = 1
-} finally {
-  await interruption
-
-  for (const directory of temporaryDirectories) {
-    rmSync(directory, { recursive: true, force: true })
-  }
 }

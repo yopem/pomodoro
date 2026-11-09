@@ -172,10 +172,13 @@ separate notice; neither path guarantees background delivery.
 
 Git hooks use isolated snapshots. Commit checks use the staged tree; pushes to
 `origin` check each distinct pushed commit, including new branches and tags. The
-current snapshot runner needs a POSIX shell and process groups. It fails closed
-on unsupported platforms, refs, source formats, or missing tooling. Native
-snapshot checks do not start application services or replace runtime QA. Run
-this command from the repository root to check the current committed tree:
+current snapshot runner needs Linux `/proc`, a POSIX shell and process groups.
+It fails closed on unsupported platforms, refs, source formats, or missing
+tooling. A separate worker owns temporary data and checks. Parent loss, signals
+and output errors cancel its work. A killed outer hook can return before the
+worker finishes cleanup; hard kills of the worker do not guarantee cleanup.
+Native snapshot checks do not start application services or replace runtime QA.
+Run this command from the repository root to check the current committed tree:
 
 ```sh
 bun scripts/check-snapshot.ts --commit "$(git rev-parse HEAD)"

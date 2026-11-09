@@ -11,6 +11,8 @@ export function readSnapshotEnvironment(repository: string) {
     cwd: repository,
     env: git,
     encoding: "utf8",
+    timeout: 10_000,
+    killSignal: "SIGKILL",
   })
 
   if (result.error) throw result.error
@@ -23,11 +25,14 @@ export function readSnapshotEnvironment(repository: string) {
   for (const name of Object.keys(isolated)) {
     if (
       name.startsWith("TURBO_") ||
+      name.startsWith("BUN_INTERNAL_") ||
       (name.startsWith("CARGO_") &&
         name !== "CARGO_HOME" &&
         !name.endsWith("_TOKEN")) ||
       [
         "NODE_OPTIONS",
+        "NODE_CHANNEL_FD",
+        "NODE_CHANNEL_SERIALIZATION_MODE",
         "BUN_OPTIONS",
         "BUN_PRELOAD",
         "RUSTUP_TOOLCHAIN",
