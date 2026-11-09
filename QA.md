@@ -2488,7 +2488,7 @@ awaits to its A/B epoch checks. QA-086–097 cover preparation, serialization,
 fences, crash boundaries, visibility and codec failure. No new runner, fixture
 library or backend endpoint is authorized or needed for this feature.
 
-### [ ] QA-086 — P0 — Journal preparation failure blocks dispatch
+### [x] QA-086 — P0 — Journal preparation failure blocks dispatch
 
 - **Purpose:** A failed durable preparation must not become a network mutation.
 - **Prerequisites:** Shared journal setup. One verified account; abort only the
@@ -2505,10 +2505,22 @@ library or backend endpoint is authorized or needed for this feature.
   hashes, UI feedback and the asserted result in
   `qa-artifacts/QA-086/journal-abort.txt`.
 - **Cleanup:** Restore the injected abort and the isolated task backup.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Passed on 2026-11-09, built f25b09c5, real localhost account.
+  Aborted the actual journal readwrite transaction before completion; no PUT or
+  import POST was emitted. Server workspace/revision 24 and sync stamp stayed
+  exact, local work remained once, and journal count stayed zero. Visible
+  Account feedback reported unavailable recovery storage and Retry sync. After
+  restoring native IndexedDB, the real retry was paused before forwarding to
+  inspect its committed save journal (expected revision 24). Exactly one PUT
+  then completed at revision 25, the task existed once, history stayed at two,
+  and journal count returned to zero. Logs were empty. Removed the owned fault
+  injection, listener and route, then deleted only the QA task through its
+  guarded UI confirmation: revision 26, 15 tasks and two history records.
+  Evidence is under `qa-artifacts/QA-086/preparation-abort/`. This proves the
+  transaction-abort branch, not native quota exhaustion or every storage
+  failure.
 
-### [ ] QA-087 — P0 — Committed preparation survives a pre-send reload
+### [x] QA-087 — P0 — Committed preparation survives a pre-send reload
 
 - **Purpose:** A committed journal is a barrier even if the browser closes
   before dispatch.
@@ -2526,10 +2538,20 @@ library or backend endpoint is authorized or needed for this feature.
   hashes, UI feedback and the asserted result in
   `qa-artifacts/QA-087/prepared-reload.txt`.
 - **Cleanup:** Remove the pause control and resolve only the isolated operation.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Passed on 2026-11-09, built f25b09c5, real localhost account. Held
+  the journal completion callback only after a native strict transaction
+  committed; prototype restoration occurred at that event. Confirmed one
+  committed record, server revision 26/title absent and zero PUTs. Reload
+  retained the exact original record and primary bytes and displayed explicit
+  uncertain-save review without dispatch. Following the separate QA-088 fixture
+  restore, Keep local version consent sent one revision-26 PUT, yielding
+  revision 27/title once/journal zero. Guarded UI deletion of only the owned
+  task restored 15 tasks/two history records at revision 28. No pause globals
+  remained after reload, and interaction logs were empty. Evidence:
+  `qa-artifacts/QA-087/current-authenticated/`. This is an instrumented
+  native-commit/reload boundary, not an OS power-loss test.
 
-### [ ] QA-088 — P0 — Corrupt journal remains preserved
+### [x] QA-088 — P0 — Corrupt journal remains preserved
 
 - **Purpose:** Invalid stored facts must not be treated as no pending request.
 - **Prerequisites:** Shared journal setup. One verified account with an isolated
@@ -2546,8 +2568,17 @@ library or backend endpoint is authorized or needed for this feature.
   hashes, UI feedback and the asserted result in
   `qa-artifacts/QA-088/corrupt-journal.txt`.
 - **Cleanup:** Restore the exact saved journal value and isolated workspace.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Passed on 2026-11-09, built f25b09c5, real localhost account.
+  Added only the owned `qaUnexpectedField` value to the backed-up pending save
+  using exact-record CAS. Reload displayed invalid/unsupported recovery
+  feedback. The malformed record and primary bytes stayed exact, server revision
+  26/tasks 15/title absent stayed unchanged, and zero PUTs were emitted.
+  Exact-fixture CAS restored the original record; reload again required review
+  rather than treating it as missing. The explicit QA-087 resolution and guarded
+  task deletion completed cleanup at revision 28. Logs were empty. Evidence:
+  `qa-artifacts/QA-088/current-authenticated/`. This covers the specified
+  unknown-field corruption, not arbitrary browser database damage or every
+  future codec.
 
 ### [ ] QA-089 — P0 — Unknown journal version fails closed
 
@@ -2588,8 +2619,16 @@ library or backend endpoint is authorized or needed for this feature.
   `qa-artifacts/QA-090/two-tab-lock.txt`.
 - **Cleanup:** Release held requests, remove listeners and close only the extra
   QA tab.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Pending full acceptance. Built f25b09c5 held A’s real successful
+  PUT response with its original save journal present. B added its own task
+  while A held the operation lock; no B PUT occurred, and the exact journal
+  stayed unchanged through 27.9 seconds. Closing only the queued owned peer
+  cancelled that tab’s wait. After A was released, it acknowledged revision 23
+  and saved the later local task at revision 24. Both titles existed once,
+  history stayed at two, and journal count was zero; interaction logs were
+  empty. Evidence is under `qa-artifacts/QA-090/current-authenticated/`.
+  Accessible queued/busy feedback was not inspected, so the full case remains
+  unchecked; this run does not prove every import or cancellation branch.
 
 ### [ ] QA-091 — P0 — Delayed storage events cannot upload a stale cache
 
