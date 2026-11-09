@@ -1,9 +1,0 @@
-{
-  "extends": "@yopem/typescript-config/base",
-  "compilerOptions": {
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-    "types": ["node"]
-  },
-  "include": ["./*.ts"]
-}

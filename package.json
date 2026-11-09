@@ -14,16 +14,14 @@
     "lint:fix": "turbo run lint:fix",
     "format:check": "turbo run format:check",
     "format:write": "turbo run format:write",
-    "typecheck": "bun check --no-script -p scripts/tsconfig.json && turbo run typecheck"
+    "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
-    "@types/node": "^24.19.2",
     "@yopem-ui/oxlint-plugin": "^0.1.2",
     "@yopem/eslint-plugin": "^0.1.0",
     "@yopem/typescript-config": "^0.2.5",
     "eslint-plugin-oxfmt": "^0.26.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "lefthook": "^2.2.2",
     "turbo": "^2.11.10"
   },
   "overrides": {

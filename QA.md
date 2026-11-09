@@ -3872,3 +3872,34 @@ not affected by this source-only change.
 - **Status:** Pending. Database availability recovered, but causal reproduction
   and a supervised control have not run. Do not label this an OOM or an issuer
   failure without evidence.
+
+### [ ] QA-123 — P1 — Remove snapshot hooks and Bun version locks
+
+- **Purpose:** Follow the user's request: no custom snapshot system, Bun version
+  pin or revision gate; retain only lint, format checks and typechecks in CI.
+- **Prerequisites:** Clean initial Git status; installed native-capable canary.
+  Preserve global Bun, app processes, browser, data and user-managed Git hooks.
+- **Inputs:** Current installed canary, existing Bun lockfile and the official
+  setup-bun action with `bun-version: canary`. Do not install a global runtime.
+- **Steps:**
+  1. Inspect and back up only this task's generated Lefthook pre-commit/pre-push
+     files, then remove them. Preserve any unrelated or custom hooks.
+  2. Remove the snapshot scripts/config/dependencies and script-only TS project.
+     Remove Bun metadata/package-manager pin and hardcoded container checks.
+  3. Verify Turbo infers Bun from the lockfile without requiring a version
+     declaration; all four existing workspace typechecks must still run.
+  4. Parse CI YAML and shell blocks. Inspect that setup selects canary and the
+     only check steps are Typecheck, Lint and Format check. Preserve strict
+     rules, zero-warning lint, nonwriting formats and Rust checks.
+  5. Run available static checks with the unchanged installed Bun. Search
+     maintained source/config/docs for active snapshot and Bun-pin references.
+     Do not push, start services, or run browser/database/build QA.
+- **Expected results:** Local commits/pushes no longer invoke the custom helper;
+  no fixed Bun version/revision is required. CI's quality rules remain intact.
+  No user files/data or global tools change; no new hook framework is added.
+- **Evidence:** `qa-artifacts/QA-123/`; preserve managed-hook backup, source
+  inspection, shell/YAML results and static command outputs. No credentials.
+- **Cleanup:** No app/data cleanup. Preserve user hooks and running services.
+- **Status:** Pending. Historical snapshot/pinned-runtime cases remain
+  historical evidence, not requirements or claimed passes for this new
+  configuration.

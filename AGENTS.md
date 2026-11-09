@@ -1153,36 +1153,19 @@ Add Polar only when a requested feature needs payments or subscriptions.
 - Keep deployment credentials and Alchemy state out of git. Follow the existing
   environment isolation and deployment approval rules before a live deploy.
 
-## Git hooks
+## Local and CI checks
 
-- Install a pinned Lefthook version and keep its configuration in the root
-  `lefthook.yml`. Use Lefthook as the Git hook manager. Preserve existing hook
-  behavior when migrating it.
-- On `pre-commit`, lint and check formatting for every applicable staged file.
-  Use the staged snapshot, not unstaged edits. Typecheck the full owning
-  projects and affected dependents so the staged changes are covered with
-  their real project configuration. Do not pass individual files to a
-  project-based typechecker as a substitute for project checking.
-- On `pre-push` to `origin`, run lint, format checks, and typechecks for the
-  full repository at each distinct pushed ref tip. Check the actual pushed
-  commits, not just the current working tree. Detect `origin` from the Git
-  hook's remote name or matching URL. Handle new branches, multiple refs, and
-  tags that point to commits; a deletion-only push has no snapshot to check.
-  Report unsupported refs instead of claiming that they passed.
-- Run checks against isolated snapshots or an equivalent safe method. Preserve
-  the index, unstaged and partially staged edits, untracked files, and pushed
-  commits. Use formatter check mode; do not rewrite files during a push. If a
-  commit hook applies fixes, protect partially staged changes and stage only
-  intended fixes. Do not silently add unrelated changes.
-- Route each file to the applicable tools. Handle added, changed, renamed, and
-  deleted paths; never pass deleted paths as existing files. Report unsupported
-  files that require checks and unavailable tool capabilities instead of
-  claiming coverage. A failed check blocks the commit or push. Keep full CI
-  checks enabled.
-- Run lint, format, and typecheck locally by default as well as in hooks.
+- Do not install Git hooks, Lefthook, or custom snapshot check scripts.
+  Preserve unrelated user-managed hooks. Do not gate commits or pushes on
+  a Bun version or revision.
+- CI runs only lint, format checks, and typechecks after tool/dependency setup.
+  Do not add builds, audits, contract drift, tests, or deployment to CI without
+  an explicit request. Keep failures visible; do not suppress diagnostics.
+- Run ordinary lint, format checks, and typechecks locally by default.
   Other QA follows the approval rules in Validation workflow.
-- Use Bun checks for the frontend and Rustfmt, Clippy, and Cargo checks for
-  Rust. Cover both workspaces when a shared change affects them.
+- Use native Bun for frontend checks and Rustfmt, Clippy, and Cargo checks
+  for Rust. Cover the owning workspaces and affected dependents.
+
 
 ## Validation workflow
 

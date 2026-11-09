@@ -81,7 +81,6 @@ Other platforms need a separately verified artifact; do not reuse these hashes.
 
 ```sh
 bun install --frozen-lockfile
-./node_modules/.bin/lefthook install
 test -e .env || cp .env.example .env
 chmod 600 .env
 ```
@@ -213,19 +212,10 @@ separate notice; neither path guarantees background delivery.
 
 ## Static checks
 
-Git hooks use isolated snapshots. Commit checks use the staged tree; pushes to
-`origin` check each distinct pushed commit, including new branches and tags. The
-current snapshot runner needs Linux `/proc`, a POSIX shell and process groups.
-It fails closed on unsupported platforms, refs, source formats, or missing
-tooling. A separate worker owns temporary data and checks. Parent loss, signals
-and output errors cancel its work. A killed outer hook can return before the
-worker finishes cleanup; hard kills of the worker do not guarantee cleanup.
-Native snapshot checks do not start application services or replace runtime QA.
-Run this command from the repository root to check the current committed tree:
-
-```sh
-bun scripts/check-snapshot.ts --commit "$(git rev-parse HEAD)"
-```
+There are no project-managed commit or push hooks. CI runs lint, format checks
+and typechecks. Existing checkouts must remove their old Lefthook-generated
+pre-commit/pre-push files after checking for user changes; preserve custom
+hooks.
 
 Individual existing checks:
 
