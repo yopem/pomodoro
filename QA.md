@@ -3437,3 +3437,18 @@ not affected by this source-only change.
   No user profile, tokens, cookies or authorization codes are in this evidence.
 - QA-015, QA-017, QA-054 and the durable-journal cases remain unchecked until
   their complete acceptance scenarios and cleanup have been inspected.
+
+### Known-pending accepted-save reload subcase
+
+- Source f2d264a, 2026-11-10, existing localhost project-group tab and real
+  user-completed session. QA-086 has partial accepted-save recovery evidence.
+- A one-shot route forwarded one UI task save to the real isolated API, received
+  200, and held the response without delivering it to the app. IndexedDB
+  inspection confirmed one request record while response was held.
+- Reload completed before releasing the held old response. After reload the task
+  appeared exactly once, server revision was 3 and journal count was 0. The
+  route was released and removed. Interaction logs were empty.
+- Evidence: `qa-artifacts/QA-086/current-authenticated/`. Three clearly named QA
+  tasks remain for subsequent recovery checks. Full QA-086 remains pending:
+  before-send abort, unaccepted requests, import and concurrent-edit branches
+  were not exercised. No cross-account or production HTTPS proof is implied.
