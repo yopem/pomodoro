@@ -208,9 +208,16 @@ function createAccountController(client: QueryClient) {
     userId: string,
     owner: WorkspaceOwner,
     expected: Workspace,
+    restoreMissingPrimary = false,
   ) {
-    if (!sameWorkspace(expected, authoritative(version, userId, owner)))
-      throw new LocalSaveChangedError()
+    const local = authoritative(version, userId, owner)
+
+    if (!restoreMissingPrimary && !readStoredSyncState(userId).cacheExists)
+      throw new Error(
+        "Local account data is missing. Restore a backup or use the account version",
+      )
+
+    if (!sameWorkspace(expected, local)) throw new LocalSaveChangedError()
   }
 
   function fail(error: Error) {
@@ -394,9 +401,18 @@ function createAccountController(client: QueryClient) {
     const hash = await hashWorkspace(response.workspace)
     const local = authoritative(version, record.accountId, owner)
     const localHash = await hashWorkspace(local)
-    assertBaseline(version, record.accountId, owner, local)
+    assertBaseline(
+      version,
+      record.accountId,
+      owner,
+      local,
+      choice.source === "server",
+    )
 
-    if (choice.source === "server" && localHash !== hash) {
+    if (
+      choice.source === "server" &&
+      (localHash !== hash || !readStoredSyncState(record.accountId).cacheExists)
+    ) {
       if (localHash !== choice.expectedLocalHash) {
         conflict(
           response,
@@ -486,6 +502,15 @@ function createAccountController(client: QueryClient) {
     version: number,
     owner: WorkspaceOwner,
   ) {
+    if (!readStoredSyncState(record.accountId).cacheExists) {
+      conflict(
+        response,
+        "Local account data is missing. Use the account version or restore a backup before recovery",
+      )
+
+      return
+    }
+
     const choice = record.resolution
 
     if (choice) {
@@ -555,20 +580,6 @@ function createAccountController(client: QueryClient) {
       if (!sameWorkspace(local, latest)) continue
       remote = response
 
-      if (localHash === remoteHash) {
-        await acknowledge(
-          userId,
-          version,
-          owner,
-          response,
-          remoteHash,
-          stored.stamp ? { expected: stored.stamp } : undefined,
-        )
-        settled(response)
-
-        return
-      }
-
       if (
         stored.stamp &&
         (stored.stamp.revision > response.revision ||
@@ -584,11 +595,30 @@ function createAccountController(client: QueryClient) {
         return
       }
 
+      if (localHash === remoteHash) {
+        if (!stored.cacheExists)
+          await replaceActiveWorkspace(
+            { expected: local, workspace: response.workspace },
+            { owner },
+          )
+
+        await acknowledge(
+          userId,
+          version,
+          owner,
+          response,
+          remoteHash,
+          stored.stamp ? { expected: stored.stamp } : undefined,
+        )
+        settled(response)
+
+        return
+      }
+
       const unchanged = !stored.invalid && stored.stamp?.hash === localHash
 
       const fresh =
         !stored.invalid &&
-        !stored.stamp &&
         !stored.cacheExists &&
         sameWorkspace(local, createEmptyWorkspace())
 
@@ -635,6 +665,7 @@ function createAccountController(client: QueryClient) {
     expectedRevision: number
     record: AccountJournal
     resolving: boolean
+    restoreMissingPrimary?: boolean
   }) {
     const hash = await hashWorkspace(input.workspace)
     assertBaseline(
@@ -642,6 +673,7 @@ function createAccountController(client: QueryClient) {
       input.userId,
       input.owner,
       input.expectedLocal,
+      input.restoreMissingPrimary,
     )
 
     const response = await client
@@ -657,6 +689,7 @@ function createAccountController(client: QueryClient) {
             input.userId,
             input.owner,
             input.expectedLocal,
+            input.restoreMissingPrimary,
           )
         },
       })
@@ -670,6 +703,11 @@ function createAccountController(client: QueryClient) {
 
     if (input.resolving) {
       await finishResolution(input.record, response, input.version, input.owner)
+
+      if (state.status === "conflict")
+        throw new Error(
+          "Local work changed before recovery finished. Review both versions again",
+        )
     } else {
       await acknowledge(
         input.userId,
@@ -868,9 +906,9 @@ function createAccountController(client: QueryClient) {
       !sameRequest(input.request, reference)
     )
       throw new Error("The conflict changed. Review it again")
-    assertBaseline(version, user.id, owner, expected)
+    assertBaseline(version, user.id, owner, expected, input.source === "server")
     const latest = await load(user.id)
-    assertBaseline(version, user.id, owner, expected)
+    assertBaseline(version, user.id, owner, expected, input.source === "server")
 
     if (
       latest.revision !== input.expectedRevision ||
@@ -894,7 +932,7 @@ function createAccountController(client: QueryClient) {
       hashWorkspace(expected),
     ])
 
-    assertBaseline(version, user.id, owner, expected)
+    assertBaseline(version, user.id, owner, expected, input.source === "server")
     const previous = journal
 
     const resolution = {
@@ -940,6 +978,7 @@ function createAccountController(client: QueryClient) {
         expectedRevision: latest.revision,
         record,
         resolving: true,
+        restoreMissingPrimary: input.source === "server",
       })
       await updateGuest(user.id, version, owner)
     } catch (cause) {

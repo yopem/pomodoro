@@ -2872,3 +2872,74 @@ library or backend endpoint is authorized or needed for this feature.
     captured-user server authorization → real 204; stale callback → no account
     restoration; primary/journal retention → unchanged digests.
   - **Status:** Pending. No runtime result is recorded.
+
+### QA-103 — Missing primary data cannot retire a pending save
+
+- [ ] **P0 — Pending.** A confirmed server write and a saved request must not
+      turn a missing local cache into an automatic empty account overwrite.
+  - **Purpose:** Preserve account data when primary local storage is removed
+    while an uncertain save remains in IndexedDB.
+  - **Prerequisites:** Shared owned HTTPS setup, a real permitted isolated
+    account A, no other owned writers, an idle timer, and request interception
+    that forwards each actual save at most once. Live identity access remains an
+    external prerequisite. Do not create fake authenticated sessions.
+  - **Inputs:** A task named `QA missing-cache history`, estimate 2. Record the
+    real account ID, primary key, revision, and saved journal reference.
+  - **Steps:**
+    1. Save the task through the UI. Intercept a later estimate change to 3,
+       forward its actual save once, and hold the real response after the server
+       commits. Confirm the saved request exists before closing that owned tab.
+       Do not fabricate a successful response.
+    2. From another owned tab, remove only A's primary workspace key. Retain the
+       sync stamp and IndexedDB request. Reload with A's real session.
+    3. Inspect recovery status and all outgoing workspace writes. Attempt Keep
+       local version while the primary is missing.
+    4. Select Use account version and confirm the real CAS fence. Inspect the
+       restored primary, saved task, sync stamp, and journal.
+  - **Expected results:** No empty workspace is sent automatically. The original
+    request remains until explicit recovery completes. Keep local version fails
+    with a missing-data message and makes no write. Account recovery retains the
+    task and estimate 3, restores primary storage, and removes the exact journal
+    only after the real fence and stamp succeed. A fresh account with an empty
+    server workspace must also create its primary cache before it reports saved
+    state.
+  - **Evidence:** Save sanitized request traces, before/after digests, actual
+    revision changes, recovery status, and browser logs under
+    `qa-artifacts/QA-103/`. Do not record cookie or token values.
+  - **Cleanup:** Remove only owned interceptors and records after their owner
+    approves. Preserve unexpected recovery data and restore any retained
+    isolated backup before deleting the case's data.
+  - **Coverage:** Journal recovery and final dispatch → missing primary is not
+    an intentional empty edit; explicit account choice → restored cache.
+  - **Status:** Pending. No runtime result is recorded.
+
+### QA-104 — Restore a missing cache from the account
+
+- [ ] **P0 — Pending.** Restore a missing primary cache when a valid old sync
+      stamp remains but no request is pending.
+  - **Purpose:** Prevent an old stamp from making an absent cache look like a
+    new empty edit.
+  - **Prerequisites:** Shared owned HTTPS setup, a real permitted isolated
+    account A, no pending journal request, an idle timer, and a saved nonempty
+    account. Live identity access remains an external prerequisite.
+  - **Inputs:** A saved task named `QA retained server task`, estimate 2. Record
+    its real ID, server revision, primary key, and stamp digest.
+  - **Steps:**
+    1. Wait for saved status. Inspect the real server response and verify that
+       no account request is pending.
+    2. Remove only A's primary workspace key from an owned tab. Keep its valid
+       sync stamp. Reload the app with A's real session.
+    3. Inspect the account GET, restored primary, visible task, stamp, and every
+       outgoing save or import request.
+  - **Expected results:** The task and estimate 2 return from the verified
+    account response. The primary is restored before saved status. No empty PUT
+    or import is sent and the server revision does not change. A newer local
+    stamp or a same-revision hash mismatch must still enter recovery, not
+    silently accept a rollback.
+  - **Evidence:** Save sanitized request traces, task IDs, revision, primary and
+    stamp digests, status, and logs under `qa-artifacts/QA-104/`.
+  - **Cleanup:** Remove only the isolated case's task after approval and retain
+    evidence. Do not remove other account or guest storage.
+  - **Coverage:** Empty local cache plus retained stamp → account pull rather
+    than autosave; normal rollback protections → unchanged.
+  - **Status:** Pending. No runtime result is recorded.
