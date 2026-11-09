@@ -2316,3 +2316,124 @@ do not survive a full page reload, which can require a new conflict review.
 - **Cleanup:** Remove only case records after saving evidence, restore case
   settings, and stop only its timers. Do not erase either primary workspace.
 - **Status:** pending; authenticated runtime prerequisites remain external.
+
+### [ ] QA-081 — P1 — Failed notification delivery is visible
+
+- **Purpose:** Distinguish granted permission from a notification that could not
+  be shown. Keep stale platform responses out of a newer workspace.
+- **Prerequisites:** Shared owned HTTPS setup and candidate worker; saved guest
+  fixture; temporary granted permission in the owned profile.
+- **Inputs:** One real QA completion, target-local rejection of its native show
+  call, and a later successful completion.
+- **Steps:** 1. Reject only the candidate tab's persistent show call and reach
+  the real deadline. 2. Inspect Timer and Focus for an accessible failure
+  status. 3. Restore the native method and complete a later QA interval. 4.
+  Resolve an older delayed rejection after that success. 5. Repeat the late
+  result across the approved workspace change from QA-077 when available.
+- **Expected results:** The durable completion survives. Permission is not
+  falsely described as unsupported. A polite visible status reports the failed
+  delivery without private data. A newer success clears it; an older response
+  cannot replace newer feedback or show an A-owned error in B. Notifications
+  disabled in settings do not produce a warning about wanted delivery.
+- **Evidence:** Save observed status text, native call order, completion data,
+  permission state and logs under `qa-artifacts/QA-081/`.
+- **Cleanup:** Remove target-local interception, close case notifications,
+  restore permission and settings, and preserve other storage.
+- **Status:** pending; real mobile delivery and owner switches need their stated
+  platform and identity prerequisites.
+
+### [ ] QA-082 — P1 — Recovered timer offers sound activation
+
+- **Purpose:** Restore sound through an explicit gesture after a page reload,
+  without pausing, resetting, or replacing the recovered run.
+- **Prerequisites:** Shared owned profile; saved guest fixture; supported Web
+  Audio API; a real running QA timer with an enabled bell alarm. Background
+  sound may also be enabled for a focus phase. No other tab handles completion.
+- **Inputs:** One-minute focus, bell volume 50, repetition 1, background sound
+  volume 50; an existing run with enough time left after reload.
+- **Steps:** 1. Start through the actual control and save run identifiers. 2.
+  Reload before the deadline without another Start gesture. 3. Inspect the sound
+  readiness message. 4. Activate `Enable sound` by keyboard. 5. Inspect the
+  native context state, focused control, timer data and completion.
+- **Expected results:** A recovered countdown does not claim ready sound before
+  the context is running. The explicit control resumes or creates audio inside
+  that gesture, keeps focus, and announces readiness. Current focus sound can
+  resume, the run identifiers and deadline stay unchanged, and exactly one
+  durable completion remains. Device audibility is not inferred only from a
+  running context; record native scheduling and actual audible output
+  separately.
+- **Evidence:** Save context-state transitions, run data, keyboard focus,
+  scheduled-node observations, logs and any inspected audio capture under
+  `qa-artifacts/QA-082/`. State when physical output cannot be confirmed.
+- **Cleanup:** Restore original settings and remove only target-local native API
+  observation. Keep the fixture backup; stop only case timers.
+- **Status:** pending; no automatic autoplay or sleeping-page guarantee.
+
+### [ ] QA-083 — P1 — A missed alarm does not replay later
+
+- **Purpose:** Do not queue a completion alarm in a suspended audio context for
+  playback after a later unrelated click.
+- **Prerequisites:** QA-082 setup; target-local observation captures the real
+  context without changing native methods. The context can be suspended.
+- **Inputs:** Enabled one-minute alarm, a suspended context, then a later
+  explicit activation while the timer is idle or a new run is active.
+- **Steps:** 1. Suspend the captured native context before a real deadline. 2.
+  Let completion persist. 3. Inspect missed-alarm status and scheduling. 4.
+  Enable sound through the real control. 5. Observe the resumed graph and next
+  run without replaying the completed run's alarm.
+- **Expected results:** Completion persists once. No alarm nodes are newly
+  scheduled while the context is not running, and pending repeats are stopped on
+  suspension. The missed alarm is reported. Later activation clears the relevant
+  missed notice only after success and never replays an old alarm.
+- **Evidence:** Save native state/node scheduling and the durable session ID
+  under `qa-artifacts/QA-083/`; include inspected audio capture if available.
+- **Cleanup:** Resume or close only the case context through supported controls,
+  restore settings, and remove native observation. Do not clear guest storage.
+- **Status:** pending.
+
+### [ ] QA-084 — P0 — Old sound callbacks cannot affect a new owner
+
+- **Purpose:** Keep audio activation, resume results and cleanup bound to the
+  workspace and context that initiated them.
+- **Prerequisites:** QA-034/035 approved identities, shared setup, and a target-
+  local delayed resume result. If identities are unavailable, record the block.
+- **Inputs:** A's running timer and retained Enable sound handler; B's distinct
+  settings; A→B→A generations; old resume success and rejection.
+- **Steps:** 1. Retain A's control callback and delay its resume result. 2.
+  Switch verified ownership. 3. Invoke the old callback and resolve or reject
+  its old promise. 4. Inspect B's context, sound status and stored workspace. 5.
+  Repeat the generation change and perform one fresh current-owner action.
+- **Expected results:** Old callbacks construct, resume, synchronize and play
+  nothing for B. Old events or promises cannot reset B's status or apply A's
+  settings. Closing A invalidates its listener before cleanup. New B activation
+  still works. An obsolete timer baseline in the same owner also cannot unlock
+  sound as a side effect of a stale Start request.
+- **Evidence:** Save owner/context lifecycle, native call counts, current
+  status, storage comparisons and logs under `qa-artifacts/QA-084/`.
+- **Cleanup:** Remove interception and restore only case resources and settings.
+- **Status:** pending; live identity verification is an external prerequisite.
+
+### [ ] QA-085 — P1 — Audio failure does not block a timer
+
+- **Purpose:** Treat optional browser audio failure as feedback, not a failed
+  timer write. Keep disabled sound distinct from blocked output.
+- **Prerequisites:** Shared isolated profile and saved fixture; target-local
+  interception can simulate missing API, constructor failure, resume failure,
+  and node-creation failure without changing production code.
+- **Inputs:** Start/Resume with bell volume 50; each failure separately; alarm
+  `none` and focus sound `none` as the disabled-output variation.
+- **Steps:** 1. Apply one platform failure and use the actual Start control. 2.
+  Inspect deadline, run ID and visible sound status. 3. Restore the platform and
+  retry sound by its explicit control. 4. Repeat the remaining failures, then
+  use both disabled sound preferences.
+- **Expected results:** Valid timer actions persist and advance despite audio
+  failure. Unsupported API is identified without a misleading retry. Recoverable
+  failure is visible; cleanup continues across a failed node stop. Resume
+  rejection does not become an unhandled promise. Disabled sound has no failed-
+  playback warning or forced permission gesture. Stored records stay intact.
+- **Evidence:** Save timer/context data, visible statuses, expected generic
+  warnings, focus and native call order under `qa-artifacts/QA-085/`.
+- **Cleanup:** Restore every intercepted descriptor and original preference.
+  Stop only case timers and keep other storage unchanged.
+- **Status:** pending; intercepted failures are not proof of native-device
+  audibility or multi-tab alarm routing.
