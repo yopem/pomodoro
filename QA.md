@@ -3629,3 +3629,36 @@ not affected by this source-only change.
   nevertheless failed. A source repair and fresh causal rerun are required.
 - Output-write causality, worker SIGINT status and final-completion race were
   not established. Prior partial signal successes do not override this failure.
+
+### [ ] QA-119 — P1 — Simultaneous new tasks converge across account tabs
+
+- **Purpose:** Investigate the observed uncertain-save review after two
+  current-version tabs add distinct tasks, without assuming a network rejection
+  or discarding a genuine pending request.
+- **Prerequisites:** Existing project-group browser and one additional owned QA
+  tab, same real isolated account, matching current artifact and baseline.
+  Preserve journal facts and current local work before any repair.
+- **Inputs:** QA concurrent tab A and QA concurrent tab B; distinct new-task
+  IDs. At observation server revision 17 held seven QA tasks; primary had nine.
+- **Steps:**
+  1. Open Add task in both tabs before either saves. Enter one distinct title
+     per tab and activate both Save task controls concurrently.
+  2. Capture actual mutation dispatch, operation-lock/journal ordering and
+     local/server counts without logging cookies or personal identifiers.
+  3. Determine whether a still-owned preparation was definitely never sent, or
+     whether network uncertainty requires review. Exercise the legitimate
+     recovery path and repeat after a narrowly scoped fix if needed.
+- **Expected results:** Both new tasks stay present exactly once. Operation
+  locks and immutable journal ownership remain enforced. A proven unsent
+  preparation can be retired only by its owner through exact CAS before retry;
+  genuinely uncertain requests must retain facts and explicit review. Safe
+  autosync should not be stranded merely by another local edit.
+- **Evidence:** `qa-artifacts/QA-119/`; save dispatch order, safe hashes/counts,
+  revisions, record identity comparisons, accessible feedback and logs.
+- **Cleanup:** Release only owned interceptors and close only the temporary peer
+  tab after recording results. Retain or remove only guarded QA records.
+- **Status:** Failed usability subcase on f2d264a: local primary retained both
+  additions (nine tasks), server stayed at revision 17 (seven tasks), and a
+  revision-17 save journal triggered uncertain review. Neither task was lost.
+  Dispatch causality and precise root cause remain unproved. QA-090 active
+  request lock serialization is separate and remains pending.
