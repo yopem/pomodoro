@@ -443,8 +443,9 @@ export function ImportContent({
       <DialogHeader>
         <DialogTitle>Import guest work</DialogTitle>
         <DialogDescription>
-          Import the prepared guest work into this account. The guest source
-          stays on this device.
+          Import guest projects, tasks, templates, and focus history. This
+          account keeps its timer and settings unless its workspace is the empty
+          default. The guest source stays on this device.
         </DialogDescription>
       </DialogHeader>
       <DialogPanel>

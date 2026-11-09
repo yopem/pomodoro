@@ -2286,3 +2286,33 @@ do not survive a full page reload, which can require a new conflict review.
 - **Cleanup:** Remove all case interception, close notifications, restore
   permission and saved settings, and preserve unrelated data.
 - **Status:** pending. No new test library or test runner is required.
+
+### [ ] QA-080 — P1 — Guest import states its timer and settings scope
+
+- **Purpose:** Explain the existing import policy before consent. Do not imply
+  that an active guest timer or preferences replace a nondefault account.
+- **Affected files:**
+  `apps/web/src/features/account/components/account-controls.tsx`; existing
+  `crates/db/src/workspaces.rs` import rules remain unchanged.
+- **Prerequisites:** Shared owned setup and an approved authenticated identity.
+  Preserve the isolated guest and account fixtures. If live issuer access is
+  unavailable, record the block rather than creating a fake session.
+- **Inputs:** Guest project `Guest import scope`, task `Guest active run`, focus
+  duration 5 minutes and a started run. A nondefault account has task
+  `Account active run`, focus duration 10 minutes and a separate running timer.
+- **Steps:** 1. Prepare those isolated workspaces through the UI. 2. Open
+  Account → Import guest work. 3. Inspect the policy text before confirming. 4.
+  Confirm within the account timer's duration. 5. Compare the imported records,
+  account settings and timer identifiers, and untouched guest source.
+- **Expected results:** The dialog identifies projects, tasks, templates and
+  focus history as the merged records. It states that account settings and timer
+  stay unchanged unless the workspace matches the empty default. The guest
+  source remains on this device. Imported records exist, while the nondefault
+  account's settings, run ID, start time and deadline stay intact. Natural
+  remaining time may decrease; the import does not reset that timer.
+- **Evidence:** Save the disclosure, sanitized before/after workspace data,
+  request result and logs under `qa-artifacts/QA-080/`. Record the source
+  revision.
+- **Cleanup:** Remove only case records after saving evidence, restore case
+  settings, and stop only its timers. Do not erase either primary workspace.
+- **Status:** pending; authenticated runtime prerequisites remain external.
