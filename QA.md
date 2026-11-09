@@ -2735,3 +2735,26 @@ library or backend endpoint is authorized or needed for this feature.
   controls.
 - **Status:** pending; the candidate and live-identity prerequisites must be
   established before execution. No result is claimed from this plan.
+
+### [ ] QA-098 — P1 — Disabled alerts cancel a deferred delivery
+
+- **Purpose:** Do not revive an old notification when alerts are disabled and
+  re-enabled before a pending worker lookup completes. Clear stale feedback.
+- **Prerequisites:** Owned guest QA origin, active final-candidate worker,
+  granted notification permission and a saved guest backup. Live identities are
+  not required. Use target-local interception only and record revision.
+- **Inputs:** One-minute focus, notifications enabled, and a deferred real
+  completion lookup from `getRegistration("/")`.
+- **Steps:** 1. Start the real one-minute focus and hold only its registration
+  lookup at completion. 2. Save notifications off in Settings, then save them on
+  again without changing workspace identity. 3. Release the old lookup and
+  inspect native delivery calls and feedback. 4. Reach a new real completion
+  with ordinary lookup restored.
+- **Expected results:** The old attempt makes no worker or desktop delivery call
+  and cannot publish a late failure. The fresh completion can attempt delivery.
+  Only intended settings and real timer transitions affect storage.
+- **Evidence:** Save controlled call counts, notification/status observations,
+  expected storage changes and logs in `qa-artifacts/QA-098/`.
+- **Cleanup:** Restore native lookup, original permission and guest settings;
+  dismiss only case-created notifications. Preserve unrelated browser state.
+- **Status:** pending; no execution or native delivery result is claimed.

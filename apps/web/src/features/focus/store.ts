@@ -76,6 +76,19 @@ const listeners = new Set<() => void>()
 const completionListeners = new Set<(phase: Timer["phase"]) => void>()
 
 function publish(next: Omit<FocusSnapshot, "identity" | "owner">) {
+  const notificationsWereAvailable =
+    snapshot.hydrated &&
+    snapshot.error === null &&
+    snapshot.workspace.settings.notifications
+
+  if (
+    notificationsWereAvailable &&
+    (!next.hydrated ||
+      next.error !== null ||
+      !next.workspace.settings.notifications)
+  )
+    clearFocusNotificationIssue()
+
   snapshot = {
     ...next,
     identity: activeOwner.identity,
