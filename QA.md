@@ -15,13 +15,16 @@ database, and migration crates. HTTP handlers, authentication, persistence, and
 account controls are implemented in source. Their compilation does not prove
 that services, issuer integration, or browser workflows work at runtime.
 
-Use `http://127.0.0.1:13001` for web QA. The required backend address is
-`http://127.0.0.1:18001`; web proxies `/api`, `/auth`, `/openapi.json`,
-`/health`, and `/ready` to it. The owned web dev process is already running
-on 13001. Check listeners before starting any service. Do not start a second web
-server or change its port. Read-only layout checks use the existing app origin.
-Use `http://localhost:13001` for new guest QA records so browser storage stays
-separate from the user's `127.0.0.1` workspace. Do not clear user storage.
+Use the owned production-like HTTPS origin `https://pomodoro-qa.localhost:13001`
+for current browser QA. Its edge routes backend requests to the owned API at
+`127.0.0.1:18001` and other requests to the copied standalone SSR artifact at
+`127.0.0.2:13001`. The former development server is stopped. The browser profile
+and CA trust are temporary and owned by QA. Read
+`qa-artifacts/runtime/context.json` and current progress notes before using any
+process. Do not print its private environment values. Check listeners before
+starting a service. Do not start a second web server, change the project ports,
+install global trust, or clear user browser storage. Use only the owned guest
+fixture or a new isolated QA profile for writes.
 
 The existing PostgreSQL listener on 5432 belongs to another project. Do not
 connect to it, stop it, or use its volumes. Database QA requires a new local
@@ -150,6 +153,7 @@ actual result, and evidence path when a case runs.
 | Build, lazy routes and production containers         | QA-069, QA-070, QA-072                         |
 | Explicit trusted proxy peers                         | QA-071                                         |
 | Locked dependency advisories                         | QA-074                                         |
+| Persistent notifications and timer activation        | QA-076–079                                     |
 
 Payments are not requested. The requested capabilities have no paid tier.
 External task integrations, webhooks, native apps, and public rankings are not
@@ -163,8 +167,9 @@ application requests, not guessed payloads.
 
 These cases define expected behavior before source implementation. Exact route,
 control, contract and command mappings must be finalized from the implementation
-before execution. Application QA is not approved. Cases that require missing
-implementation or resources remain pending, not passed.
+before execution. Application QA is approved only for owned isolated resources.
+Cases that require missing implementation or resources remain pending, not
+passed.
 
 ### [ ] QA-004 — P1 — Guest workspace survives reload
 
@@ -2183,3 +2188,101 @@ do not survive a full page reload, which can require a new conflict review.
   long-title, and form matrix remains unrun. An initial report-heading locator
   and a compact-route navigation snapshot failed; corrected settled checks
   passed.
+
+### [ ] QA-076 — P1 — Persistent completion notification
+
+- **Purpose:** Deliver a completion through the active service worker on a
+  browser that does not permit the desktop Notification constructor.
+- **Affected files:** focus notifications and store, settings permission
+  control, and `apps/web/src/service-worker/sw.ts`.
+- **Prerequisites:** Shared owned HTTPS setup; the candidate worker is active.
+  Record and temporarily grant notification permission only in the owned
+  profile. Save the guest fixture and notification settings before changes.
+- **Inputs:** The existing paused one-minute QA break; notifications enabled.
+  Expected title `Timer complete` and body `Break time is complete.`
+- **Steps:** 1. Save notification settings through Settings. 2. Resume the
+  paused break through Timer. 3. Let its real deadline expire once. 4. Inspect
+  the active registration's notifications and the visible timer. 5. Reload and
+  confirm the same break did not create another completion notification.
+- **Expected results:** One persistent notification has the expected generic
+  title and body. Break completion does not add focus history or task counts.
+  Delivery does not call the unsupported constructor or produce an unhandled
+  rejection. Permission is never requested automatically.
+- **Evidence:** Save sanitized registration notification details, timer/history
+  comparisons, logs, worker state, and source revision under
+  `qa-artifacts/QA-076/`. Actual mobile-device delivery remains distinct from a
+  desktop browser using the persistent-notification path.
+- **Cleanup:** Close only case notifications. Restore original permission and
+  notification settings. Keep the saved fixture and evidence.
+- **Status:** pending. No runtime delivery is claimed by source review.
+
+### [ ] QA-077 — P0 — Deferred notification keeps its workspace owner
+
+- **Purpose:** Do not deliver an old workspace reminder or completion after an
+  account or owner-generation change while service-worker lookup is pending.
+- **Prerequisites:** Shared setup; two approved isolated identities and
+  authenticated workflows from QA-034/035. Notification permission is granted.
+  If live identities are unavailable, record the block; do not bypass auth.
+- **Inputs:** A one-minute timer owned by identity A; identity B; an A→B→A
+  generation change; a delayed service-worker registration lookup.
+- **Steps:** 1. Delay registration lookup with target-local browser tooling. 2.
+  Reach a real A-owned reminder or completion. 3. Change the verified workspace
+  before lookup resolves. 4. Release the lookup. 5. Inspect notifications and
+  both stored workspaces. Repeat for the generation change.
+- **Expected results:** The old callback dispatches neither persistent nor
+  desktop notifications. It does not write to B or mark B's timer complete. A
+  fresh operation from the current owner still works. Revoking permission while
+  lookup is pending also prevents dispatch.
+- **Evidence:** Save owner-generation observations, redacted notification
+  details, storage comparisons, and logs under `qa-artifacts/QA-077/`.
+- **Cleanup:** Remove only target-local interception, close case notifications,
+  and restore original permission. Preserve all other browser state.
+- **Status:** pending; approved live identity prerequisites remain external.
+
+### [ ] QA-078 — P1 — Notification opens the timer without losing a form
+
+- **Purpose:** Return to a current timer when a persistent notification is
+  activated. Do not navigate an unrelated editor away from its unsaved values.
+- **Prerequisites:** QA-076 produced a real persistent notification. The
+  candidate worker is active and the owned timer tab remains open.
+- **Inputs:** Existing Timer or `/focus` tab, another Settings tab with an
+  unsaved reminder value `3`, and the real completion notification.
+- **Steps:** 1. Open the independent settings draft without saving. 2. Activate
+  the real OS/browser notification. 3. Inspect the focused client, URL,
+  notification list, and the untouched settings draft.
+- **Expected results:** The notification closes. An existing timer client gains
+  focus without navigation or another timer tab. The other form keeps its
+  unsaved value and no workspace write occurs. If no timer client exists, one
+  same-origin root timer opens; the settings draft remains open.
+- **Evidence:** Save native activation evidence, client URLs and focus, logs,
+  and before/after draft and workspace observations under
+  `qa-artifacts/QA-078/`. Synthetic untrusted events do not establish native
+  notification activation.
+- **Cleanup:** Close only the case-created extra tab and notification. Discard
+  the unsaved settings draft without saving. Restore permission.
+- **Status:** pending; native notification activation needs a capable platform.
+
+### [ ] QA-079 — P1 — Desktop notification fallback and delivery errors
+
+- **Purpose:** Keep desktop delivery when no active worker is available, and
+  contain platform failures without corrupting timer completion.
+- **Prerequisites:** Shared isolated profile; saved fixture; temporary granted
+  notification permission; target-local platform interception only.
+- **Inputs:** No active registration, a rejected registration lookup, a rejected
+  persistent show call, denied/default permission, and unsupported Notification.
+- **Steps:** 1. Complete an owned QA interval with no active registration and
+  inspect the desktop notification. 2. Repeat with a lookup rejection. 3. With
+  an active worker, reject its show call and inspect the resulting warning and
+  stored completion. 4. Repeat the permission guard variations.
+- **Expected results:** Missing or inaccessible registration uses the desktop
+  path where supported. A selected worker's show rejection does not trigger a
+  second path or unhandled rejection. Completion remains durable once. No
+  notification dispatch or automatic permission prompt occurs without granted
+  permission. The explicit settings button can request permission again.
+- **Evidence:** Save intercepted call counts, real notification observations,
+  expected generic warnings, and timer/history data under
+  `qa-artifacts/QA-079/`. Separate intercepted failure evidence from native
+  platform acceptance.
+- **Cleanup:** Remove all case interception, close notifications, restore
+  permission and saved settings, and preserve unrelated data.
+- **Status:** pending. No new test library or test runner is required.
