@@ -12,6 +12,7 @@ import {
 } from "@/features/focus/audio"
 import {
   enableTimerSound,
+  useFocusSnapshot,
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { useEventCallback } from "@/hooks/use-event-callback"
@@ -20,7 +21,18 @@ type AudioAvailability = ReturnType<
   typeof getFocusAudioSnapshot
 >["availability"]
 
-function soundStatus(wanted: boolean, availability: AudioAvailability) {
+function soundStatus({
+  wanted,
+  workspaceReady,
+  availability,
+}: {
+  wanted: boolean
+  workspaceReady: boolean
+  availability: AudioAvailability
+}) {
+  if (!workspaceReady)
+    return "Load or restore workspace data before enabling sound."
+
   if (!wanted) return "Sound is off."
 
   if (availability === "ready") return "Sound is ready in this tab."
@@ -43,6 +55,10 @@ export function TimerSound({
 }) {
   const owner = useWorkspaceMutationOwner()
 
+  const workspaceReady = useFocusSnapshot(
+    (focus) => focus.hydrated && focus.error === null,
+  )
+
   const audio = useSyncExternalStore(
     subscribeFocusAudio,
     getFocusAudioSnapshot,
@@ -52,6 +68,8 @@ export function TimerSound({
   const [requested, setRequested] = useState(false)
 
   const enable = useEventCallback(() => {
+    if (!workspaceReady) return
+
     setRequested(true)
 
     if (!enableTimerSound({ expected: timer }, { owner })) setRequested(false)
@@ -67,10 +85,13 @@ export function TimerSound({
 
   const wanted = alarmWanted || backgroundWanted
   const visible = active || audio.missed || requested
-  const status = visible ? soundStatus(wanted, audio.availability) : ""
+
+  const status = visible
+    ? soundStatus({ wanted, workspaceReady, availability: audio.availability })
+    : ""
 
   const canEnable =
-    active &&
+    visible &&
     wanted &&
     audio.availability !== "unsupported" &&
     (audio.availability !== "ready" || requested)
@@ -78,7 +99,12 @@ export function TimerSound({
   return (
     <Stack layout="centered" spacing="compact">
       {canEnable && (
-        <Button variant="outline" size="xl" onClick={enable}>
+        <Button
+          variant="outline"
+          size="xl"
+          onClick={enable}
+          disabled={!workspaceReady}
+        >
           Enable sound
         </Button>
       )}

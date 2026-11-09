@@ -76,16 +76,15 @@ const listeners = new Set<() => void>()
 const completionListeners = new Set<(phase: Timer["phase"]) => void>()
 
 function publish(next: Omit<FocusSnapshot, "identity" | "owner">) {
+  const workspaceWasReady = snapshot.hydrated && snapshot.error === null
+  const workspaceIsReady = next.hydrated && next.error === null
+
   const notificationsWereAvailable =
-    snapshot.hydrated &&
-    snapshot.error === null &&
-    snapshot.workspace.settings.notifications
+    workspaceWasReady && snapshot.workspace.settings.notifications
 
   if (
     notificationsWereAvailable &&
-    (!next.hydrated ||
-      next.error !== null ||
-      !next.workspace.settings.notifications)
+    (!workspaceIsReady || !next.workspace.settings.notifications)
   )
     clearFocusNotificationIssue()
 
@@ -96,10 +95,11 @@ function publish(next: Omit<FocusSnapshot, "identity" | "owner">) {
   }
 
   try {
+    if (workspaceWasReady && !workspaceIsReady) closeFocusAudio()
+
     syncFocusAudio({
       running:
-        next.hydrated &&
-        !next.error &&
+        workspaceIsReady &&
         next.workspace.timer.phase === "focus" &&
         next.workspace.timer.deadline_ms !== null,
       settings: next.workspace.settings,
