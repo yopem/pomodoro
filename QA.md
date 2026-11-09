@@ -3489,3 +3489,34 @@ not affected by this source-only change.
   exercises actual server divergence and account-choice confirmation on one
   identity, not a real second-device or cross-account switch. Full QA-017
   remains pending.
+
+## Authenticated import and report durability subcases
+
+- Web f2d264a, real isolated localhost session, device local date 2026-11-09.
+  Earlier fixture task names end in 2026-11-10 as literal safe input strings;
+  that suffix does not represent the observed local execution date.
+- QA-018 HTTP subcase: importing a canonical guest workspace with one new QA
+  task returned 200 and revision 7 from revision 6. Exact import-ID/payload/
+  revision replay returned 200 at revision 7, with one imported task. Reusing
+  the ID with changed content returned 409 and a matching request ID; the
+  original note, settings, timer and revision stayed unchanged. Sync now loaded
+  the imported task into the app. UI guest preparation, uncertain import reload
+  and two-account cases are still pending. Evidence:
+  `qa-artifacts/QA-018/current-authenticated/`.
+- QA-044 UI subcase: added two 25-minute Unicode-named QA history records dated
+  local today 2026-11-09 and yesterday 2026-11-08. Year reports show 50 minutes,
+  two active days and a two-day streak. Authenticated server reads returned two
+  sessions totalling 3000 seconds at revision 9. Full browser reload and then
+  restart of only the owned isolated API retained the session, IDs/history and
+  report values. No database restart or user settings change was involved.
+  Evidence: `qa-artifacts/QA-044/current-authenticated/`. New-device acceptance
+  is separate; this case remains unchecked.
+- QA-104 missing-cache subcase: saved the current account primary value in
+  browser-memory state, removed only that account primary localStorage key, and
+  reloaded. Verified remote data repopulated the primary exactly: five QA tasks,
+  two sessions and 3000 seconds. Server revision stayed 9, with no empty
+  overwrite. Existing stamps/journal were retained, so this is not a completely
+  fresh-device test. Evidence: `qa-artifacts/QA-104/current-authenticated/`.
+- Five QA tasks and two QA history records remain for follow-up or guarded
+  cleanup. Original account workspace was empty; no existing user work was
+  overwritten. The owned API restarted as bt-130 using the same isolated DB.
