@@ -3152,3 +3152,200 @@ library or backend endpoint is authorized or needed for this feature.
     cleanup path; installed signals → actual lifecycle; ordinary execution → no
     check bypass or content change.
   - **Status:** Pending. The surviving owner is not implemented at planning.
+
+## Import marker ordering and recovery
+
+Task: preserve the original import journal until cache replacement, verified
+remote acknowledgment, and guest-marker handling complete. Scope:
+`apps/web/src/features/account/sync.ts` and `sync-storage.ts`; Account controls
+on `/` and the existing account workspace and guest-import HTTP operations. Use
+the shared owned HTTPS and journal setup above. Obtain two real, permitted,
+isolated verified identities A and B; this is an external prerequisite. Never
+fabricate a session or use production data. Use separate owned browser profiles
+and an isolated database, and back up the guest and account workspaces first.
+Use the pinned tools and existing ports from the shared setup; check listeners
+before starting owned services. Do not run these cases until explicitly
+approved.
+
+For each case, create a guest task `QA marker guest`, save an account task
+`QA marker account`, and record their real stable IDs. Record A's actual account
+ID, revision E, import ID I, original guest digest H, marker key
+`pomodoro:sync:v1:<encoded-account-id>:imported-guest`, and journal token from
+the real operation. Do not invent IDs or alter journal records. Use browser
+debugger breakpoints or controlled storage failures in the owned profile to stop
+at the indicated source boundary. Forward real HTTP requests at most once; do
+not synthesize successful responses. If a boundary cannot be injected reliably,
+record the case as blocked and identify the missing tool. Save only sanitized
+data under ignored `qa-artifacts/QA-110/` through `QA-116/`. Record revision,
+environment, date and actual outcome when QA is performed. Cleanup for every
+case: remove breakpoints and interception, restore the owned backups or remove
+only approved isolated records, and stop only processes started for that case.
+Preserve unexpected data for recovery.
+
+Coverage: successful ordering and interrupted replacement → QA-110; retained
+exact-ID receipt retry → QA-111; both explicit choices and old markers → QA-112
+and QA-113; other or absent markers → QA-114; storage and journal failures and
+crash ordering → QA-115; owner changes and cooperating tabs → QA-116. Save-only
+behavior is covered by QA-103 and QA-094. PWA, payments, SEO and analytics are
+not affected by this source-only change.
+
+### QA-110 — Import finalization before marker
+
+- [ ] **P0 — Pending.**
+  - **Purpose:** An unsuccessful cache replacement or acknowledgment must not
+    create a new import marker or retire the original request.
+  - **Prerequisites:** Shared marker setup; A has no marker for H and no pending
+    journal; a real successful import response and debugger storage controls.
+  - **Inputs:** The shared guest and account tasks, I, E and H.
+  - **Steps:** 1. Confirm the guest import and forward the real request. 2.
+    After its commit, separately fail the account backup or primary write and
+    stop before acknowledgment in a fresh repeat. 3. Inspect A's primary, marker
+    and journal, then remove the failure and reload with A verified.
+  - **Expected results:** Each failed finalization retains the original I/E/H
+    journal. Neither case writes H as a new marker or reports final success. The
+    UI offers review of the pending import and preserves guest data. A
+    successful repeat replaces the primary and acknowledges the real remote
+    before writing H, then removes only its exact journal.
+  - **Evidence:** Save sanitized boundary order, response status and revision,
+    primary and marker hashes, journal token and UI state in
+    `qa-artifacts/QA-110/`.
+  - **Cleanup:** Use the shared marker cleanup.
+  - **Status:** Pending; authenticated runtime QA has not run.
+
+### QA-111 — Exact receipt retry after marker and before retirement
+
+- [ ] **P0 — Pending.**
+  - **Purpose:** Retry a committed original import without changing its ID,
+    request data, or captured baseline after finalization stops.
+  - **Prerequisites:** Shared marker setup and a way to stop after H is written
+    but before exact journal retirement; verified A and a real receipt.
+  - **Inputs:** I, E, H and original guest bytes; later guest task
+    `QA marker changed guest`.
+  - **Steps:** 1. Complete the real import through acknowledgment and marker
+    write; stop before retirement. 2. Reload and review the pending import.
+    Change the guest source in an owned guest tab without deleting its
+    backup. 3. Retry the original snapshot and inspect the real requests and
+    result. 4. Repeat the interruption and retry, including a later account
+    local edit.
+  - **Expected results:** Receipt retry sends I, E and the original bytes, not
+    the changed guest. It does not merge the receipt again. Without later local
+    edits it safely retires the original journal and offers the changed guest;
+    with later local edits it retains a conflict rather than overwriting them. A
+    marker alone never hides the pending-import action.
+  - **Evidence:** Save sanitized request IDs, revisions, digests, journal token,
+    task IDs and UI state in `qa-artifacts/QA-111/`.
+  - **Cleanup:** Use the shared marker cleanup.
+  - **Status:** Pending; real receipt and identity are required.
+
+### QA-112 — Resolve interrupted import to local work
+
+- [ ] **P0 — Pending.**
+  - **Purpose:** An old matching marker must not hide guest data after an
+    explicit local choice replaces the imported result.
+  - **Prerequisites:** Shared marker setup; create a real committed import with
+    its journal retained and H already present, using an older version or the
+    post-marker boundary; retain or restore the pre-import account primary.
+  - **Inputs:** I, E, H and the shared task IDs.
+  - **Steps:** 1. Reload A and open the conflict. 2. Choose Keep local version
+    and confirm the real CAS request. 3. Inspect the marker and journal before
+    and after retirement. 4. Reload and inspect account and guest actions.
+  - **Expected results:** The chosen local account version is retained; only H
+    is removed before the exact resolution journal. The guest source remains
+    intact and its import action returns. No automatic import occurs.
+  - **Evidence:** Save sanitized CAS status/revision, marker and token ordering,
+    task summaries and screenshots in `qa-artifacts/QA-112/`.
+  - **Cleanup:** Use the shared marker cleanup.
+  - **Status:** Pending; no authenticated scenario has run.
+
+### QA-113 — Resolve interrupted import to account work
+
+- [ ] **P0 — Pending.**
+  - **Purpose:** A server-choice fence is not proof that the original guest
+    snapshot is still present; conservatively reoffer the guest.
+  - **Prerequisites:** Shared marker setup; retained original import journal and
+    matching H after a real import; A has a current verified server workspace.
+  - **Inputs:** I, E, H and the shared stable task IDs.
+  - **Steps:** 1. Reload A and choose Use account version. 2. Confirm the real
+    CAS fence. 3. Inspect the marker, journal and guest action after reload. 4.
+    Explicitly import the unchanged guest again; repeat with an isolated account
+    record sharing a guest ID but differing in content.
+  - **Expected results:** H is removed before exact journal retirement, even
+    when the account choice is used. Guest remains available. On reimport,
+    identical projects, tasks, templates and sessions with the same stable IDs
+    deduplicate; differing items with the same ID conflict rather than being
+    silently overwritten. Timer/session ID collisions also conflict. Inspect the
+    actual response and retained data rather than assuming import success.
+  - **Evidence:** Save sanitized CAS/import status, stable IDs, item counts,
+    conflict details and marker/journal order in `qa-artifacts/QA-113/`.
+  - **Cleanup:** Use the shared marker cleanup.
+  - **Status:** Pending; real isolated accounts and controllable records needed.
+
+### QA-114 — Preserve absent or different import marker
+
+- [ ] **P0 — Pending.**
+  - **Purpose:** Resolution must not remove an absent, malformed, stale or newer
+    marker that does not match the original digest.
+  - **Prerequisites:** Shared marker setup; create separate real retained import
+    resolutions for A. Use owned storage only; obtain a different valid digest
+    from an actual changed guest snapshot.
+  - **Inputs:** Original digest H, changed guest digest H2, absent marker and a
+    malformed marker value in separate runs.
+  - **Steps:** 1. At the pre-cleanup boundary inspect each initial marker. 2.
+    Independently set the owned marker to absent, H2, or malformed data. 3.
+    Finish a real explicit resolution and reload. 4. Inspect marker and exact
+    journal, including guest availability for each valid digest.
+  - **Expected results:** Absent stays absent; H2 and malformed bytes stay
+    unchanged. Successful resolution retires the exact journal and does not
+    erase a newer or different marker. Guest availability reflects the current
+    validated marker; malformed data is not treated as H.
+  - **Evidence:** Save sanitized before/after marker values, current guest
+    digest, token and UI state in `qa-artifacts/QA-114/`.
+  - **Cleanup:** Use the shared marker cleanup.
+  - **Status:** Pending; controlled owned storage is required.
+
+### QA-115 — Marker and journal failure recovery
+
+- [ ] **P0 — Pending.**
+  - **Purpose:** A failed marker read, removal, write or journal retirement must
+    not lose durable recovery facts; cleanup must precede retirement.
+  - **Prerequisites:** Shared marker setup; real committed responses, matching
+    H, and reliable isolated fault injection at localStorage and IndexedDB
+    calls.
+  - **Inputs:** I, E, H and exact original/resolution tokens.
+  - **Steps:** 1. In separate fresh runs fail marker write during import, marker
+    read during resolution, marker removal during resolution, and exact journal
+    deletion after marker handling. 2. Inspect each error and persisted
+    record. 3. Stop after removal but before deletion, reload, and resume
+    recovery. 4. Remove each fault and retry through the real UI.
+  - **Expected results:** Each error leaves the corresponding journal; no
+    success is reported prematurely. Read/remove failures do not delete H. A
+    crash after removing H leaves a recoverable resolution journal; repeating
+    cleanup with no marker is safe. After marker-write or deletion failure the
+    original facts remain available for the proper recovery path.
+  - **Evidence:** Save sanitized fault boundary, error state, marker and journal
+    tokens before/after reload and retry in `qa-artifacts/QA-115/`.
+  - **Cleanup:** Use the shared marker cleanup.
+  - **Status:** Pending; fault injection and real identity must be available.
+
+### QA-116 — Owner changes and concurrent account operations
+
+- [ ] **P0 — Pending.**
+  - **Purpose:** Stale owner continuations cannot change markers or retire a
+    journal, and cooperating same-account tabs cannot bypass the operation lock.
+  - **Prerequisites:** Shared marker setup; real isolated verified A and B, two
+    current-version A tabs, and controlled breakpoints around stamp lock.
+  - **Inputs:** A's I, H and token; B's independently recorded marker and token.
+  - **Steps:** 1. Pause A before marker write and, in a separate run, before
+    marker removal. 2. Change the active verified owner to B, then release the
+    stale continuation. 3. Reverify A and inspect its retained record. 4. Hold
+    A's account operation in one tab while requesting recovery in the other;
+    release it and inspect real dispatch and journal ordering.
+  - **Expected results:** Stale A work does not write or remove either owner's
+    marker and does not retire A's journal. B's storage is unchanged. The second
+    A tab cannot dispatch a competing mutation or replace the first token while
+    the operation lock is held; it reloads current journal state before acting
+    after release.
+  - **Evidence:** Save sanitized owner IDs, lock order, markers, journal tokens,
+    request order and UI results in `qa-artifacts/QA-116/`.
+  - **Cleanup:** Use the shared marker cleanup and close only owned extra tabs.
+  - **Status:** Pending; both real identities remain external prerequisites.

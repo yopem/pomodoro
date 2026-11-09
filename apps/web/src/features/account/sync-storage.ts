@@ -114,6 +114,24 @@ export function importedGuestHash(userId: string) {
   return result.success ? result.data : null
 }
 
+export async function forgetGuestImport(
+  userId: string,
+  hash: string,
+  isCurrent: () => boolean,
+) {
+  const key = stampKey(userId)
+  const digest = hashSchema.parse(hash)
+
+  if (!navigator.locks) throw new Error("Web Locks are unavailable")
+
+  await navigator.locks.request(key, () => {
+    if (!isCurrent()) return
+
+    if (importedGuestHash(userId) === digest)
+      window.localStorage.removeItem(`${key}:imported-guest`)
+  })
+}
+
 export async function rememberGuestImport(
   userId: string,
   hash: string,

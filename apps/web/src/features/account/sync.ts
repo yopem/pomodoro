@@ -32,6 +32,7 @@ import {
 import {
   ACCOUNT_MARKER_KEY,
   acknowledgeWorkspace,
+  forgetGuestImport,
   hashWorkspace,
   importedGuestHash,
   readStoredSyncState,
@@ -438,8 +439,19 @@ function createAccountController(client: QueryClient) {
       hash,
       stamp ? { expected: stamp } : undefined,
     )
+
+    if (record.original.kind === "import")
+      await forgetGuestImport(
+        record.accountId,
+        record.original.guestHash,
+        storageGuard(version, record.accountId, owner),
+      )
+
     await retire(record, version, owner)
     settled(response)
+
+    if (record.original.kind === "import")
+      await updateGuest(record.accountId, version, owner)
   }
 
   async function finishImport(
@@ -466,11 +478,6 @@ function createAccountController(client: QueryClient) {
       return
     }
 
-    await rememberGuestImport(
-      record.accountId,
-      original.guestHash,
-      storageGuard(version, record.accountId, owner),
-    )
     assertBaseline(version, record.accountId, owner, local)
 
     if (localHash !== remoteHash) {
@@ -489,6 +496,11 @@ function createAccountController(client: QueryClient) {
       response,
       remoteHash,
       stamp ? { expected: stamp } : undefined,
+    )
+    await rememberGuestImport(
+      record.accountId,
+      original.guestHash,
+      storageGuard(version, record.accountId, owner),
     )
     await retire(record, version, owner)
     settled(response)
