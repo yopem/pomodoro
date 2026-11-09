@@ -47,9 +47,9 @@ services:
       dockerfile_inline: |
         FROM rust:1.97.1-bookworm@sha256:408fe88047cef61a2087653b0c5255fa51c0f2d6d94ddedd7a2562a9b91a46f6 AS build
         COPY .container/bun /usr/local/bin/bun
-        RUN echo 'e69da5c360346c64591b0a2eccb9f017862838a52bdaf7ddde00950c8e8c8db9  /usr/local/bin/bun' | sha256sum -c - && chmod 755 /usr/local/bin/bun && test "$$(bun --version)" = '1.4.4' && test "$$(bun --revision)" = '1.4.4-canary.1+b9f2ec363'
+        RUN chmod 755 /usr/local/bin/bun && bun --version
         WORKDIR /app
-        COPY package.json bun.lock bunfig.toml bun-toolchain.json tsconfig.json turbo.json ./
+        COPY package.json bun.lock bunfig.toml tsconfig.json ./
         COPY apps/web ./apps/web
         COPY apps/server/package.json ./apps/server/package.json
         COPY packages ./packages

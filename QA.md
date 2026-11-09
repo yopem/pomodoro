@@ -1,5 +1,10 @@
 # Web application QA
 
+Current tooling policy: the user removed snapshot Git hooks and Bun pinning.
+QA-062–065, QA-109 and QA-120 retain historical evidence only; their former
+snapshot/pin acceptance criteria no longer apply. They are not new passes.
+QA-121 covers CI's three checks; QA-123 covers the requested removal.
+
 ## Scope and setup
 
 Task: create a web-only reference app alternative with basic and premium
@@ -3806,12 +3811,13 @@ not affected by this source-only change.
 
 - **Purpose:** Run only the three user-requested check categories after verified
   tool and frozen dependency setup. CI is not full release acceptance.
-- **Prerequisites:** QA-120 verified artifact metadata and project pin. Read the
-  actual root/workspace scripts. No database, account or credentials are needed.
-- **Inputs:** Clean checkout, official Bun/checksums and pinned Rust toolchain.
+- **Prerequisites:** Installed Bun canary and the pinned Rust toolchain. Read
+  the actual root/workspace scripts. No database, account or credentials are
+  needed.
+- **Inputs:** Clean checkout, Bun canary and the pinned Rust toolchain.
 - **Steps:**
   1. Review immutable actions, read-only permissions, no persisted credential,
-     and exact checksum/version bootstrap without global tool changes.
+     and official canary setup without exact Bun version/revision assertions.
   2. Inspect setup plus exactly Typecheck, Lint and Format check. Typecheck runs
      first to generate routes required by type-aware lint. Lint includes tracked
      JS/TS with config coverage, zero warnings and Clippy; format uses
@@ -3821,9 +3827,10 @@ not affected by this source-only change.
      migration or deployment steps and no failure suppression.
   4. Run focused local workflow syntax/policy checks. A hosted run needs a
      separately permitted push; do not push merely to test this workflow.
-- **Expected results:** These check failures fail CI. Setup verifies tool bytes.
-  No app service or database starts. Local checks do not imply hosted success.
-  Advisory findings remain unresolved outside this explicitly limited CI scope.
+- **Expected results:** These check failures fail CI. Setup selects the official
+  Bun canary. No app service or database starts. Local checks do not imply
+  hosted success. Advisory findings remain unresolved outside this explicitly
+  limited CI scope.
 - **Evidence:** `qa-artifacts/QA-121/`; save exact policy/syntax commands and
   results, tool setup evidence and any separately permitted hosted run URL.
 - **Cleanup:** Remove only owned fixtures and temporary files.
@@ -3873,7 +3880,7 @@ not affected by this source-only change.
   and a supervised control have not run. Do not label this an OOM or an issuer
   failure without evidence.
 
-### [ ] QA-123 — P1 — Remove snapshot hooks and Bun version locks
+### [x] QA-123 — P1 — Remove snapshot hooks and Bun version locks
 
 - **Purpose:** Follow the user's request: no custom snapshot system, Bun version
   pin or revision gate; retain only lint, format checks and typechecks in CI.
@@ -3886,8 +3893,8 @@ not affected by this source-only change.
      files, then remove them. Preserve any unrelated or custom hooks.
   2. Remove the snapshot scripts/config/dependencies and script-only TS project.
      Remove Bun metadata/package-manager pin and hardcoded container checks.
-  3. Verify Turbo infers Bun from the lockfile without requiring a version
-     declaration; all four existing workspace typechecks must still run.
+  3. Verify native Bun workspace dispatch needs no version declaration; all four
+     existing workspace typechecks must still run.
   4. Parse CI YAML and shell blocks. Inspect that setup selects canary and the
      only check steps are Typecheck, Lint and Format check. Preserve strict
      rules, zero-warning lint, nonwriting formats and Rust checks.
@@ -3900,6 +3907,36 @@ not affected by this source-only change.
 - **Evidence:** `qa-artifacts/QA-123/`; preserve managed-hook backup, source
   inspection, shell/YAML results and static command outputs. No credentials.
 - **Cleanup:** No app/data cleanup. Preserve user hooks and running services.
-- **Status:** Pending. Historical snapshot/pinned-runtime cases remain
-  historical evidence, not requirements or claimed passes for this new
-  configuration.
+- **Status:** Passed for the requested static-only removal on 2026-11-10.
+  Installed global a8 canary passed all four workspace lint, format and
+  typecheck scripts, explicit type-aware zero-warning source lint, full format,
+  CI YAML/shell assertions and synthetic-env Compose config. The global Bun hash
+  matches its original value. No running app, browser, data or service was
+  changed. The supported Turbo opt-out still recursed; native workspace dispatch
+  replaced it rather than restoring a version declaration. An initial
+  unsupported Compose CLI option was corrected before successful rendering.
+  Historical snapshot/pin evidence is not a pass for this configuration. Hosted
+  CI and dev/build launch remain unrun; see QA-121 and QA-124.
+
+### [ ] QA-124 — P1 — Native workspace development and build dispatch
+
+- **Purpose:** Preserve dev/build entrypoints after removing Turbo's runtime
+  declaration dependency. Static checks must still cover all four workspaces.
+- **Prerequisites:** Requested later launch/build approval; stop or reuse
+  existing owned development services first. Preserve the user's current manual
+  session.
+- **Inputs:** Existing root scripts, the installed Bun and the four workspaces.
+- **Steps:**
+  1. Inspect that dev uses native parallel workspace dispatch and build uses
+     native workspace dispatch, skipping only workspaces without those scripts.
+  2. In a separately approved run, use `bun run dev` from the repository root;
+     verify web/API start on their configured ports and stop cleanly together.
+  3. In a separately approved build run, use `bun run build`; verify both
+     existing application builds finish and their outputs remain usable.
+- **Expected results:** Existing names and leaf commands remain unchanged, with
+  no recursive root task, version gate, added helper or project Git hooks.
+- **Evidence:** `qa-artifacts/QA-124/`; command logs, artifact revision and
+  owned process cleanup. Current static-only run must not be reported as launch
+  proof.
+- **Cleanup:** Stop only processes explicitly started for the approved case.
+- **Status:** Pending. Dev/build will not run during the user's manual session.

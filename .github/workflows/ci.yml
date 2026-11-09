@@ -18,42 +18,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Install verified project Bun
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(uname -m)" = x86_64
-          node --input-type=module <<'NODE'
-          import assert from "node:assert/strict"
-          import { readFileSync } from "node:fs"
-          const toolchain = JSON.parse(readFileSync("bun-toolchain.json", "utf8"))
-          const project = JSON.parse(readFileSync("package.json", "utf8"))
-          assert.deepStrictEqual(toolchain, {
-            package: "bun@1.4.4-canary.20261104.1",
-            version: "1.4.4-canary.1",
-            revision: "b9f2ec363",
-          })
-          assert.strictEqual(project.packageManager, toolchain.package)
-          NODE
-          mkdir -m 700 "$RUNNER_TEMP/project-bun"
-          BUN_REGISTRY=https://registry.npmjs.org/@oven/bun-linux-x64/-
-          curl --fail --silent --show-error --location \
-            --proto '=https' --proto-redir '=https' \
-            "$BUN_REGISTRY/bun-linux-x64-1.4.4-canary.20261104.1.tgz" \
-            -o "$RUNNER_TEMP/project-bun/bun.tgz"
-          printf '%s  %s\n' \
-            da5b27fe62aea9a35fed1aadfe5f57072a4c17e601f52a6b7731f1d49942715a \
-            "$RUNNER_TEMP/project-bun/bun.tgz" | sha256sum -c -
-          tar -xzf "$RUNNER_TEMP/project-bun/bun.tgz" \
-            -C "$RUNNER_TEMP/project-bun" package/bin/bun
-          printf '%s  %s\n' \
-            e69da5c360346c64591b0a2eccb9f017862838a52bdaf7ddde00950c8e8c8db9 \
-            "$RUNNER_TEMP/project-bun/package/bin/bun" | sha256sum -c -
-          chmod 755 "$RUNNER_TEMP/project-bun/package/bin/bun"
-          test "$("$RUNNER_TEMP/project-bun/package/bin/bun" --version)" = '1.4.4'
-          test "$("$RUNNER_TEMP/project-bun/package/bin/bun" --revision)" = \
-            '1.4.4-canary.1+b9f2ec363'
-          echo "$RUNNER_TEMP/project-bun/package/bin" >> "$GITHUB_PATH"
+      - name: Set up Bun canary
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: canary
       - name: Install pinned Rust
         shell: bash
         run: |
