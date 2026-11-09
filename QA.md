@@ -2943,3 +2943,140 @@ library or backend endpoint is authorized or needed for this feature.
   - **Coverage:** Empty local cache plus retained stamp → account pull rather
     than autosave; normal rollback protections → unchanged.
   - **Status:** Pending. No runtime result is recorded.
+
+### QA-105 — Reject a merged workspace above the client budget
+
+- [ ] **P1 — Pending.** Two acceptable requests must not create account data
+      that cannot fit a later compact client save.
+  - **Purpose:** Cover the missing aggregate byte limit after guest merging.
+  - **Prerequisites:** The shared owned database and current migration. Use two
+    new synthetic database-only users for direct data-service probes. They are
+    not authenticated HTTP sessions. A real permitted isolated identity is
+    required separately to confirm HTTP status and browser feedback.
+  - **Inputs:** Two validated workspaces based on the current canonical default,
+    each with 1,100 distinct UUID tasks. Use titles `QA byte A 0001` and
+    `QA byte B 0001` through 1100, estimates 1, actual 0, completed false,
+    project IDs null, and notes of 10,000 ASCII `A` characters. Measure each
+    complete import envelope and require it to be below 20,000,000 bytes.
+  - **Steps:**
+    1. Verify ownership of the isolated database from its recorded container and
+       private environment. Never use root `.env` connection settings.
+    2. Import A with its own real UUID and expected revision 0 through the
+       public data service. Record its revision, workspace digest, and receipt.
+    3. Import B with a different UUID and the returned revision. Inspect the
+       typed result and use a fresh connection to read the workspace/receipts.
+    4. Repeat through the actual documented HTTP endpoint only when a real
+       isolated session is available. Inspect status, request ID, browser error,
+       and retained guest source.
+  - **Expected results:** The second import returns the typed size error; HTTP
+    returns 413 with the existing safe error shape and request ID. No second
+    receipt, revision change, partial merge, or source deletion occurs. The
+    first workspace and receipt remain usable and the other user is unchanged.
+    Source review establishes the gap, not a passing runtime result.
+  - **Evidence:** Save measured envelope sizes, sanitized operation results,
+    revision/digest comparisons, and receipt counts under
+    `qa-artifacts/QA-105/`. Keep any manual probe local and ignored; add no
+    repository test infrastructure or fake authentication.
+  - **Cleanup:** Remove only the two owned synthetic users and their dependent
+    data after evidence inspection. Preserve unrelated database rows.
+  - **Coverage:** Save/import database boundary → aggregate budget; database
+    transaction → no changes on rejection; HTTP mapping → typed 413.
+  - **Status:** Pending. The aggregate guard is not implemented at planning.
+
+### QA-106 — Check the budget against browser JSON encoding
+
+- [ ] **P1 — Pending.** The database estimate must bound the actual compact
+      browser save and its UTF-16 workspace string length.
+  - **Purpose:** Cover the 16-digit revision envelope, Unicode escaping, and
+    Rust/JavaScript finite-double serialization differences.
+  - **Prerequisites:** The completed aggregate guard and its documented size
+    model; current Rust and Bun; an owned browser context for actual browser
+    serialization. No database or authenticated session is needed for encoding.
+  - **Inputs:** Canonical empty workspaces and boundary-sized validated task
+    notes; revision values 0 and 9007199254740991. Include Japanese text, emoji,
+    quotes, backslashes, newline, backspace, tab, and timer remaining values 0,
+    0.000001, 0.0000001, 12.345, 10800, and the smallest positive finite double.
+    Use the current required timer/settings fields.
+  - **Steps:**
+    1. Inspect the implemented constants and compute below, at, and above budget
+       inputs without assuming Rust and browser encodings are equal.
+    2. Record the Rust estimate. In the owned browser measure the UTF-8 bytes of
+       `JSON.stringify({ expected_revision, workspace })` and the UTF-16 length
+       of its workspace JSON. Do not write to user storage.
+    3. Compare every measurement with the estimate and 20,000,000-byte limit.
+  - **Expected results:** The estimate never undercounts actual client save
+    bytes or workspace UTF-16 code units. Its documented conservative margin
+    explains any rejected near-boundary input. The size limit is inclusive.
+    Invalid NUL, nonfinite numbers, and invalid timer ranges stay rejected by
+    existing boundary validation, not accepted for this measurement.
+  - **Evidence:** Save inputs without personal data, numeric/string cases,
+    estimates, actual lengths, and comparison results under
+    `qa-artifacts/QA-106/`. Do not describe finite samples as a general proof.
+  - **Cleanup:** Close only the owned measurement tab. No stored data needs
+    cleanup. Retain the mathematical model with the evidence.
+  - **Coverage:** Client envelope and one timer float → conservative bound;
+    valid UTF-8 strings → browser storage code-unit bound.
+  - **Status:** Pending. Read the final size model before execution.
+
+### QA-107 — Keep oversized legacy data recoverable
+
+- [ ] **P1 — Pending.** Existing oversized data stays readable and an explicit
+      reducing save can recover it without truncation.
+  - **Purpose:** Prevent the new guard from making old account data or old
+    idempotent receipts unreadable.
+  - **Prerequisites:** Owned isolated database, a new database-only user, and a
+    prior oversized workspace created only in this fixture. Record the final
+    documented serialized-size reduction rule before execution. Do not create a
+    browser session or production row to bypass authentication.
+  - **Inputs:** The approximately 22 MB merged dataset from QA-105, an existing
+    receipt for one of its imports, a strictly smaller valid dataset, and a
+    same-size or larger candidate. Use unique owned IDs and no personal data.
+  - **Steps:**
+    1. Set up the legacy row only in the owned isolated fixture and record its
+       validated content, revision, and receipt. Load through the public
+       service.
+    2. Replay the original receipt with its exact original payload/revision.
+    3. Try a non-reducing save and a new over-budget import. Inspect rollback.
+    4. Save a smaller valid workspace under the documented reduction rule, then
+       reduce it below the budget and perform an ordinary save.
+  - **Expected results:** Load and exact receipt replay return existing data.
+    New over-budget imports and non-reducing saves reject without changes. Valid
+    reducing saves advance exactly one revision and preserve all records not
+    explicitly removed. Once within budget, ordinary saves work. No code
+    silently truncates notes, deletes history, or invalidates old receipts.
+  - **Evidence:** Save sanitized size/revision/digest results and retained
+    receipt comparisons under `qa-artifacts/QA-107/`. This does not establish
+    authenticated HTTP or cross-device behavior.
+  - **Cleanup:** Remove only the fixture user and dependent records after
+    inspection. Preserve all unrelated data and prior QA evidence.
+  - **Coverage:** Legacy load/replay → unchanged; reducing save → recovery;
+    oversize expansion → rollback.
+  - **Status:** Pending. The legacy rule must be implemented and documented.
+
+### QA-108 — Preserve revision and receipt rules at the size boundary
+
+- [ ] **P1 — Pending.** A size rejection must not weaken CAS, import identity,
+      or account isolation.
+  - **Purpose:** Cover regressions in the workflows that share the new guard.
+  - **Prerequisites:** Owned isolated database, the completed size guard,
+    separate database-only fixture users, and the actual service signatures.
+  - **Inputs:** A within-budget import and its UUID; the same UUID with changed
+    notes; a stale revision; and two parallel imports whose combined result
+    exceeds the budget. Use unique fixture IDs and valid references.
+  - **Steps:**
+    1. Commit the within-budget import and replay it exactly.
+    2. Change its payload with the same UUID, then submit a stale-revision
+       write. Record the existing conflict results.
+    3. Submit both boundary imports concurrently against one expected revision.
+       Reload data with a fresh connection and inspect receipts for both users.
+  - **Expected results:** Exact replay returns the current account state with no
+    new revision. Changed receipt payloads and stale revisions still conflict.
+    Only a valid CAS winner can commit; the other request makes no partial write
+    or receipt. No outcome leaks or changes the other user's data.
+  - **Evidence:** Save sanitized operation outcomes, revision changes, receipts,
+    and digests under `qa-artifacts/QA-108/`.
+  - **Cleanup:** Delete only owned fixture users and their dependent records.
+    Stop no service that this case did not start.
+  - **Coverage:** Shared guard → existing CAS, idempotency, atomicity, and
+    per-user boundaries remain intact.
+  - **Status:** Pending. No runtime result is recorded.
