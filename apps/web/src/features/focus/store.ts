@@ -219,6 +219,42 @@ export function getFocusSnapshot() {
   return snapshot
 }
 
+export function readOwnedWorkspace({ owner }: MutationOwnership) {
+  if (
+    owner !== activeOwner ||
+    owner !== snapshot.owner ||
+    !snapshot.hydrated ||
+    snapshot.error !== null
+  )
+    throw new Error("The active workspace is not ready")
+
+  try {
+    const workspace = readWorkspace(activeKey)
+    const current = JSON.stringify(snapshot.workspace)
+
+    if (!workspace) {
+      if (current !== JSON.stringify(createEmptyWorkspace()))
+        throw new Error(
+          "The stored workspace was removed. Restore a valid backup before changing it.",
+        )
+
+      return structuredClone(snapshot.workspace)
+    }
+
+    if (current !== JSON.stringify(workspace))
+      publish({ ...snapshot, workspace, nowMs: Date.now() })
+
+    return workspace
+  } catch (error) {
+    publish({
+      ...snapshot,
+      error:
+        error instanceof Error ? error.message : "Workspace operation failed",
+    })
+    throw error
+  }
+}
+
 function getServerSnapshot() {
   return initialSnapshot
 }
