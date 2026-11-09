@@ -3825,3 +3825,44 @@ not affected by this source-only change.
 - **Status:** Pending. No `.github/` workflow exists at planning. Hosted
   execution needs a separately permitted push; audit findings can still block
   release after workflow setup.
+
+### [ ] QA-122 — P1 — Database process supervision contains orphan failure
+
+- **Purpose:** Prevent an unrelated adopted helper failure from restarting
+  PostgreSQL and interrupting account recovery. The owned QA container logged
+  untracked-child SIGPIPE followed by full backend reinitialization twice; its
+  memory event counters were zero. The exact original child source is unknown.
+- **Prerequisites:** Verify owned container labels and immutable PostgreSQL
+  image. Use new disposable containers with no host ports or external network
+  and new isolated data. Never use the real QA account volume or another
+  project's DB for destructive fault reproduction. Inspect Podman's supported
+  `--init` and Compose's documented `init` behavior before changing deployment
+  configuration.
+- **Inputs:** Pinned PostgreSQL 18.6 image, existing `pg_isready` health
+  command, generated private bootstrap credentials, and one adopted helper that
+  exits with SIGPIPE. Do not log credentials or SQL statement contents.
+- **Steps:**
+  1. In an unsupervised disposable control, record database process IDs and
+     readiness; run the bounded helper-failure reproduction and inspect fixed
+     recovery messages plus the outcome of an active harmless SQL request.
+  2. Repeat with supported container init enabled and the same image, limits,
+     health command and helper. Inspect init/PG process ownership and readiness.
+  3. Apply only a proven supervision change to source Compose configuration.
+     Validate Compose syntax and effective init setting using synthetic env.
+  4. Verify graceful stop and owned fixture cleanup. If replacing the original
+     owned QA container later, first finish pending operations, preserve its
+     exact volume/credentials, and verify account data after replacement.
+- **Expected results:** Init reaps the unrelated orphan without invoking
+  PostgreSQL crash recovery; active SQL/readiness remain available. Normal
+  signals reach PostgreSQL and bounded shutdown completes. Configuration does
+  not change DB credentials, schema, existing user records or unrelated
+  services.
+- **Evidence:** `qa-artifacts/QA-122/`; record exact sanitized commands,
+  immutable image and labels, process/health observations, safe recovery
+  messages, active SQL outcomes, shutdown results and complete owned-resource
+  cleanup.
+- **Cleanup:** Stop/remove only new labeled probe containers and their temporary
+  data/credentials. Never delete or reset the account QA volume.
+- **Status:** Pending. Database availability recovered, but causal reproduction
+  and a supervised control have not run. Do not label this an OOM or an issuer
+  failure without evidence.
