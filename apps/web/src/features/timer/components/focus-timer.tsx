@@ -22,6 +22,7 @@ import {
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { ConfirmAction } from "@/features/timer/components/confirm-action"
+import { TimerNotificationStatus } from "@/features/timer/components/notification-status"
 import { TimerSound } from "@/features/timer/components/timer-sound"
 import { formatTimerClock, timerPhaseLabels } from "@/features/timer/countdown"
 import { useEventCallback } from "@/hooks/use-event-callback"
@@ -276,6 +277,7 @@ export function FocusTimer({
           )}
         </Stack>
         <TimerSound timer={timer} settings={settings} />
+        <TimerNotificationStatus enabled={settings.notifications} />
       </CardPanel>
       {pending && (
         <TimerConfirmation

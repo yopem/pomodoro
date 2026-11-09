@@ -7,6 +7,7 @@ import {
   unlockFocusAudio,
 } from "./audio"
 import {
+  clearFocusNotificationIssue,
   focusNotificationPermission,
   showFocusNotification,
 } from "./notifications"
@@ -317,6 +318,7 @@ export async function setActiveWorkspace(input: {
       identity: input.identity,
       generation: activeOwner.generation + 1,
     })
+    clearFocusNotificationIssue()
     publish({
       ...initialSnapshot,
       workspace: createEmptyWorkspace(),
