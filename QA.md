@@ -2987,7 +2987,12 @@ library or backend endpoint is authorized or needed for this feature.
     data after evidence inspection. Preserve unrelated database rows.
   - **Coverage:** Save/import database boundary → aggregate budget; database
     transaction → no changes on rejection; HTTP mapping → typed 413.
-  - **Status:** Pending. The aggregate guard is not implemented at planning.
+  - **Status:** Pending full acceptance. On 2026-11-09, revision `08cb729`
+    passed the isolated database probe: two 11,155,898-byte import envelopes
+    were each below the request limit, but the second merge returned
+    WorkspaceTooLarge. Workspace, revision, receipt and the other user stayed
+    unchanged. Inspect `qa-artifacts/QA-105/database-boundary-results.txt`. HTTP
+    413/request ID and browser retained-source/recovery behavior remain unrun.
 
 ### QA-106 — Check the budget against browser JSON encoding
 
@@ -3022,7 +3027,11 @@ library or backend endpoint is authorized or needed for this feature.
     cleanup. Retain the mathematical model with the evidence.
   - **Coverage:** Client envelope and one timer float → conservative bound;
     valid UTF-8 strings → browser storage code-unit bound.
-  - **Status:** Pending. Read the final size model before execution.
+  - **Status:** Pending browser encoding acceptance. Revision `08cb729` accepted
+    conservative bounds 19,999,999 and 20,000,000 and rejected 20,000,001
+    against fresh and default isolated database accounts on 2026-11-09.
+    Evidence: `qa-artifacts/QA-106/database-boundary-results.txt`. This did not
+    execute the actual browser Unicode, escape, timer and revision matrix.
 
 ### QA-107 — Keep oversized legacy data recoverable
 
@@ -3057,7 +3066,12 @@ library or backend endpoint is authorized or needed for this feature.
     inspection. Preserve all unrelated data and prior QA evidence.
   - **Coverage:** Legacy load/replay → unchanged; reducing save → recovery;
     oversize expansion → rollback.
-  - **Status:** Pending. The legacy rule must be implemented and documented.
+  - **Status:** Pending browser/HTTP recovery acceptance. The isolated database
+    probe at `08cb729` on 2026-11-09 loaded and replayed legacy data, rejected
+    non-reducing writes, accepted a conservative bound reduction from 22,310,988
+    to 22,310,987, then recovered below the limit and saved again. Evidence:
+    `qa-artifacts/QA-107/database-boundary-results.txt`. No browser
+    storage-quota or transport recovery is proved by these database calls.
 
 ### QA-108 — Preserve revision and receipt rules at the size boundary
 
@@ -3085,7 +3099,13 @@ library or backend endpoint is authorized or needed for this feature.
     Stop no service that this case did not start.
   - **Coverage:** Shared guard → existing CAS, idempotency, atomicity, and
     per-user boundaries remain intact.
-  - **Status:** Pending. No runtime result is recorded.
+  - **Status:** Pending full integration acceptance. The database probe at
+    `08cb729` on 2026-11-09 rejected changed receipts and stale revisions with
+    Conflict; concurrent imports produced one winner, one conflict and one
+    receipt. Evidence: `qa-artifacts/QA-108/database-boundary-results.txt`. Real
+    authenticated HTTP and browser source/journal preservation remain unrun. All
+    five synthetic database-only users and their dependents were removed;
+    `qa-artifacts/QA-105/aggregate-cleanup.txt` records zero owned rows.
 
 ### QA-109 — Private snapshot-owner channel fails closed
 
