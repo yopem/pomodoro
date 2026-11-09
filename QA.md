@@ -2829,3 +2829,46 @@ library or backend endpoint is authorized or needed for this feature.
 - **Cleanup:** Restore native observations, the guest backup and settings; close
   only the extra QA tab. Preserve unrelated browser state.
 - **Status:** pending; this plan is not native audio or audibility proof.
+
+### QA-102 — Sign out after session verification fails
+
+- [ ] **P0 — Pending.** Sign out of the displayed account after a failed session
+      check without using cached data as authorization.
+  - **Purpose:** Cover logout when a new session check fails. Session failure
+    must not prevent a server-verified logout of the previously displayed
+    account. Account writes must still require current verification.
+  - **Affected files:** `apps/web/src/features/account/sync.ts`, the account
+    controls, and the existing captured-user logout endpoint. This extends
+    QA-099/100. QA-045 covers a different account in the shared cookie.
+  - **Prerequisites:** Use the shared owned HTTPS setup and a real, permitted
+    isolated account A. Obtain the real account ID from a successful session
+    response. Do not create a fake session or weaken authentication. A live
+    issuer identity is a blocker until its owner supplies authorized access.
+  - **Inputs:** The existing account A, its preserved primary workspace, and a
+    saved pending request if one exists. Intercept only the next account session
+    request and abort it. Keep the real logout endpoint reachable.
+  - **Steps:**
+    1. Open the account dialog after a successful session check. Record A's ID
+       and sanitized primary and journal digests in the owned profile.
+    2. Use Playwriter request routing to abort the next `/api/session` request.
+       Trigger an account check and wait for its failure state.
+    3. Select Log out and confirm. Observe the actual outgoing request and real
+       response. Do not replace the response with a synthetic success.
+    4. Remove the interception. Check the session and inspect the account
+       partition, journal, visible workspace, and browser errors.
+  - **Expected results:** One real `POST /auth/logout` includes the captured
+    `X-Pomodoro-User` for A and succeeds with 204 while A's real session is
+    valid. The session then has no user. The app shows Guest mode and hides A's
+    data. A's primary and pending request bytes remain unchanged. No account
+    save or import bypasses failed session verification. Obsolete session
+    callbacks must not restore A after logout.
+  - **Evidence:** Save sanitized request and response details, before/after
+    digests, visible status, and browser logs under `qa-artifacts/QA-102/`.
+    Remove cookie values, tokens, email addresses, and nonce values.
+  - **Cleanup:** Remove only the routing handler installed for this case. Log
+    out the isolated identity, close only owned tabs, and retain local recovery
+    data until its owner approves cleanup.
+  - **Coverage:** Failed session verification → session-only logout guards;
+    captured-user server authorization → real 204; stale callback → no account
+    restoration; primary/journal retention → unchanged digests.
+  - **Status:** Pending. No runtime result is recorded.
