@@ -3539,3 +3539,52 @@ not affected by this source-only change.
 - Earlier save-response/unsent-save evidence paths use a QA-086 directory name,
   but those results support QA-054, not journal-preparation failure acceptance.
   QA-086 preparation failure and QA-087 pre-send crash remain pending.
+
+## Durable authenticated import reload result
+
+- QA-055 partial, web f2d264a, same real localhost session. Fixture setup wrote
+  one canonical isolated guest workspace while the account stayed signed in: one
+  uniquely identified QA task, focus 17 minutes, idle focus timer 1020 seconds,
+  no history. Existing guest primary was confirmed absent first. This is
+  controlled fixture setup, not guest editor acceptance.
+- The actual Import guest work UI disclosed that nonempty account settings and
+  timer stay unchanged. Confirm import forwarded once, server returned 200, and
+  the response was held. IndexedDB held an original import journal. Server
+  revision became 10 with exactly one imported task and focus still 25 minutes.
+- Reload before releasing the held response exposed Review pending import. Its
+  consent described the saved original snapshot. Retry original import sent the
+  exact same import ID, expected revision and task count. Server stayed revision
+  10, imported title count stayed 1, and the journal cleared. The guest source
+  remained. Raw IDs and payloads were not logged.
+- Evidence: `qa-artifacts/QA-055/current-authenticated/`. Payload-identity proof
+  is limited here to the saved snapshot inputs, ID, revision and task count;
+  future checks must hash actual full dispatch bytes for byte-for-byte proof.
+- A Chrome blocked-aria-hidden warning appeared after recovered-import closure.
+  Data recovery passed this subcase, but accessibility acceptance is failed
+  until the nested-dialog focus transition is repaired and rerun.
+
+### [ ] QA-118 — P1 — Account import completion returns focus safely
+
+- **Purpose:** Fix the observed focused-descendant/aria-hidden warning after
+  recovered import completion without losing original import facts or focus.
+- **Prerequisites:** Real isolated account, guest fixture and durable-import
+  setup from QA-055. Existing project-group browser only. Built repair needed.
+- **Inputs:** One QA guest task; nonempty account; hold the first successful
+  import response, reload, then review and retry the original import.
+- **Steps:**
+  1. Repeat QA-055 known-pending import setup and capture dialog names/focus.
+  2. Confirm original retry, wait for complete closure and inspect focus and
+     modal state. Repeat normal import, Cancel and Escape.
+  3. Inspect logs and verify no extra import, changed account preference or
+     journal loss. Restore only the owned fixture data.
+- **Expected results:** Focus never stays inside an aria-hidden ancestor. Modal
+  transitions do not warn, leave an invisible trap or focus behind a dialog.
+  Focus returns to an existing visible account control; immutable request and
+  owner guards, explicit consent and journal finalization remain unchanged.
+- **Evidence:** Save sanitized snapshots, focus observations and warnings in
+  `qa-artifacts/QA-118/`; match each result to its built revision.
+- **Cleanup:** Release only owned request handlers; remove only QA guest/task
+  fixtures after guarded comparison. Keep the real user session and other tabs.
+- **Status:** Failed on f2d264a: a blocked-aria-hidden focused-descendant
+  warning appeared after recovered-import completion. Precise cause and repair
+  pending.
