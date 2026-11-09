@@ -2758,3 +2758,74 @@ library or backend endpoint is authorized or needed for this feature.
 - **Cleanup:** Restore native lookup, original permission and guest settings;
   dismiss only case-created notifications. Preserve unrelated browser state.
 - **Status:** pending; no execution or native delivery result is claimed.
+
+### [ ] QA-099 — P0 — Sign out when account storage is blocked
+
+- **Purpose:** Keep session sign-out available when unsafe account writes are
+  blocked by primary-cache or journal failure.
+- **Prerequisites:** Journal setup; verified isolated account A, exact primary
+  and journal backups, and working session endpoint. Do not forge a session.
+- **Inputs:** An A-owned invalid primary value `{` and a target-local blocked
+  IndexedDB open. Keep A's owner and verified server identity unchanged.
+- **Steps:** 1. Trigger the actual storage error using the second isolated
+  same-origin tab. 2. Block journal open. 3. Open Account and choose Sign
+  out. 4. Inspect its real POST `/auth/logout`, next session response and UI
+  state.
+- **Expected results:** Captured user/epoch/owner checks still apply, but logout
+  does not require valid workspace bytes, IndexedDB or a journal lock. A real
+  204 clears the session and hides A. Corrupt primary bytes and pending request
+  facts remain preserved; no workspace save/import occurs and B is untouched.
+- **Evidence:** Save safe statuses, request user IDs, owner changes and storage
+  hashes in `qa-artifacts/QA-099/`; omit cookie values.
+- **Cleanup:** Restore native APIs and exact isolated primary/journal backups;
+  sign in again only through the permitted issuer workflow if needed.
+- **Status:** pending; verified live identity remains a prerequisite.
+
+### [ ] QA-100 — P0 — Confirmed logout ignores later cache errors
+
+- **Purpose:** Do not leave A visible as signed in after successful server
+  logout merely because its workspace becomes unreadable during the request.
+- **Prerequisites:** Journal setup; verified isolated A and its second tab;
+  approved response-delay tooling and exact primary/journal backups.
+- **Inputs:** A real POST logout and an A-owned primary value `{` written by the
+  second tab while the committed 204 response is held.
+- **Steps:** 1. Start Sign out and hold only its actual successful response. 2.
+  Corrupt A's isolated primary from the second tab and observe the storage error
+  in the first tab. 3. Release the 204. 4. Inspect the resulting identity and
+  next real session response.
+- **Expected results:** With the same verified A/epoch/owner still current,
+  successful logout hides A and shows guest state despite the new cache error.
+  No private A workspace is rendered as an active account. Raw primary and
+  journal facts remain recoverable. A changed identity would instead prevent the
+  older completion from hiding B.
+- **Evidence:** Save response order/status, visible identity, owner changes and
+  preserved raw hashes in `qa-artifacts/QA-100/`; omit cookie values.
+- **Cleanup:** Release interception and restore exact isolated backups. Close
+  only the extra case tab and keep unrelated browser state intact.
+- **Status:** pending; no authenticated runtime result is claimed.
+
+### [ ] QA-101 — P1 — Unready workspace cancels sound work
+
+- **Purpose:** Stop optional output and invalidate pending resume results when
+  the current workspace becomes unreadable, without failing timer persistence.
+- **Prerequisites:** Owned guest profile with backup, native audio support,
+  one-minute settings and a second same-origin QA tab. Capture only case-native
+  context/node calls. Do not change unrelated page audio or other profiles.
+- **Inputs:** A pending native resume result and the active guest primary value
+  `{` written by the second tab; a later explicit valid backup restore.
+- **Steps:** 1. Start a real timer and retain its resume result. 2. Trigger the
+  primary error from the second tab. 3. Inspect node cleanup and sound
+  feedback. 4. Release the old resume result. 5. Restore the backed-up workspace
+  through the existing confirmed recovery UI and enable sound with a fresh
+  gesture.
+- **Expected results:** The unready transition stops background/repeat nodes and
+  invalidates the old context lifecycle. The old callback does not mark sound
+  ready or synchronize old settings afterward. The sound control explains
+  unavailable workspace data and cannot activate while unready. A fresh valid
+  gesture works after restore; no past alarm replays and no output failure
+  overwrites or deletes primary/recovery data.
+- **Evidence:** Save context generations, native call order, visible status,
+  primary hashes and inspected results in `qa-artifacts/QA-101/`.
+- **Cleanup:** Restore native observations, the guest backup and settings; close
+  only the extra QA tab. Preserve unrelated browser state.
+- **Status:** pending; this plan is not native audio or audibility proof.
