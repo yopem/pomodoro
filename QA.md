@@ -1817,19 +1817,17 @@ do not survive a full page reload, which can require a new conflict review.
 - **Evidence:** Save sanitized tree IDs, logs, dependency-link targets, and hash
   comparisons in `qa-artifacts/QA-062/`.
 - **Cleanup:** Remove only owned temporary snapshots and approved fixtures.
-- **Status:** failed for installed-hook signal cleanup. The disposable
-  SIGINT/SIGTERM fixtures preserved bytes but left temporary directories;
-  SIGTERM also left owned check descendants. See `docs/hook-signals-qa.md` and
-  `qa-artifacts/hook-signals/`. A replacement must pass both signals through the
-  installed hook, not only direct invocation. Record both outer-hook exit and
-  surviving owner's cleanup completion; do not claim instantaneous cleanup after
-  Lefthook itself is killed. Commit `9265d6d` passed the real isolated
-  pre-commit gate at tree `a347fa11856d7861b256d5b9b3279841a132a339`. Evidence
-  is `/tmp/pomodoro-isolated-hook-commit.txt`; all 145 protected workspace file
-  digests stayed unchanged and the snapshot was removed. The earlier manual gate
-  also preserved original index bytes. Later opposing-stage fixtures preserved
-  their bytes; installed signal fixtures found the failures above. Prior normal
-  gates do not mark the full case passed.
+- **Status:** pending full acceptance after repair `7c21a64`. Earlier installed
+  SIGINT/SIGTERM runs failed; retain `docs/hook-signals-qa.md` as that evidence.
+  The final immutable-fixture rerun recorded SIGINT exit 1 and no observed owned
+  process/temp entries by 1.401 seconds. SIGTERM outer exit was -15 at 0.037
+  seconds; the surviving owner exited 1 at 1.363 seconds, with cleanup observed
+  by 1.601 seconds. Fixture index/worktree/untracked bytes matched. See
+  `qa-artifacts/QA-109/final-rerun/signal-evidence/` and
+  `docs/final-hook-owner-qa.md`. Original script hashes match the repair;
+  fixtures used recorded HEAD plus those overlays. Exact ordering between
+  process samples and SIGINT owner status remain unproven, so this case is not
+  checked off. Later actual project commits passed normal isolated gates.
 
 ### [ ] QA-063 — P1 — Push checks cover each actual origin tip
 
@@ -3349,3 +3347,32 @@ not affected by this source-only change.
     request order and UI results in `qa-artifacts/QA-116/`.
   - **Cleanup:** Use the shared marker cleanup and close only owned extra tabs.
   - **Status:** Pending; both real identities remain external prerequisites.
+
+## Current release evidence — 2026-11-09
+
+- Revision `ccc8349` built from a clean committed archive with frozen frontend
+  dependencies. Inspected build output contains no warning, error or deprecation
+  diagnostics; final worker precache contains 34 entries and 882.23 KiB.
+  Evidence: `qa-artifacts/release-current/final-build/`.
+- With user approval, only the old owned SSR process was replaced, at the same
+  `127.0.0.2:13001` address. The API, databases and edge were not changed.
+- Reused an existing tab in the green `pomodoro-qa` group through session 3. The
+  HTTPS page rendered, but its worker script failed certificate validation in
+  that browser. No certificate bypass or global trust change was made.
+- QA-082 P1 has partial evidence on the same tab at the isolated loopback origin
+  `http://127.0.0.2:13001`, which Chrome reports as a secure context. The worker
+  registered. Starting a one-minute guest timer, reloading, and activating
+  Enable sound produced the ready status. Natural completion saved exactly one
+  60-second completed session and advanced to idle short break. Evidence:
+  `qa-artifacts/QA-082/current/`. This does not prove audible output. The origin
+  began with no project storage; only created project storage was restored to
+  that baseline after observation. The original HTTPS/user data was not cleared.
+- Direct SSR has no backend proxy, so its account discovery 404 is expected and
+  not account acceptance. Initial browser Permissions-Policy warnings remain
+  recorded. Timer and sound activation interaction logs were empty.
+- Native notification delivery, HTTPS worker acceptance and authenticated
+  recovery remain pending. No browser permission was granted or reset.
+- QA-074 P1 remains pending: the current Bun audit reports minimatch and
+  unpatched deepmerge. No compatible complete dependency repair was verified.
+  Rust production graph excludes the locked optional RSA/MySQL path; this does
+  not remove the lockfile advisory. Evidence: `qa-artifacts/QA-074/current/`.
