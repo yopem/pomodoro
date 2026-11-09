@@ -678,6 +678,7 @@ function createAccountController(client: QueryClient) {
     record: AccountJournal
     resolving: boolean
     restoreMissingPrimary?: boolean
+    onDispatch?: () => void
   }) {
     const hash = await hashWorkspace(input.workspace)
     assertBaseline(
@@ -703,6 +704,7 @@ function createAccountController(client: QueryClient) {
             input.expectedLocal,
             input.restoreMissingPrimary,
           )
+          input.onDispatch?.()
         },
       })
 
@@ -739,6 +741,7 @@ function createAccountController(client: QueryClient) {
     const { user, version } = requireOwner(owner)
     publish({ status: "syncing", error: null })
     await reconcile(user.id, version, owner)
+    let unsentChanges = 0
 
     while (
       current(version, user.id, owner) &&
@@ -781,16 +784,29 @@ function createAccountController(client: QueryClient) {
       })
 
       retain(record)
-      await writeWorkspace({
-        userId: user.id,
-        version,
-        owner,
-        workspace: local,
-        expectedLocal: local,
-        expectedRevision: baseline.revision,
-        record,
-        resolving: false,
-      })
+      let dispatched = false
+
+      try {
+        await writeWorkspace({
+          userId: user.id,
+          version,
+          owner,
+          workspace: local,
+          expectedLocal: local,
+          expectedRevision: baseline.revision,
+          record,
+          resolving: false,
+          onDispatch() {
+            dispatched = true
+          },
+        })
+      } catch (cause) {
+        if (!(cause instanceof LocalSaveChangedError) || dispatched) throw cause
+        await retire(record, version, owner)
+        unsentChanges += 1
+
+        if (unsentChanges >= 3) throw cause
+      }
     }
   }
 
