@@ -3473,3 +3473,19 @@ not affected by this source-only change.
 - Evidence: `qa-artifacts/QA-086/current-authenticated-unsent/`. Four clearly
   named QA tasks remain temporarily for subsequent checks. Cases stay unchecked
   for remaining import, server-choice, concurrent-edit and cross-user branches.
+
+### Real account-version conflict choice
+
+- Web f2d264a with the real isolated localhost session, 2026-11-10. Opened the
+  first QA task editor at account revision 4. A direct authenticated CAS request
+  changed only that QA task note on the server to QA server-side conflict note,
+  producing revision 5. The already open form saved QA local conflict note.
+- The UI stopped autosync and required version review instead of silently
+  replacing the server. Use account version displayed explicit replacement
+  consent. Confirmation retained all four tasks and restored the server note in
+  both local storage and server workspace. The fenced revision became 6.
+  Post-choice interaction logs were empty.
+- Evidence: `qa-artifacts/QA-017/current-authenticated-conflict/`. This
+  exercises actual server divergence and account-choice confirmation on one
+  identity, not a real second-device or cross-account switch. Full QA-017
+  remains pending.
