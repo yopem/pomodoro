@@ -2580,7 +2580,7 @@ library or backend endpoint is authorized or needed for this feature.
   unknown-field corruption, not arbitrary browser database damage or every
   future codec.
 
-### [ ] QA-089 — P0 — Unknown journal version fails closed
+### [x] QA-089 — P0 — Unknown journal version fails closed
 
 - **Purpose:** An incompatible client must preserve request facts rather than
   migrate silently.
@@ -2596,8 +2596,19 @@ library or backend endpoint is authorized or needed for this feature.
   hashes, UI feedback and the asserted result in
   `qa-artifacts/QA-089/unknown-version.txt`.
 - **Cleanup:** Restore the exact original record.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Passed on 2026-11-09 UTC, built f25b09c5, real localhost account.
+  Changed only a genuine pending import's version to 999. Reload and retry
+  preserved exact journal, primary, stamp and guest bytes and emitted no
+  workspace mutation; invalid/unsupported recovery feedback remained visible.
+  Exact-record CAS restored the original version. A later database crash
+  temporarily returned 503, so replay/cleanup waited for real readiness and
+  verified session recovery. The original import then replayed once with the
+  same ID, expected revision and complete body SHA-256; revision 29 stayed
+  unchanged, its title existed once and the journal cleared. Guarded deletion of
+  only the fixture task and exact guest-key removal returned the complete
+  original 15-task/two-history workspace at revision 30. Logs after recovery
+  were empty. Evidence: `qa-artifacts/QA-089/current-version-codec/`. This is
+  the specified version-999 branch, not every future migration.
 
 ### [ ] QA-090 — P0 — Two account tabs serialize request recovery
 
@@ -2764,7 +2775,7 @@ library or backend endpoint is authorized or needed for this feature.
 - **Status:** pending; the candidate and live-identity prerequisites must be
   established before execution. No result is claimed from this plan.
 
-### [ ] QA-097 — P0 — Versioned request bytes cannot change silently
+### [x] QA-097 — P0 — Versioned request bytes cannot change silently
 
 - **Purpose:** Schema defaults or altered serialization must not rewrite an
   original retry payload.
@@ -2784,8 +2795,20 @@ library or backend endpoint is authorized or needed for this feature.
   `qa-artifacts/QA-097/codec-mismatch.txt`.
 - **Cleanup:** Restore the exact original journal value and remove inspection
   controls.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Passed on 2026-11-09 UTC, built f25b09c5, real localhost account.
+  In a genuine pending import, removed only `settings.focus_color` from original
+  `guestJson`, recomputed that raw string's SHA-256, and changed only those
+  fields by exact-record CAS. The frozen codec rejected the record; retry stayed
+  unavailable/disabled rather than applying a live-schema default. Exact altered
+  facts, primary, stamp and guest were preserved and no mutation was emitted.
+  After exact restoration and separate DB availability recovery, explicit
+  original retry sent the same complete body SHA-256
+  `053f4ab6a33f99372f198c4516d5de25decb3525bdcd3fd6f04c9603f582af69`. Idempotent
+  receipt stayed at revision 29/title once/journal zero; account focus
+  remained 25. Exact guest removal and guarded fixture deletion restored the
+  full baseline at revision 30. Evidence:
+  `qa-artifacts/QA-097/current-version-codec/`. Final interaction logs were
+  empty; this covers the specified missing-default codec mismatch only.
 
 ### [ ] QA-098 — P1 — Disabled alerts cancel a deferred delivery
 
