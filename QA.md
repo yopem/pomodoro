@@ -2169,5 +2169,17 @@ do not survive a full page reload, which can require a new conflict review.
   tested source revision and any unrun combinations.
 - **Cleanup:** Close only case-created forms. Restore target-scoped metrics and
   zoom. Leave fixture records and browser permissions unchanged.
-- **Status:** pending. The mobile baseline uses 36px h1 and a countdown with a
-  64px minimum. Final-build browser acceptance remains open.
+- **Status:** pending. On revision `4d4d6eebfd495302876c396daa7a5c1f587ad988`,
+  the production build and all installed static gates passed. Owned HTTPS
+  browser checks found 28px h1 headings on all six pages at 390px, 20px section
+  headings, 24px report values, 18px compact values, and a 52px countdown. At
+  320px the countdown was 51.2px. The timer page at 320px and all six pages at
+  390px had no horizontal page overflow. Large buttons kept 44px height with
+  16px text. A 1440px desktop viewport (1425px content after its scrollbar) kept
+  the original 36px h1, 112px countdown, 30px report values, and 20px compact
+  values. Timer storage bytes were unchanged and browser logs were empty.
+  Inspected before/after phone captures are in `qa-artifacts/QA-075/`; the after
+  capture also retains its raw native surface. The full 640px, text-zoom,
+  long-title, and form matrix remains unrun. An initial report-heading locator
+  and a compact-route navigation snapshot failed; corrected settled checks
+  passed.
