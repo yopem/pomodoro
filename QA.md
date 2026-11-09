@@ -1597,53 +1597,59 @@ do not survive a full page reload, which can require a new conflict review.
   headers, screenshots, and query state in `qa-artifacts/QA-053/`.
 - **Cleanup:** Restore both isolated workspaces and sessions; remove delay
   controls and close only case-created tabs.
-- **Status:** pending; runtime prerequisites are not approved yet.
+- **Status:** pending; run only within the approved isolated QA scope.
 
-### [ ] QA-054 — P1 — Recover a lost save acknowledgment
+### [ ] QA-054 — P0 — Recover a lost save after reload
 
-- **Purpose:** Preserve later local edits when a sent account save committed but
-  its response was lost. Cover serialized autosave and uncertain recovery.
-- **Prerequisites:** Approved isolated browser/API QA and an approved way to
-  drop a response after the server commits, without duplicating requests.
-- **Inputs:** Task `Save baseline`, then change its note from `sent` to `later`
-  while its first account save is in flight. Record the original revision.
-- **Steps:** 1. Send the `sent` baseline and delay its response. 2. Make the
-  `later` edit locally. 3. Drop the committed response. 4. Retry sync and
-  inspect the fetched server hash/revision before the next write. 5. Repeat with
-  a genuinely different remote edit and a server revision that did not advance.
-- **Expected results:** A matching accepted baseline is acknowledged without
-  replacing the later local workspace. The later edit saves with a fresh CAS
-  revision. Different remote work becomes an explicit conflict. A retry first
-  reads the server; it never blindly repeats a mutation. No parallel save loop
-  runs, and completion of an older worker cannot clear a newer worker handle.
-- **Evidence:** Save sanitized payload hashes, revisions, request order, and
-  final task notes in `qa-artifacts/QA-054/`.
-- **Cleanup:** Restore isolated notes and remove response-delay controls.
-- **Status:** pending; runtime prerequisites are not approved yet.
+- **Purpose:** Keep the exact sent save facts across reload and preserve later
+  local edits. A clean stamp must describe acknowledged content only.
+- **Prerequisites:** Use the journal setup below and one verified isolated
+  account. Response-loss controls must forward each real request only once.
+- **Inputs:** Task `Save baseline`; set its note to `sent`, then `later` while
+  the first PUT `/api/workspace` response is held. Record revision E and the
+  sent workspace hash. No other account edits run in this case.
+- **Steps:** 1. Let the `sent` PUT commit, but drop its response. 2. Keep the
+  `later` local edit. 3. Reload before any successful retry and verify the same
+  account again. 4. Inspect the stored journal and the first recovery GET. 5.
+  Allow the remaining local edit to sync and reload once more.
+- **Expected results:** Recovery retains E and the sent hash. A strictly newer
+  matching server version acknowledges `sent` without replacing `later`. The
+  next save uses the acknowledged revision. Both final local and server notes
+  are `later`; the journal is retired only after its stamp commits. No new
+  ordinary save bypasses the journal and no parallel save loop runs.
+- **Evidence:** Save sanitized hashes, revisions, operation order, primary
+  workspace hashes and final notes in `qa-artifacts/QA-054/`.
+- **Cleanup:** Restore isolated task notes and remove interception/listeners.
+- **Status:** pending; approved isolated QA is available, but a permitted live
+  identity and final journal implementation remain prerequisites.
 
-### [ ] QA-055 — P1 — Retain import identity across uncertain results
+### [ ] QA-055 — P0 — Retain original import facts after reload
 
-- **Purpose:** Cover explicit guest-import retries and server receipts that
-  return a newer current workspace rather than the original import result.
-- **Prerequisites:** Approved isolated browser/API QA with guest data and one
-  verified account; approved response-loss controls and a second account tab.
-- **Inputs:** Guest task `Guest import`, one 25-minute guest session, an
-  original prepared import ID, and a later remote task `After import`.
-- **Steps:** 1. Confirm import and drop its committed response. 2. Close and
-  reopen its dialog, then retry with the same ID and payload. 3. Add
-  `After import` remotely before a receipt replay. 4. Repeat with local edits
-  made while import is in flight. 5. Resolve any conflict explicitly and prepare
-  a fresh import only when the old plan is definitively stale or resolved.
-- **Expected results:** Retries retain the original ID, payload, and expected
-  revision. The receipt is proof of that import, not proof that its returned
-  workspace is the original result. New local edits are never overwritten. New
-  remote work survives a safe pull or remains available in conflict state. Guest
-  source data remains, history IDs do not duplicate, and obsolete plans can be
-  replaced without silently retrying an uncertain mutation with a new ID.
-- **Evidence:** Save sanitized IDs, revisions, task/session counts, and final
-  local/remote summaries in `qa-artifacts/QA-055/`.
-- **Cleanup:** Restore both workspaces and remove response-loss controls.
-- **Status:** pending; runtime prerequisites are not approved yet.
+- **Purpose:** Recover the original import after a lost response without
+  uploading a changed guest source or overwriting newer local/account work.
+- **Prerequisites:** Journal setup; one verified isolated account, its second
+  tab and guest data. Use real receipt responses, not fabricated sessions.
+- **Inputs:** Guest task `Guest import original`, one 25-minute guest session,
+  original import ID I and revision E; later guest task `Guest import changed`,
+  account note `Local after import`, and remote task `Remote after import`.
+- **Steps:** 1. Confirm the original import and lose its committed response. 2.
+  Keep the later account note locally and add the remote task in the second
+  tab. 3. Change the guest source without deleting its backup. 4. Reload and
+  verify the original account again. 5. Open the pending-import recovery action
+  and retry its explicitly displayed original snapshot. 6. Reload the resulting
+  conflict before choosing either version.
+- **Expected results:** The retry uses I, E and the original guest bytes/hash,
+  not the new guest source. Its receipt may return advanced account work. Both
+  the later local note and remote task remain available. The original account
+  baseline, not the fresh recovery dialog guard, controls replacement. A changed
+  local workspace keeps a durable conflict barrier across the second reload; no
+  clean stamp or ordinary save silently replaces imported data. Guest source is
+  unchanged by import, and history IDs do not duplicate.
+- **Evidence:** Save sanitized request IDs/hashes/revisions, journal tokens,
+  local/remote summaries and the reloaded conflict in `qa-artifacts/QA-055/`.
+- **Cleanup:** Restore isolated guest/account backups and remove interception.
+- **Status:** pending; permitted live identity and final journal implementation
+  remain prerequisites. Do not bypass authentication to execute this case.
 
 ### [ ] QA-056 — P1 — Account requests have a bounded browser lifetime
 
@@ -2437,3 +2443,295 @@ do not survive a full page reload, which can require a new conflict review.
   Stop only case timers and keep other storage unchanged.
 - **Status:** pending; intercepted failures are not proof of native-device
   audibility or multi-tab alarm routing.
+
+## Reload-safe account request journal
+
+Planned affected files: `apps/web/src/features/account/sync-journal.ts`,
+`sync.ts`, `sync-contract.ts`, `components/account-controls.tsx`, and the
+focus-store persisted-workspace guard if required. Existing transport/schema,
+account ownership, guest import and CAS behavior must stay intact. These cases
+extend QA-053–059, not replace their prior evidence.
+
+### Shared journal setup
+
+Use the owned HTTPS QA resources from shared setup and the completed candidate.
+Use only separately approved isolated identities A and B. Check the real
+`GET /api/session` response to discover each user ID. If issuer registration or
+identity access is missing, record that blocker; do not fabricate sessions,
+weaken token validation, use production workspaces or connect root `.env` data.
+
+Before execution, inspect the final journal module for its actual database,
+store, schema and lock names; they are not executable contracts yet. Back up
+both isolated account workspaces and the guest source. Record the tested commit,
+browser, supported IndexedDB/Web Locks capabilities and initial revisions. Use
+Playwriter against real UI requests. Delays must retain the actual request and
+forward it at most once. A lost response must not mean a second request. Save
+only synthetic record summaries, hashes and safe IDs, never cookies, tokens,
+issuer codes, private profiles or raw credential headers. Keep artifacts under
+each case's ignored directory. Restore injected APIs/routes in `finally`.
+
+Coverage: QA-054 covers durable save acknowledgment; QA-055 covers immutable
+import facts and the persistent changed-local barrier; QA-053 adds journal
+awaits to its A/B epoch checks. QA-086–097 cover preparation, serialization,
+fences, crash boundaries, visibility and codec failure. No new runner, fixture
+library or backend endpoint is authorized or needed for this feature.
+
+### [ ] QA-086 — P0 — Journal preparation failure blocks dispatch
+
+- **Purpose:** A failed durable preparation must not become a network mutation.
+- **Prerequisites:** Shared journal setup. One verified account; abort only the
+  new journal readwrite transaction before completion.
+- **Inputs:** Task `Journal aborted save`; record the original primary bytes,
+  stamp and revision.
+- **Steps:** 1. Edit the task through the UI. 2. Abort journal preparation
+  before commit. 3. Inspect requests and visible recovery feedback. 4. Restore
+  IndexedDB and retry.
+- **Expected results:** No PUT or import POST is dispatched for the failed
+  preparation. Primary work and the prior journal/stamp remain intact; retry is
+  allowed only after a completed preparation.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-086/journal-abort.txt`.
+- **Cleanup:** Restore the injected abort and the isolated task backup.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-087 — P0 — Committed preparation survives a pre-send reload
+
+- **Purpose:** A committed journal is a barrier even if the browser closes
+  before dispatch.
+- **Prerequisites:** Shared journal setup. One verified account; pause the new
+  action after journal commit but before its synchronous final guard.
+- **Inputs:** Task `Prepared but not sent`; record the prepared operation token
+  and server revision E.
+- **Steps:** 1. Commit preparation and confirm that no mutation was sent. 2.
+  Reload. 3. Verify the same account. 4. Inspect recovery before confirming a
+  resolution.
+- **Expected results:** The original record survives. The client does not infer
+  that the request was rejected or send an unrelated ordinary save. Primary data
+  stays intact until explicit safe recovery.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-087/prepared-reload.txt`.
+- **Cleanup:** Remove the pause control and resolve only the isolated operation.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-088 — P0 — Corrupt journal remains preserved
+
+- **Purpose:** Invalid stored facts must not be treated as no pending request.
+- **Prerequisites:** Shared journal setup. One verified account with an isolated
+  pending record; back up its exact value first.
+- **Inputs:** Add an unknown field to that record without changing primary
+  workspace bytes.
+- **Steps:** 1. Write the isolated malformed value using the inspected store
+  contract. 2. Reload and verify the same account. 3. Attempt Sync now. 4.
+  Compare raw record and primary hashes.
+- **Expected results:** An actionable blocked error appears. No save/import
+  dispatch occurs, and neither the corrupt record nor primary data is deleted or
+  replaced.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-088/corrupt-journal.txt`.
+- **Cleanup:** Restore the exact saved journal value and isolated workspace.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-089 — P0 — Unknown journal version fails closed
+
+- **Purpose:** An incompatible client must preserve request facts rather than
+  migrate silently.
+- **Prerequisites:** Shared journal setup. One verified account and backed-up
+  pending record.
+- **Inputs:** Set only its format version to 999 using the actual schema field.
+- **Steps:** 1. Reload the candidate with the unsupported record. 2. Verify the
+  account and attempt sync/recovery. 3. Inspect network and stored bytes.
+- **Expected results:** The record remains unchanged, no mutation is dispatched,
+  and the error explains that recovery data cannot be used. No fallback to an
+  empty record occurs.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-089/unknown-version.txt`.
+- **Cleanup:** Restore the exact original record.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-090 — P0 — Two account tabs serialize request recovery
+
+- **Purpose:** A second cooperating tab must not replace or bypass an active
+  operation record.
+- **Prerequisites:** Shared journal setup. Two current-version tabs verified as
+  the same isolated account; inspect the implemented lock wait/cancel policy.
+- **Inputs:** Tasks `Journal tab A` and `Journal tab B`; retain the first
+  request and token.
+- **Steps:** 1. Hold A after preparation while its real request is active. 2.
+  Request sync/import in B. 3. Inspect the record and dispatch order. 4.
+  Exercise the supported wait cancellation or busy retry, then release A.
+- **Expected results:** B sends no competing mutation and cannot replace A’s
+  token while A owns the operation lock. Cancellation/busy feedback is
+  accessible. Later recovery uses stored facts, never a stolen lock or an
+  assumed rejection.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-090/two-tab-lock.txt`.
+- **Cleanup:** Release held requests, remove listeners and close only the extra
+  QA tab.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-091 — P0 — Delayed storage events cannot upload a stale cache
+
+- **Purpose:** The final guard must use current persisted work, not only a tab’s
+  older React snapshot.
+- **Prerequisites:** Shared journal setup. Two verified same-account tabs;
+  suppress only B’s delivery of storage notifications, not actual localStorage
+  writes.
+- **Inputs:** Local task notes `older tab` and `newer persisted`; capture both
+  exact workspace hashes.
+- **Steps:** 1. Keep B’s view stale while A commits the newer local state and
+  account acknowledgment. 2. Trigger B sync. 3. Inspect its persisted read,
+  journal and final request. 4. Resume events.
+- **Expected results:** B refreshes or rejects its stale baseline before
+  dispatch. It never prepares/sends the older snapshot against the newer stamp
+  as if it were a fresh edit. Newer primary and remote work survives.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-091/stale-storage-event.txt`.
+- **Cleanup:** Restore storage-event delivery and isolated notes.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-092 — P0 — Server choice fences a delayed original save
+
+- **Purpose:** A GET of the old revision must not allow a late save to overwrite
+  a chosen server version.
+- **Prerequisites:** Shared journal setup. One verified account and approved
+  interception that delays the original request before server dispatch.
+- **Inputs:** Original save at E and an explicit Use account work choice of the
+  displayed remote workspace at E.
+- **Steps:** 1. Retain the original PUT. 2. Read the old remote version and
+  confirm the server choice. 3. Let its real same-content CAS PUT commit. 4.
+  Release the original PUT. 5. Reload.
+- **Expected results:** The fence advances E. The original save cannot commit
+  afterward. Retirement requires a strictly newer matching result; final
+  local/server work matches the confirmed choice, with newer local edits
+  protected.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-092/late-save-fence.txt`.
+- **Cleanup:** Remove interception and restore isolated account data.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-093 — P0 — Server choice fences a delayed original import
+
+- **Purpose:** An unfinished import must not arrive after the user resolves it
+  to account work.
+- **Prerequisites:** Shared journal setup. One verified account, guest backup
+  and delayed original import request.
+- **Inputs:** Original import I at E; choose the displayed account workspace at
+  E.
+- **Steps:** 1. Retain the original import POST before dispatch. 2. Confirm Use
+  account work. 3. Let its real CAS fence commit. 4. Release I. 5. Reload and
+  inspect guest/account data.
+- **Expected results:** The old import cannot mutate the newer revision. Its
+  original facts are retained until safe resolution. A fence does not falsely
+  mark its guest digest imported; guest source is unchanged.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-093/late-import-fence.txt`.
+- **Cleanup:** Release interception and restore both isolated backups.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-094 — P0 — Uncertain replacement fences retain original facts
+
+- **Purpose:** Replacing a resolution slot must not erase an older operation or
+  falsely prove a chosen winner.
+- **Prerequisites:** Shared journal setup. One verified account; use real held
+  CAS requests and the final phase/token contract.
+- **Inputs:** Two explicit resolutions A and B captured at the same expected
+  revision with different chosen contents.
+- **Steps:** 1. Make A uncertain. 2. Explicitly prepare B at that same
+  revision. 3. Allow A to win and lose B’s response. 4. Reload and inspect
+  recovery. 5. Confirm a fresh choice at the newly observed revision.
+- **Expected results:** Original facts survive every transition. Mismatched or
+  ambiguous results remain a barrier. No import acceptance is inferred from a
+  fence; only the safely confirmed fresh result retires the exact current token.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-094/replacement-fence.txt`.
+- **Cleanup:** Release all held requests, remove interception and restore the
+  isolated workspace.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-095 — P0 — Interrupted local replacement preserves later edits
+
+- **Purpose:** A crash between local replacement and journal retirement must not
+  repeat an unsafe replacement.
+- **Prerequisites:** Shared journal setup. One verified account; pause a
+  successful server-choice finalization after local replacement and before
+  journal retirement.
+- **Inputs:** Chosen account task `Chosen server`; add later local task
+  `After replacement` before reloading.
+- **Steps:** 1. Apply the confirmed local replacement. 2. Keep its journal and
+  make the later edit. 3. Reload and verify the account. 4. Inspect recovery
+  before another explicit choice.
+- **Expected results:** The later task remains. Recovery either proves safe
+  continuation or keeps an explicit conflict; it never replaces later work
+  merely because the earlier target was acknowledged. No ordinary save bypasses
+  the record.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-095/replacement-crash.txt`.
+- **Cleanup:** Restore pause controls and isolated data.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-096 — P1 — Pending import stays discoverable after metadata writes
+
+- **Purpose:** A confirmed-guest digest must not hide an unresolved import
+  barrier.
+- **Prerequisites:** Shared journal setup. One verified account; retain an
+  import record after receipt proof while its local baseline differs.
+- **Inputs:** Original guest snapshot and counts; record its confirmed digest,
+  then change the current guest source.
+- **Steps:** 1. Retain the persistent changed-local conflict and reload. 2. Open
+  Account and its pending-import action. 3. Inspect original counts and
+  wording. 4. Cancel with Escape. 5. Reopen, change the baseline elsewhere and
+  confirm the stale plan.
+- **Expected results:** Recovery is visible independently of guest availability.
+  It describes/retries the original snapshot, keeps its original replacement
+  baseline, restores focus on cancel and rejects stale token/owner/local consent
+  without losing data.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-096/recovery-dialog.txt`.
+- **Cleanup:** Remove delays and restore guest/account backups; close only
+  created tabs.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
+
+### [ ] QA-097 — P0 — Versioned request bytes cannot change silently
+
+- **Purpose:** Schema defaults or altered serialization must not rewrite an
+  original retry payload.
+- **Prerequisites:** Shared journal setup. One verified account and an exact
+  pending-import backup; inspect the current version-1 codec.
+- **Inputs:** Remove `focus_color` from the stored guest JSON and set its
+  raw-string SHA-256 to that modified string, leaving the rest of the record and
+  primary data untouched.
+- **Steps:** 1. Install only this isolated incompatible record. 2. Reload and
+  verify the account. 3. Open recovery and attempt retry. 4. Compare stored
+  bytes and network.
+- **Expected results:** Even if the current workspace parser supplies the
+  missing default, recovery blocks because the original canonical bytes cannot
+  be reproduced. No request is sent and raw facts/primary work remain preserved.
+- **Evidence:** Save sanitized operation order, revisions/tokens, primary
+  hashes, UI feedback and the asserted result in
+  `qa-artifacts/QA-097/codec-mismatch.txt`.
+- **Cleanup:** Restore the exact original journal value and remove inspection
+  controls.
+- **Status:** pending; the candidate and live-identity prerequisites must be
+  established before execution. No result is claimed from this plan.
