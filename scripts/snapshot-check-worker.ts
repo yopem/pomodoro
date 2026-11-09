@@ -21,6 +21,8 @@ const temporaryDirectories = new Set<string>()
 
 const runningChecks = new Set<ChildProcess>()
 
+const checkGroups = new Set<number>()
+
 let interrupted = false
 
 const cancellation = new AbortController()
@@ -267,6 +269,8 @@ async function checkCommand(
     )
 
     runningChecks.add(child)
+
+    if (child.pid) checkGroups.add(child.pid)
 
     const output = Promise.all([
       forwardOutput(child.stdout, process.stdout),
@@ -724,11 +728,40 @@ try {
 } finally {
   await interruption
 
-  for (const directory of temporaryDirectories) {
-    try {
-      rmSync(directory, { recursive: true, force: true })
-    } catch {
-      process.exitCode = 1
+  const deadline = performance.now() + 5000
+  let probeFailed = false
+
+  while (checkGroups.size && !probeFailed) {
+    for (const group of checkGroups) {
+      try {
+        process.kill(-group, 0)
+      } catch (cause) {
+        if (cause instanceof Error && "code" in cause && cause.code === "ESRCH")
+          checkGroups.delete(group)
+        else probeFailed = true
+      }
+    }
+
+    if (checkGroups.size && performance.now() >= deadline) probeFailed = true
+
+    if (checkGroups.size && !probeFailed)
+      await new Promise<void>((resolve) => setTimeout(resolve, 50))
+  }
+
+  if (probeFailed) {
+    process.exitCode = 1
+
+    if (outputAvailable)
+      process.stderr.write(
+        "Snapshot cleanup could not verify process exit; temporary directories retained\n",
+      )
+  } else {
+    for (const directory of temporaryDirectories) {
+      try {
+        rmSync(directory, { recursive: true, force: true })
+      } catch {
+        process.exitCode = 1
+      }
     }
   }
 }
