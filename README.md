@@ -159,6 +159,14 @@ browsers, the active service worker displays persistent notifications. A
 notification returns to an existing timer window or opens the same-origin timer
 without replacing another open form. Desktop notifications remain a fallback.
 This does not add server push or schedule alarms after all app windows close.
+Failed delivery is reported in the timer without stopping its saved completion.
+
+Start and Resume request sound through the user gesture. After a reload, use
+Enable sound for a recovered run. Sound readiness describes the current tab, not
+the device volume. A missed alarm is not replayed on a later click. Only the tab
+that saves completion attempts its sound; a sleeping tab or another completing
+tab can prevent an audible alarm. Supported platform notifications can provide a
+separate notice; neither path guarantees background delivery.
 
 ## Static checks
 
