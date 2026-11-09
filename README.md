@@ -105,17 +105,25 @@ Do not remove volumes or change an existing target to fix a setup error.
 
 ### Account sign-in
 
-Before using sign-in, confirm the client, supported token claims, and callback
-permission with the existing issuer operator. The local callback is:
+The application sends its own callback as `redirect_uri` to the existing
+OpenAuth issuer. The local callback for the default origin is:
 
 ```text
 http://127.0.0.1:13001/auth/callback
 ```
 
-The default client value is not proof that this callback is registered. The
-issuer uses OAuth; do not assume OpenID Connect support. Use the configured
-browser origin consistently. `localhost` and `127.0.0.1` are different cookie
-hosts.
+Real account QA also passed with `http://localhost:13001/auth/callback` and the
+existing issuer. OpenAuth's default redirect policy accepts the exact
+`localhost` and `127.0.0.1` hosts, but an issuer can replace that policy. For
+production, confirm the actual client, token contract, and permitted application
+origin with the issuer operator. Do not infer permission for another domain from
+the default client value.
+
+The application's callback is not the Google provider callback. Google returns
+to the issuer; the issuer returns to this application. Do not add the
+application callback to Google configuration. The issuer uses OAuth; do not
+assume OpenID Connect support. Use the configured browser origin consistently.
+`localhost` and `127.0.0.1` are different cookie hosts.
 
 ## Development
 
