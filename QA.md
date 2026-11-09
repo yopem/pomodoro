@@ -1817,13 +1817,19 @@ do not survive a full page reload, which can require a new conflict review.
 - **Evidence:** Save sanitized tree IDs, logs, dependency-link targets, and hash
   comparisons in `qa-artifacts/QA-062/`.
 - **Cleanup:** Remove only owned temporary snapshots and approved fixtures.
-- **Status:** pending. Commit `9265d6d` passed the real isolated pre-commit gate
-  at tree `a347fa11856d7861b256d5b9b3279841a132a339`. Evidence is
-  `/tmp/pomodoro-isolated-hook-commit.txt`; all 145 protected workspace file
+- **Status:** failed for installed-hook signal cleanup. The disposable
+  SIGINT/SIGTERM fixtures preserved bytes but left temporary directories;
+  SIGTERM also left owned check descendants. See `docs/hook-signals-qa.md` and
+  `qa-artifacts/hook-signals/`. A replacement must pass both signals through the
+  installed hook, not only direct invocation. Record both outer-hook exit and
+  surviving owner's cleanup completion; do not claim instantaneous cleanup after
+  Lefthook itself is killed. Commit `9265d6d` passed the real isolated
+  pre-commit gate at tree `a347fa11856d7861b256d5b9b3279841a132a339`. Evidence
+  is `/tmp/pomodoro-isolated-hook-commit.txt`; all 145 protected workspace file
   digests stayed unchanged and the snapshot was removed. The earlier manual gate
-  also preserved original index bytes. Deliberate opposing-stage and
-  interruption fixtures have not run; these facts do not mark the full case
-  passed.
+  also preserved original index bytes. Later opposing-stage fixtures preserved
+  their bytes; installed signal fixtures found the failures above. Prior normal
+  gates do not mark the full case passed.
 
 ### [ ] QA-063 — P1 — Push checks cover each actual origin tip
 
@@ -3080,3 +3086,49 @@ library or backend endpoint is authorized or needed for this feature.
   - **Coverage:** Shared guard → existing CAS, idempotency, atomicity, and
     per-user boundaries remain intact.
   - **Status:** Pending. No runtime result is recorded.
+
+### QA-109 — Private snapshot-owner channel fails closed
+
+- [ ] **P1 — Pending.** A worker must not start snapshot work without its live
+      owner and a valid invocation; loss of ownership must stop its owned work.
+  - **Purpose:** Cover the proposed surviving-process repair for QA-062,
+    including the startup interval before ordinary signal handlers can help.
+  - **Prerequisites:** Pinned Bun and installed Lefthook in an owned disposable
+    repository. Record hashes of the complete runner, worker, rc, and config.
+    Use the existing local hook fixture tools, no real remotes or user tree.
+    Inspect the final IPC protocol and cleanup grace before running the case.
+  - **Inputs:** Direct private-worker invocation without IPC; a dropped channel
+    before startup and before invocation; an invalid start message; a valid
+    staged invocation followed by ownership loss; and closed stdout/stderr while
+    a check is active. No credentials or real project input are needed.
+  - **Steps:**
+    1. Record the original fixture index/worktree/untracked byte hashes and the
+       owned temporary root. Start each input in its own fixture/process owner.
+    2. For rejected startup inputs inspect the exit code and temporary root. For
+       active ownership loss inspect the owner, command process groups, their
+       descendants, and snapshot paths before and after cleanup.
+    3. Close each output stream in separate runs. Preserve exit/output evidence
+       before removing only owned leftovers. Run actual installed SIGINT and
+       SIGTERM scenarios under QA-062 after these protocol checks.
+    4. Repeat normal staged/committed operation and QA-063–065 transport,
+       secret-output, and path-collision checks with the same runner hashes.
+  - **Expected results:** Invalid or lost startup ownership starts no gate or
+    snapshot. Active ownership or output loss fails the check and runs cleanup.
+    Owned command groups stop before temporary data is removed; no unrelated
+    process is signalled through a saved or reused PID. The owner keeps the
+    required lifetime until cleanup completes. The outer killed Lefthook may
+    return earlier; record that interval rather than claiming it waits. No raw
+    environment, remote URL, or invocation values enter diagnostics. Normal
+    success requires completed checks and cleanup, not an IPC disconnect.
+    Original bytes and actual origin-tip coverage remain unchanged.
+  - **Evidence:** Save sanitized protocol/exit/timing records, process identity
+    observations, protected byte hashes, and cleanup results under
+    `qa-artifacts/QA-109/`; reference QA-062–065 for installed-hook coverage.
+  - **Cleanup:** Stop only verified fixture-owned processes, remove their
+    disposable repositories and temporary roots, and retain inspected evidence.
+    Leave real project hooks, index, remotes, and services untouched by
+    fixtures.
+  - **Coverage:** Owner handshake → no orphan startup; IPC/output loss → failed
+    cleanup path; installed signals → actual lifecycle; ordinary execution → no
+    check bypass or content change.
+  - **Status:** Pending. The surviving owner is not implemented at planning.
