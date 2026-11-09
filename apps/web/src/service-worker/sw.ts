@@ -18,6 +18,36 @@ cleanupOutdatedCaches()
 
 clientsClaim()
 
+async function openTimerFromNotification() {
+  const windows = await self.clients.matchAll({
+    type: "window",
+    includeUncontrolled: true,
+  })
+
+  const timerWindow = windows.find((client) => {
+    const path = new URL(client.url).pathname
+
+    return path === "/" || path === "/focus" || path === "/focus/"
+  })
+
+  if (timerWindow) {
+    await timerWindow.focus().catch(() => self.clients.openWindow("/"))
+
+    return
+  }
+
+  await self.clients.openWindow("/")
+}
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close()
+  event.waitUntil(
+    openTimerFromNotification().catch(() => {
+      console.warn("The timer window could not be opened")
+    }),
+  )
+})
+
 const updateMessage = z.object({ type: z.literal("SKIP_WAITING") })
 
 self.addEventListener("message", (event) => {
