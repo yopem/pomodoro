@@ -3452,3 +3452,24 @@ not affected by this source-only change.
   tasks remain for subsequent recovery checks. Full QA-086 remains pending:
   before-send abort, unaccepted requests, import and concurrent-edit branches
   were not exercised. No cross-account or production HTTPS proof is implied.
+
+## Authenticated denial and unsent-save evidence — 2026-11-10
+
+- Source web f2d264a, localhost development QA API and real permitted session.
+  QA-045 exercised GET without captured user (400), random nonmatching user on
+  GET/PUT/import/logout (409), and a real-user stale revision PUT (409). Every
+  response had no-store and matching JSON/header request IDs. Workspace and
+  revision stayed identical at 3; real session remained authenticated. Evidence:
+  `qa-artifacts/QA-045/current-authenticated/`. Random header mismatch is not a
+  substitute for two actual identities or shared-cookie race checks.
+- QA-086 additionally exercised an unsent save. One route-aborted PUT had zero
+  server forwards. Server stayed revision 3 with three tasks and no new title,
+  while IndexedDB held one request. Reload retained the local QA task and
+  presented uncertain-save review instead of silently overwriting the server.
+- After removing interception, Keep local version required its confirmation.
+  Explicit confirmation produced revision 4, four tasks, one matching new QA
+  title and zero journal records. No new interaction errors were logged after
+  the expected intercepted disconnection.
+- Evidence: `qa-artifacts/QA-086/current-authenticated-unsent/`. Four clearly
+  named QA tasks remain temporarily for subsequent checks. Cases stay unchecked
+  for remaining import, server-choice, concurrent-edit and cross-user branches.
