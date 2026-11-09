@@ -317,6 +317,13 @@ See `QA.md` for the current release checks and evidence. Successful builds and
 isolated local checks do not establish live issuer compatibility or production
 readiness. Complete the remaining cases before release.
 
+Account JSON requests have a 20,000,000-byte UTF-8 limit. Merged data must also
+fit a conservative client-save budget, including revision and timer-number
+formatting space. This can reject data just below the literal request limit.
+Existing data and receipt replays remain readable. Oversized legacy saves must
+reduce the same size measure; new imports must fit the budget. Browser storage
+quotas can be lower.
+
 Account writes require IndexedDB and Web Locks. The app saves request facts
 before it sends a write. After a reload, sign in to the same account before
 reviewing a saved request. **Review pending import** uses its original snapshot

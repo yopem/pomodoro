@@ -12,6 +12,7 @@ pub mod workspaces;
 pub enum DbError {
     Conflict,
     InvalidData,
+    WorkspaceTooLarge,
     NotFound,
     RevisionExhausted,
     Database,
@@ -22,6 +23,7 @@ impl fmt::Display for DbError {
         formatter.write_str(match self {
             Self::Conflict => "conflict",
             Self::InvalidData => "invalid data",
+            Self::WorkspaceTooLarge => "workspace too large",
             Self::NotFound => "not found",
             Self::RevisionExhausted => "revision exhausted",
             Self::Database => "database error",

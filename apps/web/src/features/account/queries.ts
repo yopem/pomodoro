@@ -62,7 +62,7 @@ export class AccountApiError extends Error {
   constructor(status: number, requestId?: string) {
     super(
       status === 413
-        ? "This workspace exceeds the 20,000,000-byte sync limit"
+        ? "This operation exceeds the sync size limit. Reduce the workspace before retrying"
         : "The account request could not be completed",
     )
     this.name = "AccountApiError"

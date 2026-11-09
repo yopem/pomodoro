@@ -12,6 +12,10 @@ use uuid::Uuid;
 use crate::DbError;
 
 const MAX_REVISION: i64 = 9_007_199_254_740_991;
+const MAX_SAVE_ENVELOPE_BYTES: usize = 51;
+const MAX_BROWSER_TIMER_NUMBER_BYTES: usize = 32;
+
+pub const MAX_WORKSPACE_REQUEST_BYTES: usize = 20_000_000;
 
 pub struct StoredWorkspace {
     pub workspace: ValidatedWorkspace,
@@ -59,6 +63,17 @@ mod receipt_entity {
 
 fn encode(workspace: &ValidatedWorkspace) -> Result<Json, DbError> {
     serde_json::to_value(workspace).map_err(|_| DbError::InvalidData)
+}
+
+fn compact_save_size_bound(workspace: &ValidatedWorkspace) -> Result<usize, DbError> {
+    let serialized = serde_json::to_vec(workspace).map_err(|_| DbError::InvalidData)?;
+    let timer_number = serde_json::to_vec(&workspace.as_workspace().timer.remaining_seconds)
+        .map_err(|_| DbError::InvalidData)?;
+    let structural_bytes = serialized
+        .len()
+        .checked_sub(timer_number.len())
+        .ok_or(DbError::InvalidData)?;
+    Ok(structural_bytes.saturating_add(MAX_SAVE_ENVELOPE_BYTES + MAX_BROWSER_TIMER_NUMBER_BYTES))
 }
 
 fn decode(value: Json) -> Result<ValidatedWorkspace, DbError> {
@@ -148,6 +163,12 @@ pub async fn save(
     let tx = db.begin().await?;
     let current = lock_workspace(&tx, user_id).await?;
     let revision = next_revision(current.revision, expected_revision)?;
+    let size_bound = compact_save_size_bound(&workspace)?;
+    if size_bound > MAX_WORKSPACE_REQUEST_BYTES
+        && size_bound >= compact_save_size_bound(&current.workspace)?
+    {
+        return Err(DbError::WorkspaceTooLarge);
+    }
     write_workspace(&tx, user_id, revision, &workspace).await?;
     tx.commit().await?;
     Ok(StoredWorkspace {
@@ -236,6 +257,9 @@ pub async fn r#import(
     }
     let revision = next_revision(current.revision, expected_revision)?;
     let merged = merge(current.workspace, &workspace)?;
+    if compact_save_size_bound(&merged)? > MAX_WORKSPACE_REQUEST_BYTES {
+        return Err(DbError::WorkspaceTooLarge);
+    }
     write_workspace(&tx, user_id, revision, &merged).await?;
     receipt_entity::Entity::insert(receipt_entity::ActiveModel {
         user_id: Set(user_id),

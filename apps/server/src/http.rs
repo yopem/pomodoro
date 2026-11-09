@@ -15,7 +15,11 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
-use pomodoro_db::{DbError, users::User, workspaces::StoredWorkspace};
+use pomodoro_db::{
+    DbError,
+    users::User,
+    workspaces::{MAX_WORKSPACE_REQUEST_BYTES, StoredWorkspace},
+};
 use pomodoro_focus::ValidatedWorkspace;
 use sea_orm::DatabaseConnection;
 use serde::Serialize;
@@ -97,7 +101,7 @@ pub fn router(
     routes
         .fallback(not_found)
         .method_not_allowed_fallback(method_not_allowed)
-        .layer(DefaultBodyLimit::max(20_000_000))
+        .layer(DefaultBodyLimit::max(MAX_WORKSPACE_REQUEST_BYTES))
         .layer(middleware::from_fn_with_state(state, boundary))
 }
 
@@ -340,6 +344,10 @@ fn database_failure(error: DbError, id: Uuid) -> Response {
             "Account data changed. Review the server version before retrying.",
         ),
         DbError::InvalidData => (StatusCode::BAD_REQUEST, "The workspace is invalid"),
+        DbError::WorkspaceTooLarge => (
+            StatusCode::PAYLOAD_TOO_LARGE,
+            "Account data exceeds the sync size budget. Reduce the workspace before retrying.",
+        ),
         DbError::NotFound => (
             StatusCode::NOT_FOUND,
             "The requested account data was not found",
