@@ -34,13 +34,48 @@ rankings are not included.
 
 Use the pinned toolchains:
 
-- Bun package version `1.4.4-canary.20261104.1`, revision `a8fcd319b`. See
+- Bun package version `1.4.4-canary.20261104.1`, revision `b9f2ec363`. See
   `bun-toolchain.json`. Native lint, format, and check need this build.
 - Rust `1.97.1` with rustfmt and Clippy. See `rust-toolchain.toml`.
 - Docker Compose v2, or compatible Podman Compose, for the local database.
 
 Do not change a global toolchain or replace an existing service without review.
 The commands below use the repository root as their working directory.
+
+### Select the verified project Bun
+
+For Linux x64 with glibc, the official platform package provides the pinned
+binary. This example uses a new private cache directory. It does not replace a
+global executable or edit shell profiles. Stop if a checksum or version differs:
+
+```sh
+set -eu
+mkdir -p "$HOME/.cache"
+PROJECT_BUN_DIR=$(mktemp -d "$HOME/.cache/pomodoro-bun.XXXXXXXX")
+BUN_REGISTRY=https://registry.npmjs.org/@oven/bun-linux-x64/-
+curl --fail --silent --show-error --location \
+  --proto '=https' --proto-redir '=https' \
+  "$BUN_REGISTRY/bun-linux-x64-1.4.4-canary.20261104.1.tgz" \
+  -o "$PROJECT_BUN_DIR/bun.tgz"
+printf '%s  %s\n' \
+  da5b27fe62aea9a35fed1aadfe5f57072a4c17e601f52a6b7731f1d49942715a \
+  "$PROJECT_BUN_DIR/bun.tgz" | sha256sum -c -
+tar -xzf "$PROJECT_BUN_DIR/bun.tgz" -C "$PROJECT_BUN_DIR" package/bin/bun
+printf '%s  %s\n' \
+  e69da5c360346c64591b0a2eccb9f017862838a52bdaf7ddde00950c8e8c8db9 \
+  "$PROJECT_BUN_DIR/package/bin/bun" | sha256sum -c -
+chmod 755 "$PROJECT_BUN_DIR/package/bin/bun"
+test "$("$PROJECT_BUN_DIR/package/bin/bun" --version)" = '1.4.4'
+test "$("$PROJECT_BUN_DIR/package/bin/bun" --revision)" = \
+  '1.4.4-canary.1+b9f2ec363'
+PROJECT_PREVIOUS_PATH=$PATH
+export PATH="$PROJECT_BUN_DIR/package/bin:$PATH"
+```
+
+Use this PATH for project commands. To restore this shell's prior selection, run
+`export PATH="$PROJECT_PREVIOUS_PATH"`. Keep the private cache while project
+processes use it. Remove only that owned directory after those processes stop.
+Other platforms need a separately verified artifact; do not reuse these hashes.
 
 ## Install and configure
 
@@ -208,6 +243,10 @@ cargo check --workspace --all-targets --locked
 cargo clippy --workspace --all-targets --locked -- -D warnings
 ```
 
+Native Bun's JS lint plugins do not receive a full TypeScript program. Reviewed
+allowed/rejected examples cover selected rules, not every plugin or full React
+Compiler semantics. Keep the production Compiler build and focused regressions.
+
 Runtime QA is separate. `QA.md` contains the shared acceptance cases and actual
 results. A static pass does not prove browser, database, authentication, or
 production behavior.
@@ -246,8 +285,8 @@ the network's actual peer addresses and the edge behavior before release. Build
 only from a reviewed commit with the trusted-proxy implementation.
 
 Prepare the context from a reviewed commit, not the live working tree. From the
-repository root on a Linux amd64 host, with the trusted installed Bun on `PATH`.
-Stop if any command fails:
+repository root on a Linux amd64 host, with the verified official Bun selected
+above on `PATH`. Stop if any command fails:
 
 ```sh
 REPO=$(pwd -P)
@@ -260,7 +299,7 @@ mkdir -m 700 "$CONTAINER_CONTEXT/.container"
 cp -L "$(command -v bun)" "$CONTAINER_CONTEXT/.container/bun"
 chmod 755 "$CONTAINER_CONTEXT/.container/bun"
 printf '%s  %s\n' \
-  14f268816e1b6a412d3715d8b9820bdb3030386ffdd35c46da1446898e0091c4 \
+  e69da5c360346c64591b0a2eccb9f017862838a52bdaf7ddde00950c8e8c8db9 \
   "$CONTAINER_CONTEXT/.container/bun" | sha256sum -c -
 ```
 
@@ -268,11 +307,13 @@ The archive contains committed files only. It excludes the untracked `.env`, Git
 history, local QA artifacts, and `node_modules`. Review the commit and archive
 contents before building; do not add secrets or other local files to the
 context. The build checks the supplied Bun checksum, version `1.4.4`, and
-revision `1.4.4-canary.1+a8fcd319b`. These trusted host bytes do not establish
-an independently retrievable official artifact or its provenance. No runtime pin
-or global installation is changed. The pinned image digests fix Linux amd64
-manifests, but network dependency downloads and system libraries still need
-release verification.
+revision `1.4.4-canary.1+b9f2ec363`. The binary must match the verified official
+package above; an arbitrary host binary is not accepted. The package metadata
+reports source commit `b9f2ec36352060f6b976508fa93d54bf8d5d978f`. This
+identifies the published artifact, not a reproduced upstream compiler build. The
+global installation is unchanged. The pinned image digests fix Linux amd64
+manifests, but network dependencies and system libraries still need release
+verification.
 
 Create a private Compose env file outside the repository. Use a secret manager
 or a secure editor to set `PUBLIC_ORIGIN`, `DATABASE_URL`, `AUTH_CLIENT_ID`,
