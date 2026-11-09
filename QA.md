@@ -3582,7 +3582,7 @@ not affected by this source-only change.
   Data recovery passed this subcase, but accessibility acceptance is failed
   until the nested-dialog focus transition is repaired and rerun.
 
-### [ ] QA-118 — P1 — Account import completion returns focus safely
+### [x] QA-118 — P1 — Account import completion returns focus safely
 
 - **Purpose:** Fix the observed focused-descendant/aria-hidden warning after
   recovered import completion without losing original import facts or focus.
@@ -3604,9 +3604,19 @@ not affected by this source-only change.
   `qa-artifacts/QA-118/`; match each result to its built revision.
 - **Cleanup:** Release only owned request handlers; remove only QA guest/task
   fixtures after guarded comparison. Keep the real user session and other tabs.
-- **Status:** Failed on f2d264a: a blocked-aria-hidden focused-descendant
-  warning appeared after recovered-import completion. Precise cause and repair
-  pending.
+- **Status:** Passed on 2026-11-09, built f25b09c5, existing localhost test
+  account. Preserved the f2d264a warning as prior failure evidence. A real 200
+  response was held after one forward and the import journal existed before
+  reload. Original retry matched ID, revision and full request-body SHA256; one
+  task existed, account focus stayed 25, journal count became zero, and focus
+  returned to the parent close button with one remaining dialog. Normal import,
+  Cancel and Escape also returned focus to that button. Parent closure returned
+  focus to Account. Interaction logs had no warning or error. Exact owned guest
+  fixtures were removed; imported account QA tasks remain until guarded account
+  cleanup. Evidence is under `qa-artifacts/QA-118/current-authenticated/`; build
+  metadata is under `qa-artifacts/QA-118/build-production-https/`. This is
+  localhost browser acceptance, not production HTTPS or screen-reader
+  certification.
 
 ## Current API HTTP budget and phone-dialog evidence
 
@@ -3649,7 +3659,7 @@ not affected by this source-only change.
 - Output-write causality, worker SIGINT status and final-completion race were
   not established. Prior partial signal successes do not override this failure.
 
-### [ ] QA-119 — P1 — Simultaneous new tasks converge across account tabs
+### [x] QA-119 — P1 — Simultaneous new tasks converge across account tabs
 
 - **Purpose:** Investigate the observed uncertain-save review after two
   current-version tabs add distinct tasks, without assuming a network rejection
@@ -3676,8 +3686,16 @@ not affected by this source-only change.
   revisions, record identity comparisons, accessible feedback and logs.
 - **Cleanup:** Release only owned interceptors and close only the temporary peer
   tab after recording results. Retain or remove only guarded QA records.
-- **Status:** Failed usability subcase on f2d264a: local primary retained both
-  additions (nine tasks), server stayed at revision 17 (seven tasks), and a
-  revision-17 save journal triggered uncertain review. Neither task was lost.
-  Dispatch causality and precise root cause remain unproved. QA-090 active
-  request lock serialization is separate and remains pending.
+- **Status:** Passed the stated simultaneous-addition scenario on 2026-11-09
+  with built f25b09c5 and the existing real localhost account. Preserve the
+  f2d264a usability failure and its unproved dispatch cause in `before/`. That
+  original pending record was recovered by explicit Keep local version, not
+  silently discarded. In the rebuilt two-tab run, request listeners observed A
+  send revision 20 with 12 tasks and receive 200/revision 21, then B send
+  revision 21 with 13 tasks and receive 200/revision 22. Both new titles existed
+  once, primary/server contained 13 tasks, history stayed at two, journal count
+  was zero, and both tabs reported synced without log warnings or errors. No
+  request was intercepted in this rerun. Owned listeners were removed and only
+  the temporary peer was closed. Evidence is under
+  `qa-artifacts/QA-119/current-authenticated/`. This does not establish the
+  separately held-active-request QA-090 or every uncertainty branch.
