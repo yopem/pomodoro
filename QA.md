@@ -3411,3 +3411,29 @@ not affected by this source-only change.
   in `qa-artifacts/QA-117/`. Cancel made no project-storage write. Remaining
   form and distinct-message scenarios keep this case unchecked. The update
   prompt and explicit reload worked on loopback; this is not HTTPS acceptance.
+
+## Authenticated localhost QA evidence — 2026-11-10
+
+- The user completed real issuer login through the existing project-group tab.
+  The issuer accepted `http://localhost:13001/auth/callback`; Google returned to
+  `https://auth.yopem.com/google/callback`. No Google registration, issuer
+  settings, certificate bypass or fabricated session was needed.
+- The owned QA API uses its existing development-mode localhost configuration
+  against the same isolated database. This is not production HTTPS acceptance.
+  Web artifact: f2d264a. The API binary predates the latest source changes.
+- Initial verified account workspace was revision 0 with no tasks, projects,
+  templates or history. A UI-created Unicode QA task reached server revision 1
+  with matching response ownership and survived a full reload.
+- QA-054 has partial lost-response evidence: one UI-created second QA task
+  triggered exactly one intercepted PUT. Its real server response was 200, then
+  only that response was aborted. Server revision became 2. The route
+  interception was removed before reload. After reload the app reported synced,
+  each QA title appeared once, revision remained 2 and the journal was empty.
+  This does not establish a crash with a known pending journal: reconciliation
+  might have finished before reload. That scenario remains pending.
+- Evidence: `qa-artifacts/QA-054/current-authenticated/`. Records are clearly
+  named QA tasks and retained temporarily for follow-up recovery cases. The
+  empty original workspace is retained in browser-memory state for comparison.
+  No user profile, tokens, cookies or authorization codes are in this evidence.
+- QA-015, QA-017, QA-054 and the durable-journal cases remain unchecked until
+  their complete acceptance scenarios and cleanup have been inspected.
