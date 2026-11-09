@@ -22,7 +22,7 @@ export function FieldMessages({
 
   return (
     <FieldError id={id} match={messages.length > 0}>
-      {messages.join(". ")}
+      {[...new Set(messages)].join(". ")}
     </FieldError>
   )
 }

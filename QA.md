@@ -3376,3 +3376,35 @@ not affected by this source-only change.
   unpatched deepmerge. No compatible complete dependency repair was verified.
   Rust production graph excludes the locked optional RSA/MySQL path; this does
   not remove the lockfile advisory. Evidence: `qa-artifacts/QA-074/current/`.
+
+### [ ] QA-117 — P1 — Field validation does not repeat identical messages
+
+- **Purpose:** Remove the observed repeated task-title message without removing
+  blur or submit validation, distinct errors, field associations or focus.
+- **Prerequisites:** Current production build in the existing project-group tab;
+  isolated empty loopback guest workspace. Shared FieldMessages callers include
+  task, template, settings, project, history and CSV forms. No identity needed.
+- **Inputs:** Empty task title; empty project/template names; invalid CSV range;
+  out-of-range setting values; separate distinct messages where the actual
+  schema produces them. Do not invent validation rules.
+- **Steps:**
+  1. Open Add task and submit with the title empty. Inspect the displayed error,
+     the input aria-invalid and aria-describedby attributes, its linked message
+     and focus. Blur the field and submit again.
+  2. Repeat invalid blur and submit in the other existing form workflows.
+     Inspect actual validation messages and confirm distinct errors remain.
+  3. Correct the inputs and inspect error removal; cancel without saving.
+     Compare isolated storage with its initial value.
+- **Expected results:** Each identical message appears once in its field error,
+  with distinct messages retained in original order. Validation timing is
+  unchanged. The task title has aria-invalid true, task-title-error as its
+  description and focus after invalid submission. No record is created.
+- **Evidence:** Save snapshots, direct attribute/focus observations and logs in
+  `qa-artifacts/QA-117/`, recording the built revision. Do not infer missing
+  attributes from cleaned HTML, which removes them.
+- **Cleanup:** Cancel the form and restore only owned fixture changes, if any.
+  Keep the existing tab, user data, permissions and other project tabs intact.
+- **Status:** Failed on ccc8349: empty task submit displays the same title error
+  twice. Direct attribute checks confirm correct invalid state, description and
+  focus, so those are not established defects. Repair acceptance remains
+  pending.
