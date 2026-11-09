@@ -100,13 +100,15 @@ export function AccountControls({
   state: AccountSnapshot
 }) {
   const focus = useFocusSnapshot((value) => value)
+  const accountCloseRef = useRef<HTMLButtonElement>(null)
+  const [accountCloseProps] = useState(() => ({ ref: accountCloseRef }))
 
   return (
     <Dialog>
       <DialogTrigger render={<Button variant="outline" size="xl" />}>
         {focus.owner.identity === null ? "Guest mode" : "Account"}
       </DialogTrigger>
-      <DialogPopup>
+      <DialogPopup closeProps={accountCloseProps}>
         <DialogHeader>
           <DialogTitle>Your workspace</DialogTitle>
           <DialogDescription>
@@ -119,6 +121,7 @@ export function AccountControls({
             controller={controller}
             state={state}
             workspace={focus.workspace}
+            accountCloseRef={accountCloseRef}
           />
         </DialogPanel>
       </DialogPopup>
@@ -197,10 +200,12 @@ export function AccountActions({
   controller,
   state,
   workspace,
+  accountCloseRef,
 }: {
   controller: AccountController
   state: AccountSnapshot
   workspace: Workspace
+  accountCloseRef: React.RefObject<HTMLButtonElement | null>
 }) {
   const owner = useWorkspaceMutationOwner()
   const [bound] = useState(() => ({ controller, owner }))
@@ -234,7 +239,11 @@ export function AccountActions({
                 ? "Retry sync"
                 : "Sync now"}
             </Button>
-            <AccountImportAction bound={bound} state={state} />
+            <AccountImportAction
+              bound={bound}
+              state={state}
+              accountCloseRef={accountCloseRef}
+            />
             <ConfirmAction
               title="Log out"
               description="Unsynced account work stays on this device. Export a backup in Settings if needed."
@@ -276,24 +285,30 @@ export function AccountActions({
 export function AccountImportAction({
   bound,
   state,
+  accountCloseRef,
 }: {
   bound: BoundAccount
   state: AccountSnapshot
+  accountCloseRef: React.RefObject<HTMLButtonElement | null>
 }) {
   if (state.user?.id !== bound.owner.identity) return null
 
-  const request = state.pendingOperation
+  const pending = state.pendingOperation
 
-  if (request) {
-    if (request.kind === "import" && request.phase === "original")
-      return <GuestImport bound={bound} request={request} />
+  const request =
+    pending?.kind === "import" && pending.phase === "original" ? pending : null
 
-    return null
-  }
+  const available =
+    request !== null || (pending === null && state.guestAvailable)
 
-  if (!state.guestAvailable) return null
-
-  return <GuestImport bound={bound} request={null} />
+  return (
+    <GuestImport
+      bound={bound}
+      request={request}
+      available={available}
+      accountCloseRef={accountCloseRef}
+    />
+  )
 }
 
 export function AccountFeedback({
@@ -391,9 +406,13 @@ export function AccountConflict({
 export function GuestImport({
   bound,
   request,
+  available,
+  accountCloseRef,
 }: {
   bound: BoundAccount
   request: PendingAccountRequest | null
+  available: boolean
+  accountCloseRef: React.RefObject<HTMLButtonElement | null>
 }) {
   const [dialog, setDialog] = useState<{
     id: number
@@ -456,15 +475,18 @@ export function GuestImport({
 
   return (
     <Dialog open={dialog?.open ?? false} onOpenChange={changeOpen}>
-      <DialogTrigger render={<Button variant="outline" />}>
-        {request ? "Review pending import" : "Import guest work"}
-      </DialogTrigger>
+      {(available || dialog?.open) && (
+        <DialogTrigger render={<Button variant="outline" />}>
+          {request ? "Review pending import" : "Import guest work"}
+        </DialogTrigger>
+      )}
       {dialog && (
         <ImportContent
           key={dialog.id}
           dialog={dialog}
           bound={bound}
           setDialog={setDialog}
+          accountCloseRef={accountCloseRef}
         />
       )}
     </Dialog>
@@ -475,6 +497,7 @@ export function ImportContent({
   dialog,
   bound,
   setDialog,
+  accountCloseRef,
 }: {
   dialog: {
     id: number
@@ -485,6 +508,7 @@ export function ImportContent({
   }
   bound: BoundAccount
   setDialog: React.Dispatch<React.SetStateAction<typeof dialog | null>>
+  accountCloseRef: React.RefObject<HTMLButtonElement | null>
 }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -526,7 +550,7 @@ export function ImportContent({
   const recovered = dialog.plan?.recovered ?? false
 
   return (
-    <DialogPopup>
+    <DialogPopup finalFocus={accountCloseRef}>
       <DialogHeader>
         <DialogTitle>
           {recovered ? "Review pending import" : "Import guest work"}
