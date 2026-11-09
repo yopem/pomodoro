@@ -317,6 +317,20 @@ See `QA.md` for the current release checks and evidence. Successful builds and
 isolated local checks do not establish live issuer compatibility or production
 readiness. Complete the remaining cases before release.
 
-Uncertain save and import facts survive in-memory account changes, not a full
-page reload. A reload can require a fresh conflict review. Browser storage is
-not a backup service; export important guest work before clearing site data.
+Account writes require IndexedDB and Web Locks. The app saves request facts
+before it sends a write. After a reload, sign in to the same account before
+reviewing a saved request. **Review pending import** uses its original snapshot
+and import ID, not the current guest contents. Conflict choices refer to the
+request and workspace shown when confirmation opens.
+
+Missing local account data is not an empty edit. Restore a backup or use the
+account version when recovery requires a choice. Storage errors stop account
+writes without deleting saved request facts. Logout does not require a readable
+workspace or recovery database; the server still checks the captured account.
+
+These recovery paths need the remaining authenticated checks in `QA.md` before
+release. The operation lock coordinates current clients, not older code or other
+devices. Review client-version compatibility before a future format change.
+Browser storage eviction, profile loss, and cleared site data can remove local
+requests. Browser storage is not a backup service; export important work before
+clearing it.
