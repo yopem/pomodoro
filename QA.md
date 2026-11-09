@@ -3588,3 +3588,44 @@ not affected by this source-only change.
 - **Status:** Failed on f2d264a: a blocked-aria-hidden focused-descendant
   warning appeared after recovered-import completion. Precise cause and repair
   pending.
+
+## Current API HTTP budget and phone-dialog evidence
+
+- Rebuilt committed Rust API e03cb575 from a clean archive with locked
+  dependencies and two Cargo jobs. Release build completed without compiler
+  warnings. Replaced only the owned localhost API process on the same isolated
+  database. Health/readiness returned 200; real session and revision 10 with six
+  tasks/two history records survived. Evidence:
+  `qa-artifacts/release-current/api-release-build.txt` and `api-auth-smoke.txt`.
+- QA-105 authenticated HTTP subcase: a 1100-task import request of 11162487
+  UTF-8 bytes returned 200 at revision 15. Another same-size distinct import
+  returned 413 before aggregate mutation. Error request IDs matched, no-store
+  was present, revision remained 15 and the full workspace was unchanged.
+- Guarded cleanup returned 200 at revision 16 and restored the pre-test
+  workspace byte-for-byte. Replaying the successful original import returned the
+  advanced receipt at revision 16 without re-adding fixtures. Six tasks and two
+  history records remained, with zero large budget fixtures. Evidence:
+  `qa-artifacts/QA-105/current-authenticated-http/`.
+- Two earlier harness attempts lost results to an execution deadline and an
+  intervening navigation. Independent reads confirmed both cleanup runs
+  completed, leaving no large fixtures at revisions 12 and 14. They are not
+  acceptance evidence. The final split-step run supplies the results above.
+- QA-073 task-dialog subcase at measured 320 by 568 CSS pixels: popup bounds
+  were x0/y48/width320/height520. Save task was x24/y472/width272/height36. An
+  ordinary pointer save created one QA phone task at revision 17, closed the
+  dialog and returned focus to Add task. Interaction logs were empty; device
+  emulation was cleared. Evidence: `qa-artifacts/QA-073/current-authenticated/`.
+  Other dialog forms, keyboard combinations and viewport cases remain pending.
+
+## Installed-hook cleanup ordering regression
+
+- QA-062 and QA-109 remain failed for full acceptance. Immutable e03cb575
+  installed-hook SIGINT observation found the copied-index temp removed while
+  the recorded owned check process group was still live. The group later exited,
+  all observed resources cleaned up and protected bytes matched.
+- Evidence: `qa-artifacts/QA-109/current-causal/` and ignored report
+  `docs/hook-output-final-qa.md`. The native Bun process itself was not proven
+  live at that sample; the owned group-exit-before-any-temp-removal contract
+  nevertheless failed. A source repair and fresh causal rerun are required.
+- Output-write causality, worker SIGINT status and final-completion race were
+  not established. Prior partial signal successes do not override this failure.
