@@ -3441,7 +3441,7 @@ not affected by this source-only change.
 ### Known-pending accepted-save reload subcase
 
 - Source f2d264a, 2026-11-10, existing localhost project-group tab and real
-  user-completed session. QA-086 has partial accepted-save recovery evidence.
+  user-completed session. QA-054 has partial accepted-save recovery evidence.
 - A one-shot route forwarded one UI task save to the real isolated API, received
   200, and held the response without delivering it to the app. IndexedDB
   inspection confirmed one request record while response was held.
@@ -3449,9 +3449,10 @@ not affected by this source-only change.
   appeared exactly once, server revision was 3 and journal count was 0. The
   route was released and removed. Interaction logs were empty.
 - Evidence: `qa-artifacts/QA-086/current-authenticated/`. Three clearly named QA
-  tasks remain for subsequent recovery checks. Full QA-086 remains pending:
-  before-send abort, unaccepted requests, import and concurrent-edit branches
-  were not exercised. No cross-account or production HTTPS proof is implied.
+  tasks remain for subsequent recovery checks. Full save-recovery coverage
+  remains pending: before-send abort, unaccepted requests, import and
+  concurrent-edit branches were not exercised. No cross-account or production
+  HTTPS proof is implied.
 
 ## Authenticated denial and unsent-save evidence — 2026-11-10
 
@@ -3462,7 +3463,7 @@ not affected by this source-only change.
   revision stayed identical at 3; real session remained authenticated. Evidence:
   `qa-artifacts/QA-045/current-authenticated/`. Random header mismatch is not a
   substitute for two actual identities or shared-cookie race checks.
-- QA-086 additionally exercised an unsent save. One route-aborted PUT had zero
+- QA-054 additionally exercised an unsent save. One route-aborted PUT had zero
   server forwards. Server stayed revision 3 with three tasks and no new title,
   while IndexedDB held one request. Reload retained the local QA task and
   presented uncertain-save review instead of silently overwriting the server.
@@ -3520,3 +3521,21 @@ not affected by this source-only change.
 - Five QA tasks and two QA history records remain for follow-up or guarded
   cleanup. Original account workspace was empty; no existing user work was
   overwritten. The owned API restarted as bt-130 using the same isolated DB.
+
+### Unknown request-journal version fails closed
+
+- QA-089 P0 partial subcase, web f2d264a, real authenticated localhost account,
+  device-local date 2026-11-09. Verified no pending account request existed,
+  then inserted one synthetic account-owned IndexedDB record with version 999
+  and QA marker unknown-version-2026-11-09. No token or owner capability was
+  stored. Reload showed unsupported recovery data and blocked sync.
+- The exact unknown-version record remained. Server revision stayed 9 with five
+  tasks and two history records. No overwrite or automatic journal deletion
+  occurred. Removed only the fixture after checking both its version and marker
+  in the same transaction, then reloaded; reports and account data remained.
+- Evidence: `qa-artifacts/QA-089/current-authenticated/`. UI evidence omits the
+  account display name. Other malformed shapes, blocked storage, quota failures
+  and version coexistence are separate cases; no complete pass is inferred.
+- Earlier save-response/unsent-save evidence paths use a QA-086 directory name,
+  but those results support QA-054, not journal-preparation failure acceptance.
+  QA-086 preparation failure and QA-087 pre-send crash remain pending.
