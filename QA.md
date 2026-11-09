@@ -15,16 +15,24 @@ database, and migration crates. HTTP handlers, authentication, persistence, and
 account controls are implemented in source. Their compilation does not prove
 that services, issuer integration, or browser workflows work at runtime.
 
-Use the owned production-like HTTPS origin `https://pomodoro-qa.localhost:13001`
-for current browser QA. Its edge routes backend requests to the owned API at
+Current authenticated browser QA uses `http://localhost:13001` in the existing
+project-group Chrome tab. The edge routes backend requests to the owned API at
 `127.0.0.1:18001` and other requests to the copied standalone SSR artifact at
-`127.0.0.2:13001`. The former development server is stopped. The browser profile
-and CA trust are temporary and owned by QA. Read
+`127.0.0.2:13001`. The API uses isolated development configuration for this
+loopback origin; do not report it as production HTTPS acceptance. The user
+completed real issuer login on this origin. The previous HTTPS hostname was
+rejected by the issuer and its certificate is not trusted by this browser. Do
+not bypass TLS validation or change issuer or Google configuration.
+
+Use existing connected project-group tabs first. Do not launch another browser,
+create a profile, restart Chrome, install trust, clear user storage, or use
+another project's tabs. A temporary peer tab in the same project group is
+permitted only for a required two-tab scenario; close only that owned peer.
+These restrictions supersede older profile suggestions in individual cases. Read
 `qa-artifacts/runtime/context.json` and current progress notes before using any
-process. Do not print its private environment values. Check listeners before
-starting a service. Do not start a second web server, change the project ports,
-install global trust, or clear user browser storage. Use only the owned guest
-fixture or a new isolated QA profile for writes.
+process. Do not print private environment values. Check listeners before
+starting a service. Do not start a second web server or change project ports.
+Use only identified QA fixtures and guarded record-specific cleanup.
 
 The existing PostgreSQL listener on 5432 belongs to another project. Do not
 connect to it, stop it, or use its volumes. Database QA requires a new local
@@ -3149,7 +3157,18 @@ library or backend endpoint is authorized or needed for this feature.
   - **Coverage:** Owner handshake → no orphan startup; IPC/output loss → failed
     cleanup path; installed signals → actual lifecycle; ordinary execution → no
     check bypass or content change.
-  - **Status:** Pending. The surviving owner is not implemented at planning.
+  - **Status:** Pending full acceptance. The surviving owner is implemented.
+    Earlier installed-hook SIGINT evidence found copied-index cleanup before an
+    owned group had stopped. The group-drain repair keeps detached group IDs
+    until signal-0 probes return `ESRCH`; it sends no further signals from
+    retained IDs. Probe errors or the five-second limit fail the check and
+    retain all temporary directories. Immutable ordinary, SIGINT and SIGTERM
+    fixtures passed the observed subcases in
+    `qa-artifacts/QA-109/group-drain-final/`. No sampled live group remained
+    after a temporary directory disappeared. Sampling does not prove the exact
+    syscall order. Probe-error injection, output-loss causality and
+    final-completion races remain pending. Zombie-only groups can cause safe
+    timeout and retained temporary files.
 
 ## Import marker ordering and recovery
 
