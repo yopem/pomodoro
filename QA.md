@@ -3404,7 +3404,10 @@ not affected by this source-only change.
   attributes from cleaned HTML, which removes them.
 - **Cleanup:** Cancel the form and restore only owned fixture changes, if any.
   Keep the existing tab, user data, permissions and other project tabs intact.
-- **Status:** Failed on ccc8349: empty task submit displays the same title error
-  twice. Direct attribute checks confirm correct invalid state, description and
-  focus, so those are not established defects. Repair acceptance remains
-  pending.
+- **Status:** Partial pass on f2d264a, 2026-11-09. After the clean production
+  build and explicit Update and reload consent, empty task submit showed one
+  title message, aria-invalid true, task-title-error as its description, and
+  first-invalid focus. Interaction logs were empty. The before/after evidence is
+  in `qa-artifacts/QA-117/`. Cancel made no project-storage write. Remaining
+  form and distinct-message scenarios keep this case unchecked. The update
+  prompt and explicit reload worked on loopback; this is not HTTPS acceptance.
