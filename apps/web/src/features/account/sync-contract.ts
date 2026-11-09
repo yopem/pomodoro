@@ -11,6 +11,13 @@ export class ImportPlanChangedError extends Error {
   }
 }
 
+export interface PendingAccountRequest {
+  operationId: string
+  token: string
+  kind: "save" | "import"
+  phase: "original" | "resolution"
+}
+
 export interface AccountSnapshot {
   user: AccountUser | null
   status:
@@ -20,6 +27,7 @@ export interface AccountSnapshot {
   revision: number | null
   remoteRevision: number | null
   guestAvailable: boolean
+  pendingOperation: PendingAccountRequest | null
 }
 
 export interface GuestImportPlan {
@@ -28,6 +36,8 @@ export interface GuestImportPlan {
   expected: Workspace
   expectedRevision: number
   owner: WorkspaceOwner
+  recovered: boolean
+  journal: PendingAccountRequest | null
 }
 
 export interface AccountController {
@@ -38,6 +48,7 @@ export interface AccountController {
       source: "server" | "local"
       expected: Workspace
       expectedRevision: number
+      request: PendingAccountRequest | null
     },
     ownership: { owner: WorkspaceOwner },
   ): Promise<void>

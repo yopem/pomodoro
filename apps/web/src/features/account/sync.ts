@@ -5,7 +5,9 @@ import type {
   AccountController,
   AccountSnapshot,
   GuestImportPlan,
+  PendingAccountRequest,
 } from "@/features/account/sync-contract"
+import type { AccountJournal } from "@/features/account/sync-journal"
 
 import {
   AccountApiError,
@@ -17,6 +19,16 @@ import {
   workspaceQueryOptions,
 } from "@/features/account/queries"
 import { ImportPlanChangedError } from "@/features/account/sync-contract"
+import {
+  AccountJournalError,
+  createAccountJournal,
+  decodeJournalWorkspace,
+  encodeJournalWorkspace,
+  readAccountJournal,
+  removeAccountJournal,
+  setAccountJournalResolution,
+  withAccountOperation,
+} from "@/features/account/sync-journal"
 import {
   ACCOUNT_MARKER_KEY,
   acknowledgeWorkspace,
@@ -34,6 +46,7 @@ import {
 import {
   getFocusSnapshot,
   getPendingGuestWorkspace,
+  readOwnedWorkspace,
   replaceActiveWorkspace,
   setActiveWorkspace,
   subscribeFocusSnapshot,
@@ -47,21 +60,6 @@ class LocalSaveChangedError extends Error {
   }
 }
 
-interface PendingSave {
-  userId: string
-  owner: WorkspaceOwner
-  hash: string
-  expectedRevision: number
-  baseHash: string
-  clearsImport: boolean
-}
-
-interface PendingImport {
-  userId: string
-  plan: GuestImportPlan
-  response: AccountWorkspace | null
-}
-
 const initialState: AccountSnapshot = {
   user: null,
   status: "loading",
@@ -70,10 +68,35 @@ const initialState: AccountSnapshot = {
   revision: null,
   remoteRevision: null,
   guestAvailable: false,
+  pendingOperation: null,
 }
 
 function sameWorkspace(left: Workspace, right: Workspace) {
   return left === right || JSON.stringify(left) === JSON.stringify(right)
+}
+
+function requestReference(record: AccountJournal): PendingAccountRequest {
+  return {
+    operationId: record.operationId,
+    token: record.token,
+    kind: record.original.kind,
+    phase: record.resolution ? "resolution" : "original",
+  }
+}
+
+function sameRequest(
+  left: PendingAccountRequest | null,
+  right: PendingAccountRequest | null,
+) {
+  return (
+    left === right ||
+    (left !== null &&
+      right !== null &&
+      left.operationId === right.operationId &&
+      left.token === right.token &&
+      left.kind === right.kind &&
+      left.phase === right.phase)
+  )
 }
 
 function createAccountController(client: QueryClient) {
@@ -81,40 +104,15 @@ function createAccountController(client: QueryClient) {
   let epoch = 0
   let verified = false
   let remote: AccountWorkspace | null = null
+  let journal: AccountJournal | null = null
   let running: Promise<void> | null = null
   let actionRunning = false
-  let actionFinished: Promise<void> | null = null
-  let pendingSave: PendingSave | null = null
-  let pendingImport: PendingImport | null = null
-  const pendingSaves = new Map<string, PendingSave>()
-  const pendingImports = new Map<string, PendingImport>()
+  let logoutRunning: Promise<void> | null = null
+  let actionFinished: Promise<unknown> | null = null
   let lastWorkspace: Workspace | null = null
   let unsubscribeFocus: (() => void) | undefined
+  const waits = new Set<AbortController>()
   const listeners = new Set<() => void>()
-
-  function rememberSaveRequest(receipt: PendingSave) {
-    pendingSaves.set(receipt.userId, receipt)
-    pendingSave = receipt
-  }
-
-  function forgetSaveRequest(receipt: PendingSave) {
-    if (pendingSaves.get(receipt.userId) === receipt)
-      pendingSaves.delete(receipt.userId)
-
-    if (pendingSave === receipt) pendingSave = null
-  }
-
-  function rememberImportRequest(receipt: PendingImport) {
-    pendingImports.set(receipt.userId, receipt)
-    pendingImport = receipt
-  }
-
-  function forgetImportRequest(receipt: PendingImport) {
-    if (pendingImports.get(receipt.userId) === receipt)
-      pendingImports.delete(receipt.userId)
-
-    if (pendingImport === receipt) pendingImport = null
-  }
 
   function publish(change: Partial<AccountSnapshot>) {
     state = { ...state, ...change }
@@ -127,42 +125,52 @@ function createAccountController(client: QueryClient) {
       epoch === version &&
       verified &&
       state.user?.id === userId &&
+      owner.identity === userId &&
       getFocusSnapshot().owner === owner
     )
   }
 
-  function requireOwner(owner: WorkspaceOwner) {
+  function requireSession(owner: WorkspaceOwner) {
     const user = state.user
-    const focus = getFocusSnapshot()
 
-    if (
-      !verified ||
-      !user ||
-      focus.owner !== owner ||
-      owner.identity !== user.id ||
-      !focus.hydrated ||
-      focus.error !== null
-    ) {
-      throw new Error("The account workspace is not ready")
+    if (!user || !current(epoch, user.id, owner)) {
+      throw new Error("Account verification changed. Review this action again")
     }
 
     return { user, version: epoch }
   }
 
-  function fail(error: Error) {
-    const offline = error instanceof AccountApiError && error.status === 0
-    publish({
-      status: offline ? "offline" : "error",
-      error: error instanceof Error ? error.message : "Account sync failed",
-    })
+  function requireLogoutContext(owner: WorkspaceOwner) {
+    const user = state.user
+
+    if (
+      !user ||
+      owner.identity !== user.id ||
+      getFocusSnapshot().owner !== owner
+    )
+      throw new Error("The displayed account changed. Review logout again")
+
+    return user
   }
 
-  function clearQueries() {
-    client.removeQueries({ queryKey: ["account"] })
-    const mutations = client.getMutationCache()
+  function assertLogoutContext(
+    version: number,
+    userId: string,
+    owner: WorkspaceOwner,
+  ) {
+    const user = requireLogoutContext(owner)
 
-    for (const mutation of mutations.findAll({ mutationKey: ["account"] })) {
-      mutations.remove(mutation)
+    if (epoch !== version || user.id !== userId)
+      throw new Error("The displayed account changed. Review logout again")
+  }
+
+  function assertSession(
+    version: number,
+    userId: string,
+    owner: WorkspaceOwner,
+  ) {
+    if (!current(version, userId, owner)) {
+      throw new Error("Account verification changed. Review this action again")
     }
   }
 
@@ -171,15 +179,55 @@ function createAccountController(client: QueryClient) {
     userId: string,
     owner: WorkspaceOwner,
   ) {
-    if (!current(version, userId, owner)) {
-      throw new Error("Account verification changed. Review this action again")
-    }
-
+    assertSession(version, userId, owner)
     const focus = getFocusSnapshot()
 
-    if (!focus.hydrated || focus.error !== null) {
+    if (!focus.hydrated || focus.error !== null)
       throw new Error("The account workspace is not ready")
-    }
+  }
+
+  function requireOwner(owner: WorkspaceOwner) {
+    const bound = requireSession(owner)
+    assertCurrent(bound.version, bound.user.id, owner)
+
+    return bound
+  }
+
+  function authoritative(
+    version: number,
+    userId: string,
+    owner: WorkspaceOwner,
+  ) {
+    assertCurrent(version, userId, owner)
+
+    return readOwnedWorkspace({ owner })
+  }
+
+  function assertBaseline(
+    version: number,
+    userId: string,
+    owner: WorkspaceOwner,
+    expected: Workspace,
+  ) {
+    if (!sameWorkspace(expected, authoritative(version, userId, owner)))
+      throw new LocalSaveChangedError()
+  }
+
+  function fail(error: Error) {
+    const offline = error instanceof AccountApiError && error.status === 0
+    publish({ status: offline ? "offline" : "error", error: error.message })
+  }
+
+  function clearQueries() {
+    client.removeQueries({ queryKey: ["account"] })
+    const mutations = client.getMutationCache()
+
+    for (const mutation of mutations.findAll({ mutationKey: ["account"] }))
+      mutations.remove(mutation)
+  }
+
+  function cancelWaits() {
+    for (const wait of waits) wait.abort()
   }
 
   function signalIdentity(userId: string | null) {
@@ -193,13 +241,78 @@ function createAccountController(client: QueryClient) {
     }
   }
 
-  function uncertain(cause: unknown) {
-    return (
-      cause instanceof AccountApiError &&
-      (cause.status === 0 ||
-        cause.status >= 500 ||
-        (cause.status >= 200 && cause.status < 300))
-    )
+  function retain(record: AccountJournal | null) {
+    journal = record
+    publish({ pendingOperation: record ? requestReference(record) : null })
+  }
+
+  async function operation<T>(owner: WorkspaceOwner, run: () => Promise<T>) {
+    const { user, version } = requireOwner(owner)
+    const wait = new AbortController()
+    waits.add(wait)
+
+    function isCurrent() {
+      const focus = getFocusSnapshot()
+
+      return (
+        !wait.signal.aborted &&
+        current(version, user.id, owner) &&
+        focus.hydrated &&
+        focus.error === null
+      )
+    }
+
+    try {
+      return await withAccountOperation({
+        accountId: user.id,
+        signal: wait.signal,
+        isCurrent,
+        async run() {
+          authoritative(version, user.id, owner)
+
+          const record = await readAccountJournal({
+            accountId: user.id,
+            isCurrent,
+          })
+
+          assertCurrent(version, user.id, owner)
+          retain(record)
+
+          return await run()
+        },
+      })
+    } finally {
+      waits.delete(wait)
+    }
+  }
+
+  function storageGuard(
+    version: number,
+    userId: string,
+    owner: WorkspaceOwner,
+  ) {
+    return function isCurrent() {
+      const focus = getFocusSnapshot()
+
+      return (
+        current(version, userId, owner) &&
+        focus.hydrated &&
+        focus.error === null
+      )
+    }
+  }
+
+  async function retire(
+    record: AccountJournal,
+    version: number,
+    owner: WorkspaceOwner,
+  ) {
+    await removeAccountJournal({
+      expected: record,
+      isCurrent: storageGuard(version, record.accountId, owner),
+    })
+    assertCurrent(version, record.accountId, owner)
+    retain(null)
   }
 
   async function updateGuest(
@@ -212,10 +325,10 @@ function createAccountController(client: QueryClient) {
     if (!current(version, userId, owner)) return
     const hash = guest ? await hashWorkspace(guest) : null
 
-    if (!current(version, userId, owner)) return
-    publish({
-      guestAvailable: hash !== null && hash !== importedGuestHash(userId),
-    })
+    if (current(version, userId, owner))
+      publish({
+        guestAvailable: hash !== null && hash !== importedGuestHash(userId),
+      })
   }
 
   async function load(userId: string) {
@@ -236,15 +349,7 @@ function createAccountController(client: QueryClient) {
     await acknowledgeWorkspace(
       userId,
       { revision: response.revision, hash },
-      () => {
-        const focus = getFocusSnapshot()
-
-        return (
-          current(version, userId, owner) &&
-          focus.hydrated &&
-          focus.error === null
-        )
-      },
+      storageGuard(version, userId, owner),
       resolution,
     )
     assertCurrent(version, userId, owner)
@@ -277,124 +382,178 @@ function createAccountController(client: QueryClient) {
     })
   }
 
+  async function finishResolution(
+    record: AccountJournal,
+    response: AccountWorkspace,
+    version: number,
+    owner: WorkspaceOwner,
+  ) {
+    const choice = record.resolution
+
+    if (!choice) throw new AccountJournalError("changed")
+    const hash = await hashWorkspace(response.workspace)
+    const local = authoritative(version, record.accountId, owner)
+    const localHash = await hashWorkspace(local)
+    assertBaseline(version, record.accountId, owner, local)
+
+    if (choice.source === "server" && localHash !== hash) {
+      if (localHash !== choice.expectedLocalHash) {
+        conflict(
+          response,
+          "Local work changed before account recovery finished. Review both versions again",
+        )
+
+        return
+      }
+
+      await replaceActiveWorkspace(
+        { expected: local, workspace: response.workspace },
+        { owner },
+      )
+      assertCurrent(version, record.accountId, owner)
+    }
+
+    const stamp = readStoredSyncState(record.accountId).stamp
+    await acknowledge(
+      record.accountId,
+      version,
+      owner,
+      response,
+      hash,
+      stamp ? { expected: stamp } : undefined,
+    )
+    await retire(record, version, owner)
+    settled(response)
+  }
+
+  async function finishImport(
+    record: AccountJournal,
+    response: AccountWorkspace,
+    version: number,
+    owner: WorkspaceOwner,
+  ) {
+    const original = record.original
+
+    if (original.kind !== "import" || record.resolution)
+      throw new AccountJournalError("changed")
+    const remoteHash = await hashWorkspace(response.workspace)
+    const local = authoritative(version, record.accountId, owner)
+    const localHash = await hashWorkspace(local)
+    assertBaseline(version, record.accountId, owner, local)
+
+    if (localHash !== remoteHash && localHash !== original.originalLocalHash) {
+      conflict(
+        response,
+        "The import completed, but local work changed. Review both versions before continuing",
+      )
+
+      return
+    }
+
+    await rememberGuestImport(
+      record.accountId,
+      original.guestHash,
+      storageGuard(version, record.accountId, owner),
+    )
+    assertBaseline(version, record.accountId, owner, local)
+
+    if (localHash !== remoteHash) {
+      await replaceActiveWorkspace(
+        { expected: local, workspace: response.workspace },
+        { owner },
+      )
+      assertCurrent(version, record.accountId, owner)
+    }
+
+    const stamp = readStoredSyncState(record.accountId).stamp
+    await acknowledge(
+      record.accountId,
+      version,
+      owner,
+      response,
+      remoteHash,
+      stamp ? { expected: stamp } : undefined,
+    )
+    await retire(record, version, owner)
+    settled(response)
+    await updateGuest(record.accountId, version, owner)
+  }
+
+  async function recoverJournal(
+    record: AccountJournal,
+    response: AccountWorkspace,
+    remoteHash: string,
+    version: number,
+    owner: WorkspaceOwner,
+  ) {
+    const choice = record.resolution
+
+    if (choice) {
+      if (
+        !choice.ambiguousPredecessor &&
+        response.revision > choice.expectedRevision &&
+        remoteHash === choice.sentHash
+      ) {
+        await finishResolution(record, response, version, owner)
+      } else {
+        conflict(
+          response,
+          "A previous recovery request needs review. Choose the version to retain",
+        )
+      }
+
+      return
+    }
+
+    const original = record.original
+
+    if (original.kind === "import") {
+      conflict(
+        response,
+        "A saved guest import needs review. Retry its original snapshot or resolve the versions",
+      )
+
+      return
+    }
+
+    if (
+      response.revision > original.expectedRevision &&
+      remoteHash === original.sentHash
+    ) {
+      await acknowledge(record.accountId, version, owner, response, remoteHash)
+      await retire(record, version, owner)
+      settled(response)
+    } else {
+      conflict(
+        response,
+        "A previous save has an uncertain result. Review both versions before continuing",
+      )
+    }
+  }
+
   async function reconcile(
     userId: string,
     version: number,
     owner: WorkspaceOwner,
   ) {
     const response = await load(userId)
-
-    if (!current(version, userId, owner)) return
+    assertCurrent(version, userId, owner)
     const remoteHash = await hashWorkspace(response.workspace)
 
+    if (journal) {
+      await recoverJournal(journal, response, remoteHash, version, owner)
+
+      return
+    }
+
     while (current(version, userId, owner)) {
-      const local = getFocusSnapshot().workspace
+      const local = authoritative(version, userId, owner)
       const stored = readStoredSyncState(userId)
       const localHash = await hashWorkspace(local)
+      const latest = authoritative(version, userId, owner)
 
-      if (!current(version, userId, owner)) return
-
-      if (!sameWorkspace(local, getFocusSnapshot().workspace)) continue
+      if (!sameWorkspace(local, latest)) continue
       remote = response
-      const receipt = pendingSave
-
-      if (receipt?.userId === userId && receipt.owner === owner) {
-        if (
-          receipt.hash === remoteHash &&
-          response.revision > receipt.expectedRevision
-        ) {
-          await acknowledge(userId, version, owner, response, remoteHash)
-
-          if (!current(version, userId, owner)) return
-
-          forgetSaveRequest(receipt)
-
-          if (receipt.clearsImport && pendingImport)
-            forgetImportRequest(pendingImport)
-          settled(response)
-
-          return
-        }
-
-        if (
-          response.revision === receipt.expectedRevision &&
-          remoteHash === receipt.baseHash
-        ) {
-          publish({
-            revision: response.revision,
-            status: "syncing",
-            dirty: true,
-            remoteRevision: null,
-            error: null,
-          })
-
-          return
-        }
-
-        conflict(
-          response,
-          "The account changed while a save result was uncertain",
-        )
-
-        return
-      }
-
-      const imported = pendingImport
-
-      if (imported?.userId === userId && imported.plan.owner === owner) {
-        if (imported.response === null) {
-          publish({
-            status: "conflict",
-            revision: stored.stamp?.revision ?? imported.plan.expectedRevision,
-            remoteRevision: response.revision,
-            dirty: localHash !== remoteHash,
-            error:
-              "The import result is uncertain. Retry the original import or resolve the versions",
-          })
-
-          return
-        }
-
-        const guestHash = await hashWorkspace(imported.plan.guest)
-
-        if (!current(version, userId, owner)) return
-        await rememberGuestImport(userId, guestHash, () =>
-          current(version, userId, owner),
-        )
-
-        if (!current(version, userId, owner)) return
-
-        forgetImportRequest(imported)
-        await updateGuest(userId, version, owner)
-
-        if (!current(version, userId, owner)) return
-
-        if (!sameWorkspace(local, getFocusSnapshot().workspace)) continue
-
-        if (
-          localHash !== remoteHash &&
-          !sameWorkspace(local, imported.plan.expected)
-        ) {
-          conflict(response, "Import completed, but local work changed")
-
-          return
-        }
-
-        if (localHash !== remoteHash) {
-          await replaceActiveWorkspace(
-            { expected: local, workspace: response.workspace },
-            { owner },
-          )
-
-          if (!current(version, userId, owner)) return
-        }
-
-        await acknowledge(userId, version, owner, response, remoteHash)
-
-        if (current(version, userId, owner)) settled(response)
-
-        return
-      }
 
       if (localHash === remoteHash) {
         await acknowledge(
@@ -405,8 +564,7 @@ function createAccountController(client: QueryClient) {
           remoteHash,
           stored.stamp ? { expected: stored.stamp } : undefined,
         )
-
-        if (current(version, userId, owner)) settled(response)
+        settled(response)
 
         return
       }
@@ -439,11 +597,8 @@ function createAccountController(client: QueryClient) {
           { expected: local, workspace: response.workspace },
           { owner },
         )
-
-        if (!current(version, userId, owner)) return
         await acknowledge(userId, version, owner, response, remoteHash)
-
-        if (current(version, userId, owner)) settled(response)
+        settled(response)
 
         return
       }
@@ -471,98 +626,63 @@ function createAccountController(client: QueryClient) {
     }
   }
 
-  async function writeWorkspace({
-    userId,
-    version,
-    owner,
-    workspace,
-    expectedLocal,
-    expectedRevision,
-    base,
-    clearsImport,
-  }: {
+  async function writeWorkspace(input: {
     userId: string
     version: number
     owner: WorkspaceOwner
     workspace: Workspace
     expectedLocal: Workspace
     expectedRevision: number
-    base: Workspace
-    clearsImport: boolean
+    record: AccountJournal
+    resolving: boolean
   }) {
-    const [hash, baseHash] = await Promise.all([
-      hashWorkspace(workspace),
-      hashWorkspace(base),
-    ])
+    const hash = await hashWorkspace(input.workspace)
+    assertBaseline(
+      input.version,
+      input.userId,
+      input.owner,
+      input.expectedLocal,
+    )
 
-    assertCurrent(version, userId, owner)
+    const response = await client
+      .getMutationCache()
+      .build(client, saveWorkspaceMutationOptions())
+      .execute({
+        userId: input.userId,
+        workspace: input.workspace,
+        expected_revision: input.expectedRevision,
+        beforeSend() {
+          assertBaseline(
+            input.version,
+            input.userId,
+            input.owner,
+            input.expectedLocal,
+          )
+        },
+      })
 
-    const receipt: PendingSave = {
-      userId,
-      owner,
-      hash,
-      baseHash,
-      expectedRevision,
-      clearsImport,
-    }
+    assertCurrent(input.version, input.userId, input.owner)
+    const responseHash = await hashWorkspace(response.workspace)
+    assertCurrent(input.version, input.userId, input.owner)
 
-    let previous: PendingSave | undefined
-    let sent = false
-    let received = false
+    if (hash !== responseHash || response.revision <= input.expectedRevision)
+      throw new AccountApiError(200)
 
-    try {
-      const response = await client
-        .getMutationCache()
-        .build(client, saveWorkspaceMutationOptions())
-        .execute({
-          userId,
-          workspace,
-          expected_revision: expectedRevision,
-          beforeSend() {
-            assertCurrent(version, userId, owner)
-
-            if (!sameWorkspace(expectedLocal, getFocusSnapshot().workspace))
-              throw new LocalSaveChangedError()
-            previous = pendingSaves.get(userId)
-            rememberSaveRequest(receipt)
-            sent = true
-          },
-        })
-
-      received = true
-      assertCurrent(version, userId, owner)
-      const responseHash = await hashWorkspace(response.workspace)
-      assertCurrent(version, userId, owner)
-
-      if (hash !== responseHash || response.revision <= expectedRevision)
-        throw new AccountApiError(200)
-      await acknowledge(userId, version, owner, response, hash)
-      assertCurrent(version, userId, owner)
-      forgetSaveRequest(receipt)
-
-      if (clearsImport && pendingImport) forgetImportRequest(pendingImport)
+    if (input.resolving) {
+      await finishResolution(input.record, response, input.version, input.owner)
+    } else {
+      await acknowledge(
+        input.userId,
+        input.version,
+        input.owner,
+        response,
+        hash,
+      )
+      await retire(input.record, input.version, input.owner)
       settled(response)
-
-      return response
-    } catch (cause) {
-      if (
-        sent &&
-        !received &&
-        !uncertain(cause) &&
-        !(cause instanceof AccountApiError && cause.status === 409) &&
-        pendingSaves.get(userId) === receipt
-      ) {
-        forgetSaveRequest(receipt)
-
-        if (previous) {
-          pendingSaves.set(userId, previous)
-
-          if (current(version, userId, owner)) pendingSave = previous
-        }
-      }
-
-      throw cause
     }
+
+    return response
   }
 
   async function saveLoop(owner: WorkspaceOwner) {
@@ -575,32 +695,52 @@ function createAccountController(client: QueryClient) {
       state.dirty &&
       state.status === "syncing"
     ) {
-      const local = workspaceSchema.parse(getFocusSnapshot().workspace)
-      const expectedRevision = state.revision
+      if (journal) throw new AccountJournalError("changed")
+
+      const local = workspaceSchema.parse(
+        authoritative(version, user.id, owner),
+      )
+
       const baseline = remote
 
-      if (
-        expectedRevision === null ||
-        !baseline ||
-        baseline.revision !== expectedRevision
-      ) {
+      if (!baseline || baseline.revision !== state.revision)
         throw new Error("The account revision is unavailable")
-      }
+
+      const [sentHash, baseHash] = await Promise.all([
+        hashWorkspace(local),
+        hashWorkspace(baseline.workspace),
+      ])
 
       try {
-        await writeWorkspace({
-          userId: user.id,
-          version,
-          owner,
-          workspace: local,
-          expectedLocal: local,
-          expectedRevision,
-          base: baseline.workspace,
-          clearsImport: pendingSave?.clearsImport ?? false,
-        })
+        assertBaseline(version, user.id, owner, local)
       } catch (cause) {
-        if (!(cause instanceof LocalSaveChangedError)) throw cause
+        if (cause instanceof LocalSaveChangedError) continue
+        throw cause
       }
+
+      const record = await createAccountJournal({
+        accountId: user.id,
+        original: {
+          kind: "save",
+          expectedRevision: baseline.revision,
+          baseHash,
+          sentHash,
+        },
+        resolution: null,
+        isCurrent: storageGuard(version, user.id, owner),
+      })
+
+      retain(record)
+      await writeWorkspace({
+        userId: user.id,
+        version,
+        owner,
+        workspace: local,
+        expectedLocal: local,
+        expectedRevision: baseline.revision,
+        record,
+        resolving: false,
+      })
     }
   }
 
@@ -610,52 +750,24 @@ function createAccountController(client: QueryClient) {
 
     if (!verified) {
       await refresh()
-      requireOwner(owner)
 
       return
     }
 
     const { user, version } = requireOwner(owner)
 
-    if (actionRunning) return
+    if (actionRunning || logoutRunning) return
 
     if (running) return await running
 
-    const task = (async () => {
-      try {
-        await saveLoop(owner)
-      } catch (error) {
-        if (!current(version, user.id, owner)) return
-
-        if (error instanceof AccountApiError && error.status === 409) {
-          try {
-            await reconcile(user.id, version, owner)
-
-            if (
-              current(version, user.id, owner) &&
-              state.status === "syncing"
-            ) {
-              publish({
-                status: "error",
-                error:
-                  "The save baseline was recovered. Retry sync to send remaining changes",
-              })
-            }
-          } catch (cause) {
-            if (current(version, user.id, owner))
-              fail(
-                cause instanceof Error
-                  ? cause
-                  : new Error("Account sync failed"),
-              )
-          }
-        } else {
+    const task = operation(owner, () => saveLoop(owner)).catch(
+      (cause: unknown) => {
+        if (current(version, user.id, owner))
           fail(
-            error instanceof Error ? error : new Error("Account sync failed"),
+            cause instanceof Error ? cause : new Error("Account sync failed"),
           )
-        }
-      }
-    })()
+      },
+    )
 
     running = task
 
@@ -675,14 +787,21 @@ function createAccountController(client: QueryClient) {
   }
 
   async function refresh() {
-    const waiting = [running, actionFinished].filter((task) => task !== null)
+    const endingSession = logoutRunning
+
     const version = ++epoch
     verified = false
+    cancelWaits()
+    running = null
+    actionRunning = false
+    actionFinished = null
     clearQueries()
+    retain(null)
     publish({ status: "loading", error: null })
+    let sessionVerified = false
 
     try {
-      await Promise.allSettled(waiting)
+      if (endingSession) await Promise.allSettled([endingSession])
 
       if (version !== epoch) return
       const session = await client.fetchQuery(sessionQueryOptions())
@@ -701,26 +820,15 @@ function createAccountController(client: QueryClient) {
         error: null,
         guestAvailable: false,
       })
+      verified = true
+      sessionVerified = true
 
       if (switching) await switching
 
       if (version !== epoch) return
+      remote = null
       signalIdentity(next)
       const owner = getFocusSnapshot().owner
-
-      const saved = next ? pendingSaves.get(next) : undefined
-      pendingSave = saved ? { ...saved, owner } : null
-
-      if (pendingSave) pendingSaves.set(pendingSave.userId, pendingSave)
-
-      const imported = next ? pendingImports.get(next) : undefined
-      pendingImport = imported
-        ? { ...imported, plan: { ...imported.plan, owner } }
-        : null
-
-      if (pendingImport) pendingImports.set(pendingImport.userId, pendingImport)
-      verified = true
-      remote = null
       publish({
         status: next ? "syncing" : "guest",
         dirty: next ? state.dirty : false,
@@ -730,15 +838,15 @@ function createAccountController(client: QueryClient) {
 
       if (next) {
         await updateGuest(next, version, owner)
-
-        if (current(version, next, owner)) await sync({ owner })
+        assertCurrent(version, next, owner)
+        await sync({ owner })
       }
-    } catch (error) {
+    } catch (cause) {
       if (version === epoch) {
-        verified = false
+        if (!sessionVerified) verified = false
         fail(
-          error instanceof Error
-            ? error
+          cause instanceof Error
+            ? cause
             : new Error("Account verification failed"),
         )
       }
@@ -746,32 +854,23 @@ function createAccountController(client: QueryClient) {
   }
 
   async function resolveConflict(
-    input: {
-      source: "server" | "local"
-      expected: Workspace
-      expectedRevision: number
-    },
+    input: Parameters<AccountController["resolve"]>[0],
     { owner }: { owner: WorkspaceOwner },
   ) {
     const { user, version } = requireOwner(owner)
     const expected = workspaceSchema.parse(input.expected)
+    const reference = journal ? requestReference(journal) : null
 
     if (
-      running ||
-      !remote ||
       state.status !== "conflict" ||
+      !remote ||
       remote.revision !== input.expectedRevision ||
-      !sameWorkspace(expected, getFocusSnapshot().workspace)
-    ) {
+      !sameRequest(input.request, reference)
+    )
       throw new Error("The conflict changed. Review it again")
-    }
-
-    const stamp = readStoredSyncState(user.id).stamp
+    assertBaseline(version, user.id, owner, expected)
     const latest = await load(user.id)
-    assertCurrent(version, user.id, owner)
-
-    if (!sameWorkspace(expected, getFocusSnapshot().workspace))
-      throw new Error("The workspace changed. Review it again")
+    assertBaseline(version, user.id, owner, expected)
 
     if (
       latest.revision !== input.expectedRevision ||
@@ -781,144 +880,145 @@ function createAccountController(client: QueryClient) {
       throw new Error("The account version changed. Review it again")
     }
 
-    if (stamp && stamp.revision > latest.revision) {
+    const stamp = readStoredSyncState(user.id).stamp
+
+    if (stamp && stamp.revision > latest.revision)
       throw new Error(
-        "The server revision is older than this device's sync baseline. Export a backup before recovery",
+        "The server revision is older than this device's baseline. Export a backup before recovery",
       )
+    const chosen = input.source === "server" ? latest.workspace : expected
+
+    const [sentHash, baseHash, expectedLocalHash] = await Promise.all([
+      hashWorkspace(chosen),
+      hashWorkspace(latest.workspace),
+      hashWorkspace(expected),
+    ])
+
+    assertBaseline(version, user.id, owner, expected)
+    const previous = journal
+
+    const resolution = {
+      attemptId: crypto.randomUUID(),
+      source: input.source,
+      expectedRevision: latest.revision,
+      baseHash,
+      sentHash,
+      expectedLocalHash,
+      ambiguousPredecessor:
+        previous !== null &&
+        (previous.resolution?.expectedRevision ??
+          previous.original.expectedRevision) === latest.revision,
     }
 
-    let chosen = latest
+    const record = previous
+      ? await setAccountJournalResolution({
+          expected: previous,
+          resolution,
+          isCurrent: storageGuard(version, user.id, owner),
+        })
+      : await createAccountJournal({
+          accountId: user.id,
+          original: {
+            kind: "save",
+            expectedRevision: latest.revision,
+            baseHash,
+            sentHash,
+          },
+          resolution,
+          isCurrent: storageGuard(version, user.id, owner),
+        })
+
+    retain(record)
 
     try {
-      if (input.source === "local") {
-        await writeWorkspace({
-          userId: user.id,
-          version,
-          owner,
-          workspace: expected,
-          expectedLocal: expected,
-          expectedRevision: input.expectedRevision,
-          base: latest.workspace,
-          clearsImport: true,
-        })
-      } else {
-        const unresolvedAtRevision =
-          pendingSave?.expectedRevision === latest.revision ||
-          (pendingImport?.response === null &&
-            pendingImport.plan.expectedRevision === latest.revision)
-
-        if (unresolvedAtRevision) {
-          chosen = await writeWorkspace({
-            userId: user.id,
-            version,
-            owner,
-            workspace: latest.workspace,
-            expectedLocal: expected,
-            expectedRevision: latest.revision,
-            base: latest.workspace,
-            clearsImport: true,
-          })
-        }
-
-        const hash = await hashWorkspace(chosen.workspace)
-        assertCurrent(version, user.id, owner)
-        await replaceActiveWorkspace(
-          { expected, workspace: chosen.workspace },
-          { owner },
-        )
-        assertCurrent(version, user.id, owner)
-        await acknowledge(
-          user.id,
-          version,
-          owner,
-          chosen,
-          hash,
-          stamp ? { expected: stamp } : undefined,
-        )
-        assertCurrent(version, user.id, owner)
-
-        if (pendingSave) forgetSaveRequest(pendingSave)
-
-        if (pendingImport) forgetImportRequest(pendingImport)
-        settled(chosen)
-      }
-
+      await writeWorkspace({
+        userId: user.id,
+        version,
+        owner,
+        workspace: chosen,
+        expectedLocal: expected,
+        expectedRevision: latest.revision,
+        record,
+        resolving: true,
+      })
       await updateGuest(user.id, version, owner)
-      assertCurrent(version, user.id, owner)
-    } catch (error) {
+    } catch (cause) {
       if (current(version, user.id, owner)) {
-        if (error instanceof AccountApiError && error.status === 409) {
-          try {
-            const changed = await load(user.id)
-            assertCurrent(version, user.id, owner)
-            conflict(
-              changed,
-              "The account changed before the chosen version was saved",
-            )
-          } catch (cause) {
-            if (current(version, user.id, owner))
-              fail(
-                cause instanceof Error
-                  ? cause
-                  : new Error("Account recovery failed"),
-              )
-          }
-        } else if (!sameWorkspace(expected, getFocusSnapshot().workspace)) {
-          conflict(chosen, "Local work changed. Review the conflict again")
-        } else
+        if (cause instanceof AccountApiError && cause.status === 409) {
+          const changed = await load(user.id)
+          assertCurrent(version, user.id, owner)
+          conflict(
+            changed,
+            "The account changed before recovery finished. Review it again",
+          )
+        } else {
           fail(
-            error instanceof Error
-              ? error
+            cause instanceof Error
+              ? cause
               : new Error("Account recovery failed"),
           )
+        }
       }
 
-      throw error
+      throw cause
     }
   }
 
-  async function prepareImport({
+  async function prepareImportPlan({
     owner,
   }: {
     owner: WorkspaceOwner
   }): Promise<GuestImportPlan> {
     const { user, version } = requireOwner(owner)
-    const retained = pendingImport
 
-    if (running || actionRunning || pendingSave)
-      throw new Error("Recover account sync before importing")
+    const expected = workspaceSchema.parse(
+      authoritative(version, user.id, owner),
+    )
 
-    if (retained?.userId === user.id && retained.plan.owner === owner) {
-      if (
-        !sameWorkspace(retained.plan.expected, getFocusSnapshot().workspace)
-      ) {
-        throw new Error(
-          "Resolve the account versions before retrying the retained import",
-        )
+    const record = journal
+
+    if (record) {
+      const original = record.original
+
+      if (original.kind !== "import" || record.resolution)
+        throw new Error("Resolve the pending account request before importing")
+
+      const guest = await decodeJournalWorkspace({
+        json: original.guestJson,
+        hash: original.guestHash,
+      })
+
+      assertBaseline(version, user.id, owner, expected)
+
+      return {
+        id: original.importId,
+        guest,
+        expected,
+        expectedRevision: original.expectedRevision,
+        owner,
+        recovered: true,
+        journal: requestReference(record),
       }
-
-      return retained.plan
     }
 
     if (state.status !== "saved" || state.revision === null || state.dirty)
       throw new Error("Sync the account before importing")
-
-    const expected = workspaceSchema.parse(getFocusSnapshot().workspace)
     const expectedRevision = state.revision
     const guest = await getPendingGuestWorkspace()
-    assertCurrent(version, user.id, owner)
+    assertBaseline(version, user.id, owner, expected)
 
-    if (
-      !sameWorkspace(expected, getFocusSnapshot().workspace) ||
-      state.revision !== expectedRevision ||
-      !guest ||
-      running ||
-      actionRunning
-    ) {
+    if (!guest || state.revision !== expectedRevision)
       throw new ImportPlanChangedError()
-    }
 
-    return { id: crypto.randomUUID(), guest, expected, expectedRevision, owner }
+    return {
+      id: crypto.randomUUID(),
+      guest,
+      expected,
+      expectedRevision,
+      owner,
+      recovered: false,
+      journal: null,
+    }
   }
 
   async function performImport(
@@ -928,215 +1028,214 @@ function createAccountController(client: QueryClient) {
     const { user, version } = requireOwner(owner)
     const expected = workspaceSchema.parse(plan.expected)
     const guest = workspaceSchema.parse(plan.guest)
-    const retained = pendingImport
-
-    const retry =
-      retained !== null &&
-      retained.userId === user.id &&
-      retained.plan.id === plan.id &&
-      retained.plan.owner === owner
-
-    if (running || pendingSave)
-      throw new Error("Recover account sync before importing")
+    assertBaseline(version, user.id, owner, expected)
 
     if (
       plan.owner !== owner ||
-      !sameWorkspace(expected, getFocusSnapshot().workspace)
-    ) {
-      if (retry)
-        throw new Error(
-          "Resolve the account versions before retrying this import",
-        )
-      throw new ImportPlanChangedError()
-    }
-
-    if (retry) {
-      if (
-        retained.plan.expectedRevision !== plan.expectedRevision ||
-        !sameWorkspace(retained.plan.expected, expected) ||
-        !sameWorkspace(retained.plan.guest, guest)
-      )
-        throw new Error("The retained import payload must not change")
-    } else if (
-      retained ||
-      state.revision !== plan.expectedRevision ||
-      state.status !== "saved" ||
-      state.dirty
+      !sameRequest(plan.journal, journal ? requestReference(journal) : null)
     )
       throw new ImportPlanChangedError()
+    let record = journal
 
-    const record: PendingImport = retry
-      ? retained
-      : {
-          userId: user.id,
-          plan: {
-            id: plan.id,
-            guest,
-            expected,
-            expectedRevision: plan.expectedRevision,
-            owner,
-          },
-          response: null,
-        }
+    if (record) {
+      const original = record.original
+
+      if (
+        original.kind !== "import" ||
+        record.resolution ||
+        !plan.recovered ||
+        original.importId !== plan.id ||
+        original.expectedRevision !== plan.expectedRevision ||
+        !sameWorkspace(
+          guest,
+          await decodeJournalWorkspace({
+            json: original.guestJson,
+            hash: original.guestHash,
+          }),
+        )
+      )
+        throw new ImportPlanChangedError()
+    } else {
+      if (
+        plan.recovered ||
+        state.status !== "saved" ||
+        state.dirty ||
+        state.revision !== plan.expectedRevision
+      )
+        throw new ImportPlanChangedError()
+
+      const [encodedGuest, encodedLocal] = await Promise.all([
+        encodeJournalWorkspace(guest),
+        encodeJournalWorkspace(expected),
+      ])
+
+      assertBaseline(version, user.id, owner, expected)
+      record = await createAccountJournal({
+        accountId: user.id,
+        original: {
+          kind: "import",
+          importId: plan.id,
+          expectedRevision: plan.expectedRevision,
+          guestJson: encodedGuest.json,
+          guestHash: encodedGuest.hash,
+          originalLocalJson: encodedLocal.json,
+          originalLocalHash: encodedLocal.hash,
+        },
+        resolution: null,
+        isCurrent: storageGuard(version, user.id, owner),
+      })
+      retain(record)
+    }
 
     publish({ status: "syncing", error: null })
 
     try {
-      if (record.response === null) {
-        const response = await client
-          .getMutationCache()
-          .build(client, importGuestMutationOptions())
-          .execute({
-            userId: user.id,
-            workspace: guest,
-            expected_revision: plan.expectedRevision,
-            import_id: plan.id,
-            beforeSend() {
-              assertCurrent(version, user.id, owner)
+      const response = await client
+        .getMutationCache()
+        .build(client, importGuestMutationOptions())
+        .execute({
+          userId: user.id,
+          workspace: guest,
+          expected_revision: plan.expectedRevision,
+          import_id: plan.id,
+          beforeSend() {
+            assertBaseline(version, user.id, owner, expected)
+          },
+        })
 
-              if (!sameWorkspace(expected, getFocusSnapshot().workspace)) {
-                if (retry)
-                  throw new Error(
-                    "Resolve the account versions before retrying this import",
-                  )
-                throw new ImportPlanChangedError()
-              }
-
-              rememberImportRequest(record)
-            },
-          })
-
-        if (response.revision <= plan.expectedRevision)
-          throw new AccountApiError(200)
-        record.response = response
-        assertCurrent(version, user.id, owner)
-      }
-
-      await reconcile(user.id, version, owner)
       assertCurrent(version, user.id, owner)
+
+      if (response.revision <= plan.expectedRevision)
+        throw new AccountApiError(200)
+      const latest = await load(user.id)
+      assertCurrent(version, user.id, owner)
+
+      if (latest.revision < response.revision) throw new AccountApiError(200)
+      await finishImport(record, latest, version, owner)
 
       if (state.status === "conflict")
         throw new Error(
-          "Import completed, but local work changed. Resolve the account versions",
+          "The import completed, but local work changed. Review both versions",
         )
-
-      if (pendingImport === record)
-        throw new Error("The import still needs recovery")
     } catch (cause) {
-      if (!current(version, user.id, owner)) throw cause
-      const rejected = record.response === null && !uncertain(cause)
-
-      if (rejected && !retry) forgetImportRequest(record)
-
-      if (
-        rejected &&
-        !retry &&
-        cause instanceof AccountApiError &&
-        cause.status === 413
-      ) {
-        fail(cause)
-        throw new ImportPlanChangedError(cause.message)
-      }
-
-      if (
-        rejected &&
-        cause instanceof AccountApiError &&
-        cause.status === 409
-      ) {
-        try {
+      if (current(version, user.id, owner)) {
+        if (cause instanceof AccountApiError && cause.status === 409) {
           const latest = await load(user.id)
           assertCurrent(version, user.id, owner)
           conflict(
             latest,
-            "Guest import conflicts with saved data. Review the versions; guest data is unchanged",
+            "The retained guest import needs review. Its original snapshot has not changed",
           )
-        } catch (error) {
-          if (current(version, user.id, owner))
-            fail(
-              error instanceof Error
-                ? error
-                : new Error("Import recovery failed"),
-            )
+        } else if (state.status !== "conflict") {
+          fail(
+            cause instanceof Error ? cause : new Error("Guest import failed"),
+          )
         }
-
-        if (!retry)
-          throw new ImportPlanChangedError(
-            "Guest import was rejected. Review the account versions before preparing it again",
-          )
       }
 
-      if (current(version, user.id, owner) && state.status !== "conflict")
-        fail(cause instanceof Error ? cause : new Error("Guest import failed"))
       throw cause
     }
   }
 
-  async function performLogout({ owner }: { owner: WorkspaceOwner }) {
-    const { user, version } = requireOwner(owner)
+  async function performLogout(
+    owner: WorkspaceOwner,
+    userId: string,
+    version: number,
+  ) {
+    assertLogoutContext(version, userId, owner)
     await client
       .getMutationCache()
       .build(client, logoutMutationOptions())
       .execute({
-        userId: user.id,
+        userId,
         beforeSend() {
-          assertCurrent(version, user.id, owner)
+          assertLogoutContext(version, userId, owner)
         },
       })
-    assertCurrent(version, user.id, owner)
-    const logoutVersion = ++epoch
+    assertLogoutContext(version, userId, owner)
     verified = false
+    ++epoch
+    cancelWaits()
     clearQueries()
-    const hiding = setActiveWorkspace({ identity: null })
-    publish({ ...initialState })
-    await hiding
-
-    if (logoutVersion !== epoch)
-      throw new Error("Account verification changed during logout")
-    signalIdentity(null)
-    pendingSave = null
-    pendingImport = null
+    journal = null
     remote = null
-    verified = true
+    running = null
+    actionRunning = false
+    actionFinished = null
     publish({ ...initialState, status: "guest" })
+    const hiding = setActiveWorkspace({ identity: null })
+
+    try {
+      signalIdentity(null)
+    } finally {
+      await hiding
+    }
+  }
+
+  async function logout({ owner }: { owner: WorkspaceOwner }) {
+    const user = requireLogoutContext(owner)
+
+    if (logoutRunning)
+      throw new Error("Account sign-out is already in progress")
+    const version = ++epoch
+    cancelWaits()
+    const task = performLogout(owner, user.id, version)
+    logoutRunning = task
+
+    try {
+      await task
+    } finally {
+      if (logoutRunning === task) logoutRunning = null
+    }
   }
 
   function focusChanged() {
     const focus = getFocusSnapshot()
 
-    if (focus.workspace === lastWorkspace) return
+    if (lastWorkspace === focus.workspace) return
     lastWorkspace = focus.workspace
 
     if (
-      state.user &&
-      focus.owner.identity === state.user.id &&
-      focus.hydrated &&
-      !focus.error
-    ) {
-      const ready = verified && state.status === "saved"
-      publish({ dirty: true, status: ready ? "syncing" : state.status })
+      !verified ||
+      !state.user ||
+      focus.owner.identity !== state.user.id ||
+      !focus.hydrated ||
+      focus.error !== null
+    )
+      return
+    const wasSaved = state.status === "saved"
 
-      if (ready) void sync({ owner: focus.owner })
-    }
+    if (wasSaved) publish({ dirty: true, status: "syncing" })
+    else publish({ dirty: true })
+
+    if (wasSaved && !running && !actionRunning && !logoutRunning)
+      void sync({ owner: focus.owner })
   }
 
   function markerChanged(event: StorageEvent) {
     if (event.key === "pomodoro:workspace:guest" && verified && state.user) {
-      const user = state.user
+      const { user } = state
       const version = epoch
       const focus = getFocusSnapshot()
-      const owner = focus.owner
 
-      if (owner.identity !== user.id || !focus.hydrated || focus.error) return
-      void updateGuest(user.id, version, owner).catch((cause: unknown) => {
-        const error =
-          cause instanceof Error ? cause : new Error("Account request failed")
-
-        if (current(version, user.id, owner))
-          publish({
-            guestAvailable: false,
-            error: error.message,
-          })
-      })
+      if (
+        focus.owner.identity !== user.id ||
+        !focus.hydrated ||
+        focus.error !== null
+      )
+        return
+      void updateGuest(user.id, version, focus.owner).catch(
+        (cause: unknown) => {
+          if (current(version, user.id, focus.owner))
+            publish({
+              guestAvailable: false,
+              error:
+                cause instanceof Error
+                  ? cause.message
+                  : "Guest data is unavailable",
+            })
+        },
+      )
 
       return
     }
@@ -1144,9 +1243,9 @@ function createAccountController(client: QueryClient) {
     if (event.key !== ACCOUNT_MARKER_KEY && event.key !== null) return
     const version = ++epoch
     verified = false
+    cancelWaits()
+    journal = null
     remote = null
-    pendingSave = null
-    pendingImport = null
     clearQueries()
     const hiding = setActiveWorkspace({ identity: null })
     publish({ ...initialState })
@@ -1155,10 +1254,12 @@ function createAccountController(client: QueryClient) {
         if (version === epoch) void refresh()
       },
       (cause: unknown) => {
-        const error =
-          cause instanceof Error ? cause : new Error("Account request failed")
-
-        if (version === epoch) fail(error)
+        if (version === epoch)
+          fail(
+            cause instanceof Error
+              ? cause
+              : new Error("Account verification failed"),
+          )
       },
     )
   }
@@ -1184,53 +1285,51 @@ function createAccountController(client: QueryClient) {
       if (listeners.size === 0 && typeof window !== "undefined") {
         const version = ++epoch
         verified = false
+        cancelWaits()
         unsubscribeFocus?.()
         window.removeEventListener("storage", markerChanged)
         window.removeEventListener("focus", refreshOnEvent)
         window.removeEventListener("online", refreshOnEvent)
         clearQueries()
-        pendingSave = null
-        pendingImport = null
+        journal = null
+        remote = null
         const hiding = setActiveWorkspace({ identity: null })
         publish({ ...initialState })
         void hiding.catch((cause: unknown) => {
-          const error =
-            cause instanceof Error ? cause : new Error("Account request failed")
-
-          if (version === epoch) fail(error)
+          if (version === epoch)
+            fail(
+              cause instanceof Error
+                ? cause
+                : new Error("Account verification failed"),
+            )
         })
       }
     }
   }
 
-  async function exclusive(action: () => Promise<void>, owner: WorkspaceOwner) {
+  async function exclusive<T>(action: () => Promise<T>, owner: WorkspaceOwner) {
     requireOwner(owner)
 
-    if (actionRunning || running)
+    if (actionRunning || running || logoutRunning)
       throw new Error("An account operation is in progress")
     actionRunning = true
-
-    const task = (async () => {
-      try {
-        await action()
-      } finally {
-        actionRunning = false
-      }
-    })()
-
+    const task = operation(owner, action)
     actionFinished = task
 
     try {
-      await task
+      return await task
     } finally {
-      if (actionFinished === task) actionFinished = null
+      if (actionFinished === task) {
+        actionFinished = null
+        actionRunning = false
 
-      if (
-        verified &&
-        state.status === "syncing" &&
-        getFocusSnapshot().owner === owner
-      )
-        void sync({ owner })
+        if (
+          verified &&
+          state.status === "syncing" &&
+          getFocusSnapshot().owner === owner
+        )
+          void sync({ owner })
+      }
     }
   }
 
@@ -1241,15 +1340,15 @@ function createAccountController(client: QueryClient) {
     await exclusive(() => resolveConflict(input, ownership), ownership.owner)
   }
 
+  async function prepareImport(ownership: { owner: WorkspaceOwner }) {
+    return await exclusive(() => prepareImportPlan(ownership), ownership.owner)
+  }
+
   async function importGuest(
     plan: GuestImportPlan,
     ownership: { owner: WorkspaceOwner },
   ) {
     await exclusive(() => performImport(plan, ownership), ownership.owner)
-  }
-
-  async function logout(ownership: { owner: WorkspaceOwner }) {
-    await exclusive(() => performLogout(ownership), ownership.owner)
   }
 
   const controller: AccountController = {

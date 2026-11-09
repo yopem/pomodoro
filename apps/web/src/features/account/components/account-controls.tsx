@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router"
 import { useRef, useState } from "react"
+import { z } from "zod"
 
 import type {
   AccountController,
   AccountSnapshot,
   GuestImportPlan,
+  PendingAccountRequest,
 } from "@/features/account/sync-contract"
 import type { Workspace } from "@/features/focus/schema"
 import type { WorkspaceOwner } from "@/features/focus/store"
@@ -38,13 +40,32 @@ interface BoundAccount {
   owner: WorkspaceOwner
 }
 
+const conflictTargetSchema = z.strictObject({
+  revision: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
+  request: z
+    .strictObject({
+      operationId: z.string().uuid(),
+      token: z.string().uuid(),
+      kind: z.enum(["save", "import"]),
+      phase: z.enum(["original", "resolution"]),
+    })
+    .nullable(),
+})
+
 async function resolveServer(
   id: string,
   workspace: Workspace,
   bound: BoundAccount,
 ) {
+  const target = conflictTargetSchema.parse(JSON.parse(id))
+
   await bound.controller.resolve(
-    { source: "server", expected: workspace, expectedRevision: Number(id) },
+    {
+      source: "server",
+      expected: workspace,
+      expectedRevision: target.revision,
+      request: target.request,
+    },
     { owner: bound.owner },
   )
 }
@@ -54,8 +75,15 @@ async function resolveLocal(
   workspace: Workspace,
   bound: BoundAccount,
 ) {
+  const target = conflictTargetSchema.parse(JSON.parse(id))
+
   await bound.controller.resolve(
-    { source: "local", expected: workspace, expectedRevision: Number(id) },
+    {
+      source: "local",
+      expected: workspace,
+      expectedRevision: target.revision,
+      request: target.request,
+    },
     { owner: bound.owner },
   )
 }
@@ -178,6 +206,8 @@ export function AccountActions({
   const [bound] = useState(() => ({ controller, owner }))
   const { commands, pending, error } = useAccountCommands(bound)
 
+  const currentAccount = state.user?.id === owner.identity
+
   return (
     <Stack spacing="compact">
       <AccountFeedback state={state} pending={pending} error={error} />
@@ -204,7 +234,7 @@ export function AccountActions({
                 ? "Retry sync"
                 : "Sync now"}
             </Button>
-            {state.guestAvailable && <GuestImport bound={bound} />}
+            <AccountImportAction bound={bound} state={state} />
             <ConfirmAction
               title="Log out"
               description="Unsynced account work stays on this device. Export a backup in Settings if needed."
@@ -229,16 +259,41 @@ export function AccountActions({
         )}
       </HStack>
       {state.user &&
+        currentAccount &&
         state.status === "conflict" &&
         state.remoteRevision !== null && (
           <AccountConflict
             revision={state.remoteRevision}
             workspace={workspace}
+            request={state.pendingOperation}
             bound={bound}
           />
         )}
     </Stack>
   )
+}
+
+export function AccountImportAction({
+  bound,
+  state,
+}: {
+  bound: BoundAccount
+  state: AccountSnapshot
+}) {
+  if (state.user?.id !== bound.owner.identity) return null
+
+  const request = state.pendingOperation
+
+  if (request) {
+    if (request.kind === "import" && request.phase === "original")
+      return <GuestImport bound={bound} request={request} />
+
+    return null
+  }
+
+  if (!state.guestAvailable) return null
+
+  return <GuestImport bound={bound} request={null} />
 }
 
 export function AccountFeedback({
@@ -276,23 +331,38 @@ export function AccountFeedback({
 export function AccountConflict({
   revision,
   workspace,
+  request,
   bound,
 }: {
   revision: number
   workspace: Workspace
+  request: PendingAccountRequest | null
   bound: BoundAccount
 }) {
+  const targetId = JSON.stringify({ revision, request })
+
   return (
     <Stack spacing="compact">
       <Text>
         Export a backup in <Link to="/settings">Settings</Link> before choosing.
         The other version will be replaced.
       </Text>
+      {request?.kind === "import" && (
+        <Text>
+          These choices resolve or cancel the unfinished import. They do not
+          prove that it was imported. The original guest source may have
+          changed.
+        </Text>
+      )}
       <HStack wrap>
         <ConfirmAction
           title="Use account version"
-          description="This replaces the local workspace with the account version. Export a backup first."
-          targetId={String(revision)}
+          description={
+            request?.kind === "import"
+              ? "This replaces local work with the account version and resolves or cancels the unfinished import. It does not prove the import succeeded. Export a backup first."
+              : "This replaces the local workspace with the account version. Export a backup first."
+          }
+          targetId={targetId}
           data={workspace}
           owner={bound}
           onConfirm={resolveServer}
@@ -301,8 +371,12 @@ export function AccountConflict({
         </ConfirmAction>
         <ConfirmAction
           title="Keep local version"
-          description="This replaces the account workspace with this device's local version. Export a backup first."
-          targetId={String(revision)}
+          description={
+            request?.kind === "import"
+              ? "This replaces the account workspace with local work and resolves or cancels the unfinished import. It does not prove the import succeeded. Export a backup first."
+              : "This replaces the account workspace with this device's local version. Export a backup first."
+          }
+          targetId={targetId}
           data={workspace}
           owner={bound}
           onConfirm={resolveLocal}
@@ -314,7 +388,13 @@ export function AccountConflict({
   )
 }
 
-export function GuestImport({ bound }: { bound: BoundAccount }) {
+export function GuestImport({
+  bound,
+  request,
+}: {
+  bound: BoundAccount
+  request: PendingAccountRequest | null
+}) {
   const [dialog, setDialog] = useState<{
     id: number
     open: boolean
@@ -333,7 +413,13 @@ export function GuestImport({ bound }: { bound: BoundAccount }) {
       return
     }
 
-    if (dialog && !dialog.completed && dialog.plan) {
+    if (
+      dialog &&
+      !dialog.completed &&
+      dialog.plan &&
+      dialog.plan.journal?.operationId === request?.operationId &&
+      dialog.plan.journal?.token === request?.token
+    ) {
       setDialog({ ...dialog, id: ++nextId.current, open: true })
 
       return
@@ -371,7 +457,7 @@ export function GuestImport({ bound }: { bound: BoundAccount }) {
   return (
     <Dialog open={dialog?.open ?? false} onOpenChange={changeOpen}>
       <DialogTrigger render={<Button variant="outline" />}>
-        Import guest work
+        {request ? "Review pending import" : "Import guest work"}
       </DialogTrigger>
       {dialog && (
         <ImportContent
@@ -437,20 +523,24 @@ export function ImportContent({
   })
 
   const guest = dialog.plan?.guest
+  const recovered = dialog.plan?.recovered ?? false
 
   return (
     <DialogPopup>
       <DialogHeader>
-        <DialogTitle>Import guest work</DialogTitle>
+        <DialogTitle>
+          {recovered ? "Review pending import" : "Import guest work"}
+        </DialogTitle>
         <DialogDescription>
-          Import guest projects, tasks, templates, and focus history. This
-          account keeps its timer and settings unless its workspace is the empty
-          default. The guest source stays on this device.
+          {recovered
+            ? "Retry the original import with its saved ID and original snapshot, not the current guest contents. The guest source may have changed."
+            : "Import guest projects, tasks, templates, and focus history. This account keeps its timer and settings unless its workspace is the empty default. The guest source stays on this device."}
         </DialogDescription>
       </DialogHeader>
       <DialogPanel>
         {guest ? (
           <Text>
+            {recovered ? "Original saved snapshot: " : ""}
             {guest.tasks.length} tasks, {guest.projects.length} projects,{" "}
             {guest.templates.length} templates, {guest.sessions.length}{" "}
             sessions.
@@ -469,7 +559,7 @@ export function ImportContent({
           Cancel
         </DialogClose>
         <Button loading={pending} disabled={!guest} onClick={confirm}>
-          Confirm import
+          {recovered ? "Retry original import" : "Confirm import"}
         </Button>
       </DialogFooter>
     </DialogPopup>
