@@ -3792,39 +3792,45 @@ not affected by this source-only change.
   checksums, exact revisions, sanitized gates and protected-file comparisons.
 - **Cleanup:** Retain the verified cache for approved project commands; remove
   only disposable compatibility archives and owned failed candidates.
-- **Status:** Pending. Approval permits project-scoped verification and changes,
-  not global installation or automatic acceptance of another runtime.
+- **Status:** Pending post-pin acceptance. Official registry/SRI, archive and
+  executable checks passed for b9f2ec363. Fresh source archive 5f78d042 with no
+  copied node_modules passed frozen installation, the real snapshot gate,
+  representative allowed/rejected policies and a production web build. Global
+  Bun and profile hashes stayed unchanged. Exact README bootstrap checks also
+  passed. Evidence: `qa-artifacts/QA-120/fresh-install-policy/` and
+  `docs/official-bun-clean-policy.md`. Project pin/container consumers now use
+  the verified artifact. Full Compiler semantics, post-pin browser/container
+  acceptance and the complete installed-hook regression set remain unproved.
 
-### [ ] QA-121 — P1 — CI installs pinned tools and enforces release gates
+### [ ] QA-121 — P1 — CI runs lint, format checks and typechecks
 
-- **Purpose:** Add the missing CI workflow without treating unresolved audits or
-  an unverified runtime download as successful release checks.
-- **Prerequisites:** QA-120 verified artifact metadata and project pin; inspect
-  actual root/workspace scripts and snapshot gate. No database or credentials
-  are needed for static checks, offline OpenAPI export or required builds.
-- **Inputs:** A clean commit checkout, exact Bun artifact/checksum and pinned
-  Rust toolchain. Current moderate minimatch and low deepmerge findings remain
-  unresolved and must not be hidden, filtered or marked fixed.
+- **Purpose:** Run only the three user-requested check categories after verified
+  tool and frozen dependency setup. CI is not full release acceptance.
+- **Prerequisites:** QA-120 verified artifact metadata and project pin. Read the
+  actual root/workspace scripts. No database, account or credentials are needed.
+- **Inputs:** Clean checkout, official Bun/checksums and pinned Rust toolchain.
 - **Steps:**
-  1. Review a minimum-permission workflow with immutable action references and
-     no persisted checkout credential. Verify its bootstrap locally from the
-     same committed pin without global tool changes.
-  2. Run the actual isolated committed-tree gate, owning workspace typechecks,
-     formatting, zero-warning lint, explicit config coverage and builds.
-  3. Run offline OpenAPI/client drift checks without starting services.
-  4. Run the native package audit with its real exit status. Inspect workflow
-     syntax and command coverage. A hosted run requires a permitted real push;
-     do not push project refs merely to test the workflow.
-- **Expected results:** Required failures block the workflow. No test suites,
-  database connections, migrations, deployment, secret logs or bypasses occur.
-  Successful local command execution is not reported as a hosted CI pass.
-- **Evidence:** `qa-artifacts/QA-121/`; save bootstrap validation, exact
-  commands, gate/build/export results, audit exit and any permitted hosted run
-  URL.
-- **Cleanup:** Remove only owned local CI-like fixtures and temporary files.
-- **Status:** Pending. No `.github/` workflow exists at planning. Hosted
-  execution needs a separately permitted push; audit findings can still block
-  release after workflow setup.
+  1. Review immutable actions, read-only permissions, no persisted credential,
+     and exact checksum/version bootstrap without global tool changes.
+  2. Inspect setup plus exactly Typecheck, Lint and Format check. Typecheck runs
+     first to generate routes required by type-aware lint. Lint includes tracked
+     JS/TS with config coverage, zero warnings and Clippy; format uses
+     nonwriting native Bun and Rustfmt checks. Workspace typecheck includes
+     Cargo check.
+  3. Confirm there are no build, audit, snapshot, contract-drift, test,
+     migration or deployment steps and no failure suppression.
+  4. Run focused local workflow syntax/policy checks. A hosted run needs a
+     separately permitted push; do not push merely to test this workflow.
+- **Expected results:** These check failures fail CI. Setup verifies tool bytes.
+  No app service or database starts. Local checks do not imply hosted success.
+  Advisory findings remain unresolved outside this explicitly limited CI scope.
+- **Evidence:** `qa-artifacts/QA-121/`; save exact policy/syntax commands and
+  results, tool setup evidence and any separately permitted hosted run URL.
+- **Cleanup:** Remove only owned fixtures and temporary files.
+- **Status:** Pending hosted acceptance. Workflow source contains only setup and
+  the three requested check categories. No hosted workflow has run. Earlier
+  build/audit/drift workflow draft was replaced at the user's request, not
+  presented as a passing audit or complete release gate.
 
 ### [ ] QA-122 — P1 — Database process supervision contains orphan failure
 
