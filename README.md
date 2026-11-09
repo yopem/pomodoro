@@ -154,6 +154,11 @@ or change ports to avoid an existing process.
 Browser audio, notifications, fullscreen, and popup windows require browser
 support and may need user activation or permission. The timer uses deadlines;
 background timer callbacks do not create invented chains of completed sessions.
+Keep an app window open for new timer alarms and reminders. On supported
+browsers, the active service worker displays persistent notifications. A
+notification returns to an existing timer window or opens the same-origin timer
+without replacing another open form. Desktop notifications remain a fallback.
+This does not add server push or schedule alarms after all app windows close.
 
 ## Static checks
 

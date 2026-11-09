@@ -1,27 +1,40 @@
-let deliveryUnsupported = false
-
 export function focusNotificationPermission() {
   if (typeof window === "undefined" || !("Notification" in window))
     return "unsupported"
 
-  return deliveryUnsupported ? "unsupported" : Notification.permission
+  return Notification.permission
 }
 
 export async function requestFocusNotificationPermission() {
-  if (typeof window === "undefined" || !("Notification" in window))
-    return "unsupported"
-
-  deliveryUnsupported = false
+  if (focusNotificationPermission() === "unsupported") return "unsupported"
 
   return await Notification.requestPermission()
 }
 
-export function showFocusNotification(input: { title: string; body: string }) {
-  if (focusNotificationPermission() !== "granted") return
+export async function showFocusNotification(input: {
+  title: string
+  body: string
+  canNotify: () => boolean
+}) {
+  if (focusNotificationPermission() !== "granted" || !input.canNotify()) return
+
+  let registration: ServiceWorkerRegistration | undefined
+
+  if ("serviceWorker" in navigator) {
+    try {
+      registration = await navigator.serviceWorker.getRegistration("/")
+    } catch {
+      registration = undefined
+    }
+  }
+
+  if (focusNotificationPermission() !== "granted" || !input.canNotify()) return
 
   try {
-    new Notification(input.title, { body: input.body })
+    if (registration?.active && "showNotification" in registration)
+      await registration.showNotification(input.title, { body: input.body })
+    else new Notification(input.title, { body: input.body })
   } catch {
-    deliveryUnsupported = true
+    console.warn("Focus notification is unavailable")
   }
 }

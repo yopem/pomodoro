@@ -664,13 +664,28 @@ async function remindFocus() {
         return false
       window.localStorage.setItem(reminderKey, timer.run_id)
 
-      return true
+      return timer.run_id
     })
 
-    if (notify && owner === activeOwner)
-      showFocusNotification({
+    function canNotify() {
+      const timer = snapshot.workspace.timer
+
+      return (
+        owner === activeOwner &&
+        snapshot.hydrated &&
+        !snapshot.error &&
+        snapshot.workspace.settings.notifications &&
+        timer.run_id === notify &&
+        timer.deadline_ms !== null &&
+        timer.deadline_ms > Date.now()
+      )
+    }
+
+    if (notify)
+      void showFocusNotification({
         title: "Focus reminder",
         body: "Your focus timer is running.",
+        canNotify,
       })
   } catch (error) {
     if (owner === activeOwner)
@@ -699,10 +714,19 @@ function completeIfElapsed(workspace: Workspace, nowMs: number) {
   return { phase, settings }
 }
 
-function deliverCompletion(completion: {
-  phase: Timer["phase"]
-  settings: Settings
-}) {
+function deliverCompletion(
+  completion: { phase: Timer["phase"]; settings: Settings },
+  owner: WorkspaceOwner,
+) {
+  function canNotify() {
+    return (
+      owner === activeOwner &&
+      snapshot.hydrated &&
+      !snapshot.error &&
+      snapshot.workspace.settings.notifications
+    )
+  }
+
   try {
     playFocusAlarm(completion.settings)
   } catch {
@@ -710,8 +734,9 @@ function deliverCompletion(completion: {
   }
 
   if (completion.settings.notifications) {
-    showFocusNotification({
+    void showFocusNotification({
       title: "Timer complete",
+      canNotify,
       body:
         completion.phase === "focus"
           ? "Focus time is complete."
@@ -745,7 +770,8 @@ async function finishElapsedTimer() {
       { owner },
     )
 
-    if (completion && owner === activeOwner) deliverCompletion(completion)
+    if (completion && owner === activeOwner)
+      deliverCompletion(completion, owner)
   } catch {
     return
   } finally {
@@ -771,7 +797,7 @@ async function changeTimer(
     if (!completion) change(workspace, nowMs)
   }, ownership)
 
-  if (completion && owner === activeOwner) deliverCompletion(completion)
+  if (completion && owner === activeOwner) deliverCompletion(completion, owner)
 }
 
 export async function startTimer(

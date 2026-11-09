@@ -16,6 +16,7 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Stack } from "@/components/ui/stack"
 import { Switch } from "@/components/ui/switch"
 import { Text } from "@/components/ui/text"
+import { requestFocusNotificationPermission } from "@/features/focus/notifications"
 import { projectColorSchema, settingsSchema } from "@/features/focus/schema"
 import {
   updateSettings,
@@ -481,16 +482,11 @@ export function NotificationPermission() {
 
   const [requestPermission] = useState(function createPermissionHandler() {
     return async function requestPermission() {
-      if (!("Notification" in window)) {
-        setPermission("Notifications are not supported in this browser.")
-
-        return
-      }
-
       try {
-        const result = await Notification.requestPermission()
+        const result = await requestFocusNotificationPermission()
 
         const messages = {
+          unsupported: "Notifications are not supported in this browser.",
           granted: "Notification permission granted.",
           denied:
             "Notification permission denied. Change browser permissions to allow notifications.",
