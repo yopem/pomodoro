@@ -85,6 +85,7 @@ function publish(next: Omit<FocusSnapshot, "identity" | "owner">) {
     syncFocusAudio({
       running:
         next.hydrated &&
+        !next.error &&
         next.workspace.timer.phase === "focus" &&
         next.workspace.timer.deadline_ms !== null,
       settings: next.workspace.settings,
@@ -800,13 +801,38 @@ async function changeTimer(
   if (completion && owner === activeOwner) deliverCompletion(completion, owner)
 }
 
+export function enableTimerSound(
+  input: { expected: Timer },
+  ownership: MutationOwnership,
+) {
+  if (ownership.owner !== activeOwner || !snapshot.hydrated || snapshot.error)
+    return false
+  const parsed = timerSchema.safeParse(input.expected)
+
+  if (
+    !parsed.success ||
+    JSON.stringify(snapshot.workspace.timer) !== JSON.stringify(parsed.data)
+  )
+    return false
+  const { settings } = snapshot.workspace
+  const alarmWanted = settings.alarm !== "none" && settings.alarm_volume > 0
+
+  const backgroundWanted =
+    snapshot.workspace.timer.phase === "focus" &&
+    settings.focus_sound !== "none" &&
+    settings.focus_sound_volume > 0
+
+  if (alarmWanted || backgroundWanted) unlockFocusAudio()
+
+  return true
+}
+
 export async function startTimer(
   input: { expected: Timer },
   ownership: MutationOwnership,
 ) {
   const expected = timerSchema.parse(input.expected)
 
-  if (ownership.owner === activeOwner) unlockFocusAudio()
   await changeTimer(
     (workspace, nowMs) => startTimerRun(workspace, nowMs),
     expected,

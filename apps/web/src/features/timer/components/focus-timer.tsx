@@ -13,6 +13,7 @@ import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { colorStyles } from "@/features/focus/color-indicator"
 import {
+  enableTimerSound,
   pauseTimer,
   resetTimer,
   selectPhase,
@@ -21,6 +22,7 @@ import {
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
 import { ConfirmAction } from "@/features/timer/components/confirm-action"
+import { TimerSound } from "@/features/timer/components/timer-sound"
 import { formatTimerClock, timerPhaseLabels } from "@/features/timer/countdown"
 import { useEventCallback } from "@/hooks/use-event-callback"
 import { tokens } from "@/styles/tokens.stylex"
@@ -182,6 +184,12 @@ export function FocusTimer({
       return
     }
 
+    if (command.kind === "start")
+      enableTimerSound(
+        { expected: captured.expected },
+        { owner: captured.owner },
+      )
+
     startTransition(() => dispatch(captured))
   })
 
@@ -267,6 +275,7 @@ export function FocusTimer({
             </Text>
           )}
         </Stack>
+        <TimerSound timer={timer} settings={settings} />
       </CardPanel>
       {pending && (
         <TimerConfirmation
