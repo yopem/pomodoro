@@ -1,7 +1,7 @@
 import type { MouseEvent } from "react"
 
 import { useNavigate } from "@tanstack/react-router"
-import { PencilIcon } from "lucide-react"
+import { PencilIcon, Trash2Icon } from "lucide-react"
 import { startTransition, useActionState, useState } from "react"
 
 import type { Session } from "@/features/focus/schema"
@@ -136,7 +136,7 @@ export function ReportHistory({
               </EmptyHeader>
             </Empty>
           ) : (
-            <Table>
+            <Table variant="card">
               <TableCaption>
                 Focus history for {rangeLabel}. Times use your device time zone.
               </TableCaption>
@@ -185,8 +185,15 @@ export function ReportHistory({
                           data={session}
                           owner={owner}
                           onConfirm={removeSession}
+                          trigger={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Delete ${session.task_title}`}
+                            />
+                          }
                         >
-                          Delete
+                          <Trash2Icon size={16} aria-hidden="true" />
                         </ConfirmAction>
                       </HStack>
                     </TableCell>
