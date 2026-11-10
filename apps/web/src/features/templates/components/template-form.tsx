@@ -19,11 +19,18 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { NativeSelect } from "@/components/ui/native-select"
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { Textarea } from "@/components/ui/textarea"
 import { saveTemplate, useWorkspaceMutationOwner } from "@/features/focus/store"
+import { useEventCallback } from "@/hooks/use-event-callback"
 
 const nameSchema = z.string().trim().min(1, "Enter a name").max(500)
 
@@ -120,16 +127,6 @@ export function useTemplateForm({
         )
     }
 
-    function changeProject(event: ChangeEvent<HTMLSelectElement>) {
-      const match = /^template-task-(\d+)-project$/.exec(event.currentTarget.id)
-
-      if (match)
-        form.setFieldValue(
-          `tasks[${Number(match[1])}].project_id`,
-          event.currentTarget.value || null,
-        )
-    }
-
     function removeTask(event: MouseEvent<HTMLButtonElement>) {
       const index = Number(event.currentTarget.value)
       setTaskKeys((keys) => keys.filter((_, itemIndex) => itemIndex !== index))
@@ -156,13 +153,58 @@ export function useTemplateForm({
       changeName,
       changeTaskText,
       changeEstimate,
-      changeProject,
       removeTask,
       addTask,
     }
   })
 
   return { form, events, formRef, error, taskKeys }
+}
+
+export function TemplateProjectSelect({
+  index,
+  projects,
+  value,
+  onBlur,
+  onChange,
+}: {
+  index: number
+  projects: Project[]
+  value: string | null
+  onBlur: () => void
+  onChange: (value: string | null) => void
+}) {
+  const changeValue = useEventCallback(function selectValue(
+    value: string | null,
+  ) {
+    if (value !== null) onChange(value || null)
+  })
+
+  const availableProjects = projects.filter((project) => !project.archived)
+
+  return (
+    <Field>
+      <FieldLabel htmlFor={`template-task-${index}-project`}>
+        Task {index + 1} project
+      </FieldLabel>
+      <Select value={value ?? ""} onValueChange={changeValue}>
+        <SelectTrigger id={`template-task-${index}-project`} onBlur={onBlur}>
+          <SelectValue>
+            {availableProjects.find((project) => project.id === value)?.name ??
+              "No project"}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectPopup>
+          <SelectItem value="">No project</SelectItem>
+          {availableProjects.map((project) => (
+            <SelectItem key={project.id} value={project.id}>
+              {project.name}
+            </SelectItem>
+          ))}
+        </SelectPopup>
+      </Select>
+    </Field>
+  )
 }
 
 export function TemplateForm(props: TemplateFormProps) {
@@ -317,28 +359,13 @@ export function TemplateForm(props: TemplateFormProps) {
                         </form.Field>
                         <form.Field name={`tasks[${index}].project_id`}>
                           {(field) => (
-                            <Field>
-                              <FieldLabel
-                                htmlFor={`template-task-${index}-project`}
-                              >
-                                Task {index + 1} project
-                              </FieldLabel>
-                              <NativeSelect
-                                id={`template-task-${index}-project`}
-                                value={field.state.value ?? ""}
-                                onBlur={field.handleBlur}
-                                onChange={events.changeProject}
-                              >
-                                <option value="">No project</option>
-                                {projects
-                                  .filter((project) => !project.archived)
-                                  .map((project) => (
-                                    <option key={project.id} value={project.id}>
-                                      {project.name}
-                                    </option>
-                                  ))}
-                              </NativeSelect>
-                            </Field>
+                            <TemplateProjectSelect
+                              index={index}
+                              projects={projects}
+                              value={field.state.value}
+                              onBlur={field.handleBlur}
+                              onChange={field.handleChange}
+                            />
                           )}
                         </form.Field>
                         <Button

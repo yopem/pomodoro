@@ -35,7 +35,13 @@ import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
 import { Input } from "@/components/ui/input"
-import { NativeSelect } from "@/components/ui/native-select"
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { ColorIndicator } from "@/features/focus/color-indicator"
@@ -278,6 +284,15 @@ export function ProjectCard({
   )
 }
 
+const projectColorItems = [
+  { value: "green", label: "Green" },
+  { value: "blue", label: "Blue" },
+  { value: "orange", label: "Orange" },
+  { value: "red", label: "Red" },
+  { value: "yellow", label: "Yellow" },
+  { value: "gray", label: "Gray" },
+]
+
 const projectFormSchema = z.object({
   name: z.string().trim().min(1, "Enter a project name").max(500),
   color: projectColorSchema,
@@ -340,8 +355,8 @@ export function ProjectForm({
       form.setFieldValue("name", event.currentTarget.value)
     }
 
-    function changeColor(event: ChangeEvent<HTMLSelectElement>) {
-      const result = projectColorSchema.safeParse(event.currentTarget.value)
+    function changeColor(value: string | null) {
+      const result = projectColorSchema.safeParse(value)
 
       if (result.success) form.setFieldValue("color", result.data)
     }
@@ -385,19 +400,22 @@ export function ProjectForm({
             {(field) => (
               <Field>
                 <FieldLabel htmlFor="project-color">Project color</FieldLabel>
-                <NativeSelect
-                  id="project-color"
+                <Select
                   value={field.state.value}
-                  onChange={events.changeColor}
-                  onBlur={field.handleBlur}
+                  items={projectColorItems}
+                  onValueChange={events.changeColor}
                 >
-                  <option value="green">Green</option>
-                  <option value="blue">Blue</option>
-                  <option value="orange">Orange</option>
-                  <option value="red">Red</option>
-                  <option value="yellow">Yellow</option>
-                  <option value="gray">Gray</option>
-                </NativeSelect>
+                  <SelectTrigger id="project-color" onBlur={field.handleBlur}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectPopup>
+                    {projectColorItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectPopup>
+                </Select>
               </Field>
             )}
           </form.Field>

@@ -19,7 +19,13 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { NativeSelect } from "@/components/ui/native-select"
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { Textarea } from "@/components/ui/textarea"
@@ -141,8 +147,8 @@ export function TaskForm({
       form.setFieldValue("note", event.currentTarget.value)
     }
 
-    function changeProject(event: ChangeEvent<HTMLSelectElement>) {
-      form.setFieldValue("project", event.currentTarget.value)
+    function changeProject(value: string | null) {
+      if (value !== null) form.setFieldValue("project", value)
     }
 
     return {
@@ -264,32 +270,47 @@ export function TaskForm({
             </form.Field>
             <form.Field name="project">
               {(field) => {
+                const items = [
+                  { value: "", label: "No project" },
+                  ...projects
+                    .filter(
+                      (project) =>
+                        !project.archived || project.id === task?.project_id,
+                    )
+                    .map((project) => ({
+                      value: project.id,
+                      label: `${project.name}${project.archived ? " (archived)" : ""}`,
+                    })),
+                ]
+
                 return (
                   <Field>
                     <FieldLabel htmlFor="task-project">
                       Project (optional)
                     </FieldLabel>
-                    <NativeSelect
-                      id="task-project"
+                    <Select
                       name={field.name}
                       value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={events.changeProject}
+                      onValueChange={events.changeProject}
                     >
-                      <option value="">No project</option>
-                      {projects
-                        .filter(
-                          (project) =>
-                            !project.archived ||
-                            project.id === task?.project_id,
-                        )
-                        .map((project) => (
-                          <option key={project.id} value={project.id}>
-                            {project.name}
-                            {project.archived ? " (archived)" : ""}
-                          </option>
+                      <SelectTrigger
+                        id="task-project"
+                        onBlur={field.handleBlur}
+                      >
+                        <SelectValue>
+                          {items.find(
+                            (item) => item.value === field.state.value,
+                          )?.label ?? "No project"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectPopup>
+                        {items.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
                         ))}
-                    </NativeSelect>
+                      </SelectPopup>
+                    </Select>
                   </Field>
                 )
               }}

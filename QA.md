@@ -4755,3 +4755,102 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   Source review, scoped lint, format and all web typechecks pass. Native picker
   cancellation needs user observation if Chrome automation cannot inspect the
   operating-system picker.
+
+## Select and calendar replacement
+
+Task: replace native selects and report date inputs with Yopem Select and
+Calendar. Affected routes: `/`, `/projects`, `/templates`, and `/reports`. Use
+the shared isolated setup above. Do not use production data. Use a guest
+workspace with two projects, `QA green` and `QA blue`, and one archived project.
+Evidence goes in the ignored `qa-artifacts/` directory. Run P1 before P2.
+
+Coverage: project/task/template selection: QA-156; report filtering and date
+navigation: QA-157; session editing: QA-158; CSV export: QA-159; keyboard,
+accessibility, layout, and theme regressions across controls: QA-160. Auth, API
+contracts, payments, migrations, and external integrations are unchanged.
+
+### [ ] QA-156 — P1 — Project selection and persistence
+
+- **Purpose:** Preserve project color and task/template project choices.
+- **Prerequisites:** Shared setup; isolated guest workspace and projects above.
+- **Inputs:** Green and blue colors; active and archived projects; no project.
+- **Steps:** 1. In `/projects`, create a green project and edit it to blue. 2.
+  On `/`, add and edit a task with an active project, then select no project. 3.
+  In `/templates`, create two tasks with distinct projects; change the second
+  after removing the first. 4. Reload and inspect saved values. 5. Edit a task
+  that already references the archived project.
+- **Expected results:** Each saved color and project persists, including the
+  correct remaining template task. No-project saves without an ID. The current
+  archived task project remains visible; unrelated archived projects do not.
+- **Evidence:** `qa-artifacts/QA-156-selects.png`; inspect selections and saved
+  results without personal data.
+- **Cleanup:** Delete only isolated QA tasks, templates, and projects.
+- **Status:** pending.
+
+### [ ] QA-157 — P1 — Report filters and local date
+
+- **Purpose:** Preserve report project and local date filtering and URL state.
+- **Prerequisites:** Shared setup; guest project and dated focus records.
+- **Inputs:** 2024-02-29; all projects; no project; `QA green`.
+- **Steps:** 1. Open `/reports`; select 2024-02-29 in the date calendar. 2.
+  Select each project filter and move between periods. 3. Reload and use back
+  and forward navigation.
+- **Expected results:** Selected date and project appear in the controls and
+  URL, relevant records and totals update, and navigation restores state. A
+  local date does not shift to an adjacent day.
+- **Evidence:** `qa-artifacts/QA-157-filters.png`; inspect date, filter, URL,
+  and matching report results.
+- **Cleanup:** Remove only isolated focus records and projects.
+- **Status:** pending.
+
+### [ ] QA-158 — P1 — Focus record date and project
+
+- **Purpose:** Preserve focus record create and edit validation and assignment.
+- **Prerequisites:** Shared setup; isolated guest workspace and active project.
+- **Inputs:** 2024-02-29, task `QA focus`, 25 minutes, no project and QA green.
+- **Steps:** 1. Open `/reports` and add focus time with the specified date and
+  project. 2. Edit it and choose no project. 3. Open the date picker, choose
+  Clear date, and submit. 4. Set the date again, save, and reload the report.
+- **Expected results:** Saved date and project are correct after reload. Invalid
+  required dates do not save, validation is announced, and focus reaches the
+  invalid control. Editing does not create a duplicate record.
+- **Evidence:** `qa-artifacts/QA-158-session.png`; inspect form feedback and
+  saved report row.
+- **Cleanup:** Delete the isolated record and project.
+- **Status:** pending.
+
+### [ ] QA-159 — P1 — CSV date range and options
+
+- **Purpose:** Preserve date range, unit, delimiter and safe CSV export.
+- **Prerequisites:** Shared setup; isolated dated records including a task named
+  `=1+1`; browser downloads directed to ignored `qa-artifacts/`.
+- **Inputs:** From 2024-02-28 through 2024-02-29; hours and tab; then an end
+  date earlier than the start.
+- **Steps:** 1. Open `/reports` and Download report. 2. Select the dates, hours
+  and tab; download the CSV. 3. Reopen and select an end date before the start;
+  submit. 4. Clear each date and submit. 5. Inspect the downloaded CSV.
+- **Expected results:** CSV contains only in-range records, hours, tab-separated
+  columns and an escaped formula-like task name. A reversed range or a cleared
+  required date shows an error and does not download.
+- **Evidence:** `qa-artifacts/QA-159-export.csv` and
+  `qa-artifacts/QA-159-validation.png`; inspect values and error.
+- **Cleanup:** Delete only the isolated records; retain sanitized evidence.
+- **Status:** pending.
+
+### [ ] QA-160 — P2 — Popup interaction and responsive layout
+
+- **Purpose:** Preserve accessible select and calendar interaction in dialogs.
+- **Prerequisites:** Shared setup; light and dark themes; desktop and 320 CSS
+  pixel viewport; keyboard and screen reader.
+- **Inputs:** Project, color, date, unit and delimiter controls on affected
+  routes; Escape and arrow keys.
+- **Steps:** 1. Use Tab and keyboard to open, change and dismiss each select and
+  calendar, including within dialogs. 2. Check focus after Escape and after
+  choosing a value. 3. Repeat at narrow width and in both themes.
+- **Expected results:** Controls have labels and visible focus; arrows select
+  options and dates; popups dismiss and restore focus; dialogs remain usable. No
+  controls or calendar days are clipped or obscured.
+- **Evidence:** `qa-artifacts/QA-160-keyboard.png`; inspect focus, labels and
+  popup placement.
+- **Cleanup:** Restore viewport and theme; remove isolated records.
+- **Status:** pending.
