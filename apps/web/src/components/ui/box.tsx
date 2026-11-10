@@ -82,7 +82,7 @@ const styles = stylex.create({
     borderColor: tokens["--border"],
     borderStyle: "solid",
     borderWidth: 1,
-    borderRadius: tokens["--radius-xl"],
+    borderRadius: tokens["--radius-md"],
     padding: { default: 24, "@media (max-width: 640px)": 16 },
     backgroundColor: tokens["--card"],
   },
