@@ -79,14 +79,6 @@ export default defineConfig(({ command }) => {
       host: "127.0.0.1",
       port: 13001,
       strictPort: true,
-      proxy: {
-        "/api": "http://127.0.0.1:18001",
-        // Start serves the login page. Axum owns the other auth routes.
-        "^/auth(?!/login/?(?:\\?|$))": "http://127.0.0.1:18001",
-        "/openapi.json": "http://127.0.0.1:18001",
-        "/health": "http://127.0.0.1:18001",
-        "/ready": "http://127.0.0.1:18001",
-      },
     },
     resolve: { tsconfigPaths: true, alias: { "@": source } },
     plugins: [
@@ -99,6 +91,18 @@ export default defineConfig(({ command }) => {
       tanstackStart(),
       nitro({
         preset: "bun",
+        // Nitro handles these requests before Vite's development proxy.
+        devProxy: {
+          "/api": "http://127.0.0.1:18001",
+          "/api/**": "http://127.0.0.1:18001",
+          "/auth": "http://127.0.0.1:18001",
+          "/auth/authorize": "http://127.0.0.1:18001",
+          "/auth/callback": "http://127.0.0.1:18001",
+          "/auth/logout": "http://127.0.0.1:18001",
+          "/openapi.json": "http://127.0.0.1:18001",
+          "/health": "http://127.0.0.1:18001",
+          "/ready": "http://127.0.0.1:18001",
+        },
         routeRules: {
           "/sw.js": {
             headers: {
