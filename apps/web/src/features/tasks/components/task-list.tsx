@@ -188,7 +188,7 @@ export function TaskRow({
             {(!task.completed || task.id === selectedTaskId) && (
               <Button
                 variant={task.id === selectedTaskId ? "secondary" : "ghost"}
-                size="xl"
+                size="lg"
                 disabled={disabled}
                 onClick={events.toggleSelected}
               >
@@ -414,12 +414,12 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
             <Heading id="tasks-heading">Tasks</Heading>
           </Box>
           <HStack layout="row">
-            <Button variant="ghost" size="xl" onClick={events.toggleHidden}>
+            <Button variant="ghost" size="lg" onClick={events.toggleHidden}>
               {hidden ? "Show tasks" : "Hide tasks"}
             </Button>
             <Button
               variant="outline"
-              size="xl"
+              size="lg"
               disabled={busy}
               onClick={events.addTask}
             >
@@ -466,7 +466,7 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
                   <Link to="/templates">Apply a template</Link>
                   <Button
                     variant="ghost"
-                    size="xl"
+                    size="lg"
                     disabled={busy || !tasks.some((task) => task.completed)}
                     onClick={events.clearCompleted}
                   >
@@ -474,7 +474,7 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
                   </Button>
                   <Button
                     variant="ghost"
-                    size="xl"
+                    size="lg"
                     disabled={busy || !tasks.some((task) => task.actual > 0)}
                     onClick={events.clearActual}
                   >
@@ -482,7 +482,7 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
                   </Button>
                   <Button
                     variant="ghost"
-                    size="xl"
+                    size="lg"
                     disabled={busy || !tasks.length}
                     onClick={events.clearAll}
                   >
