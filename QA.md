@@ -4357,3 +4357,170 @@ Coverage addition: native development transport and real login entry → QA-140.
   workspace data and dev processes were preserved.
 
 Coverage addition: real pointer/keyboard login activation and CSP → QA-141.
+
+## Account menu and Settings redesign
+
+Shared setup: use the existing native web/API at `http://127.0.0.1:13001`
+and 18001. Use the signed-in Pomodoro Playwriter group. Do not restart servers,
+clear storage, log out, or replace backups during visual QA. Save sanitized
+evidence under ignored `qa-artifacts/account-settings/`. Use no production
+workspace records. Record unknown fixture prerequisites instead of guessing.
+
+### [ ] QA-142 — P1 — Account dropdown and recovery actions
+
+- **Purpose:** replace the account modal trigger with a compact action menu
+  while retaining sync, import, conflict and logout safeguards.
+- **Prerequisites:** shared setup; signed-in account. A separate isolated
+  profile/fixture is required for destructive and conflict outcomes.
+- **Inputs:** Account trigger, Settings link, Account details item, Log out;
+  1440, 768, 390 and 320 widths; pointer, Enter, arrow keys and Escape.
+- **Steps:** 1. Open the menu by pointer and keyboard. 2. Inspect status and
+  item labels. 3. Follow Settings and verify the route. 4. Open account/sync,
+  inspect existing sync/import feedback, close and inspect focus return. 5. Open
+  logout confirmation, cancel it and verify the session is unchanged. 6. Repeat
+  narrow layouts and both themes. 7. On an isolated fixture, check
+  offline/retry, stale owner, guest import and conflict confirmation behavior
+  against the existing captured-owner contract.
+- **Expected results:** anchored menu fits the viewport; meaningful accessible
+  names and keyboard operation; Settings navigates directly. Advanced sync
+  workflows retain their confirmation and expected-version checks. Escape and
+  cancel return focus without logging out or changing workspace data. Signed-out
+  users still see only the Log in link.
+- **Evidence:** inspect sanitized menu screenshots and action outcomes in
+  `qa-artifacts/account-settings/menu-results.json`; omit names and IDs.
+- **Cleanup:** cancel destructive dialogs, close only extra QA tabs, restore
+  viewport/theme. Do not alter the existing session or workspace.
+- **Status:** Partial on 2026-11-10. Pointer and ArrowDown opening, Settings
+  navigation, account-dialog focus return, logout cancellation and Escape focus
+  return passed. The 320px menu fits the viewport. Full theme/zoom and isolated
+  recovery checks remain pending. Evidence:
+  `qa-artifacts/account-settings/menu-results.json`; tested source hashes and
+  parent revision are in that file.
+
+### [ ] QA-143 — P1 — Settings organization and save workflow
+
+- **Purpose:** organize settings into clear sections without changing field
+  values, validation, sync ownership, or the backup workflow.
+- **Prerequisites:** shared setup; record current settings before any edit.
+  Backup replacement and stale-owner tests need a separate isolated workspace.
+- **Inputs:** `/settings`; actual timer, appearance, sound and notification
+  settings; focus duration 0, 1, 25 and 181; widths 1440, 768, 390 and 320.
+  Confirm implementation bounds before entering boundary values.
+- **Steps:** 1. Direct-load Settings. 2. Use section navigation by keyboard. 3.
+  Inspect field labels, help text, headings and saved/draft feedback. 4. Edit
+  one non-destructive preference and save; reload and confirm it. 5. Restore the
+  original value and save. 6. Enter invalid values, blur and submit; inspect
+  errors and first-invalid-field focus. 7. Inspect backup placement without
+  importing or replacing live data. 8. Repeat both themes and narrow widths. 9.
+  Use an isolated fixture for stale baseline/owner save rejection, active timer
+  changes, invalid backup and restore cancellation.
+- **Expected results:** grouped fields, consistent edges and a clear save
+  action; no horizontal overflow or hidden errors; all existing controls stay
+  reachable. Only valid submitted changes persist. Invalid or stale saves leave
+  stored settings unchanged. Backup retains owner/version safeguards.
+- **Evidence:** inspect sanitized screenshots and results in
+  `qa-artifacts/account-settings/settings-results.json`; never save backup data.
+- **Cleanup:** restore changed preferences, cancel confirmations, remove only
+  isolated fixtures and restore viewport/theme.
+- **Status:** partial on 2026-11-10. Save/reload/restore each passed through
+  automatic PUT 200 requests. Focus duration 0 shows a field error and focuses
+  the invalid input. Keyboard backup-section navigation passed. Desktop and
+  390px images were inspected; 320/768/1440px DOM checks show no horizontal
+  overflow. Other numeric boundaries, backup replacement and notification
+  permission checks remain pending. Evidence and tested source hashes:
+  `qa-artifacts/account-settings/`.
+
+### [ ] QA-144 — P0 — Confirmation trigger composition
+
+- **Purpose:** retain captured target/data/owner and pending/error behavior if
+  ConfirmAction gains menu trigger composition.
+- **Prerequisites:** shared setup; safe cancel checks on the active account;
+  separate isolated tasks and two-owner fixture for actual destructive checks.
+- **Inputs:** menu Log out, existing task delete/clear and reset confirmations.
+- **Steps:** 1. Open each confirmation and cancel by button and Escape. 2.
+  Inspect focus return. 3. On isolated data, confirm one delete and inspect its
+  exact result. 4. Change ownership while a confirmation is open and verify
+  rejection. 5. Trigger a known isolated save failure and inspect retry
+  feedback, without changing validation rules or production services.
+- **Expected results:** custom triggers change only presentation; existing
+  confirmation callers keep their behavior. Cancel never mutates data. Duplicate
+  pending confirmations and stale-owner writes remain rejected. Errors stay
+  visible and a pending mutation cannot be dismissed incorrectly.
+- **Evidence:** sanitized outcomes in
+  `qa-artifacts/account-settings/confirmation-results.json`.
+- **Cleanup:** remove only isolated fixtures; preserve the current user session.
+- **Status:** partial on 2026-11-10. Logout opens from the native-button menu
+  trigger. Cancel leaves the session intact and returns focus to Log out; Escape
+  then returns focus to Account. Capture and duplicate-submit code is unchanged.
+  Cross-owner, repeated-submit and destructive default-trigger scenarios need
+  isolated fixtures. Evidence and tested source hashes:
+  `qa-artifacts/account-settings/menu-results.json`.
+
+Coverage: menu/navigation/focus → QA-142; settings/save/backup/validation →
+QA-143; shared confirmation safety → QA-144. No backend schema, authentication
+protocol, PWA caching, payments, deployment or analytics changes are planned.
+
+### [x] QA-145 — P1 — Automatic workspace sync without a manual control
+
+- **Purpose:** make existing automatic sync clear and remove routine manual
+  synchronization from the signed-in account interface.
+- **Prerequisites:** existing signed-in Pomodoro browser and native services;
+  record current First day of week before the reversible preference change.
+- **Inputs:** `/settings`, First day of week, Save settings, Account details.
+  Choose Monday if the original is Sunday; otherwise choose Sunday.
+- **Steps:** 1. Inspect Account details and confirm no normal Sync now
+  button. 2. Change First day of week and save settings. 3. Observe the
+  automatic `/api/workspace` PUT and safe status feedback without clicking a
+  sync action. 4. Reload and confirm the preference. 5. Restore the original
+  preference, save and observe a second automatic write. Reload and verify
+  restoration. Offline recovery is QA-146. Conflict safeguards are QA-144.
+- **Expected results:** normal saves sync automatically without a manual sync
+  action. The normal account dialog has no Sync now or Retry sync button. All
+  changes saved identifies the clean state. The changed preference and the
+  restored original preference each persist after reload. The signed-in session
+  remains intact.
+- **Evidence:** inspect sanitized request statuses and preference restoration in
+  `qa-artifacts/account-settings/autosync-results.json`; omit request bodies,
+  user IDs, authentication headers, cookies and backup contents.
+- **Cleanup:** restore the recorded preference and network setting; remove only
+  listeners added for this case. Preserve user session and workspace.
+- **Status:** passed on 2026-11-10 against the source hashes and parent revision
+  in `autosync-results.json`. Two automatic PUT responses returned 200. The
+  changed preference survived reload; the original Monday value also survived
+  reload after restoration. No manual sync action was used. The signed-in
+  session remains intact. Evidence was inspected.
+
+Coverage addition: existing autosave contract and routine manual-control removal
+→ QA-145. Offline retry is QA-146. Conflict safeguards remain part of QA-144.
+
+### [ ] QA-146 — P1 — Automatic recovery and conditional retry
+
+- **Purpose:** verify the retry-only UI when automatic sync cannot reach the
+  API.
+- **Prerequisites:** shared setup and a separate isolated signed-in profile. Do
+  not change network state for the live user profile or other project tabs.
+  Record the original First day of week.
+- **Inputs:** `/settings`, Monday and Sunday, Account details, Retry sync.
+- **Steps:** 1. Set only the isolated tab offline with page-scoped browser
+  tools. 2. Change First day of week and save. 3. Open Account details and
+  inspect offline/error feedback and Retry sync. 4. Restore the connection and
+  observe automatic recovery. 5. Reload, inspect the saved preference, open
+  Account details, and confirm Retry sync is absent in the saved state. 6.
+  Restore the original preference and confirm automatic saving.
+- **Expected results:** changes remain on the device during failure. Retry sync
+  appears only for offline/error. Reconnection starts recovery without a routine
+  manual sync action. Saved status appears only after successful persistence. No
+  repeated write loop or automatic conflict overwrite occurs.
+- **Evidence:** save sanitized statuses and results in
+  `qa-artifacts/account-settings/offline-recovery.json`; omit bodies and IDs.
+- **Cleanup:** restore the original preference and the isolated tab's network
+  state. Remove only listeners added for this case.
+- **Status:** blocked; an isolated signed-in recovery fixture is required.
+
+Account/Settings validation record, 2026-11-10: scoped native format/lint, web
+app/tools/service-worker typechecks and production web build passed. The build
+artifact and `qa-artifacts/account-settings/build.log` were inspected. Browser
+emulation was reset and the original preference was restored. The existing
+LoginRoute code-splitting warning remains. Screenshot automation was
+intermittent; only saved desktop/mobile captures were reviewed. No full visual
+skill gate, screen-reader pass or destructive backup/conflict run is claimed.

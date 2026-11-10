@@ -6,11 +6,18 @@ import { useRef, useState } from "react"
 import type { Settings } from "@/features/focus/schema"
 
 import { FieldMessages } from "@/components/field-messages"
+import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
-import { Card, CardPanel } from "@/components/ui/card"
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardPanel,
+} from "@/components/ui/card"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
+import { HStack } from "@/components/ui/hstack"
 import { Input } from "@/components/ui/input"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Stack } from "@/components/ui/stack"
@@ -182,9 +189,11 @@ export function useSettingsForm({
 export function SettingsForm({
   settings,
   onSaved,
+  saveMessage,
 }: {
   settings: Settings
   onSaved: (message: string) => void
+  saveMessage: string | null
 }) {
   const { form, formRef, events, error } = useSettingsForm({
     settings,
@@ -195,139 +204,186 @@ export function SettingsForm({
     <form ref={formRef} noValidate onSubmit={events.submit}>
       <Stack>
         {[
-          { title: "Timer", fields: numbers.slice(0, 4) },
-          { title: "Sound", fields: numbers.slice(4, 7) },
+          {
+            title: "Timer",
+            id: "settings-timer",
+            description: "Set the length of your focus sessions and breaks.",
+            fields: numbers.slice(0, 4),
+          },
+          {
+            title: "Sound",
+            id: "settings-sound",
+            description: "Choose session alerts and background audio.",
+            fields: numbers.slice(4, 7),
+          },
         ].map((group) => (
-          <Card key={group.title}>
+          <Card
+            key={group.title}
+            render={
+              <section id={group.id} aria-labelledby={`${group.id}-title`} />
+            }
+          >
+            <CardHeader>
+              <Heading
+                id={`${group.id}-title`}
+                render={<h2>{group.title}</h2>}
+              />
+              <CardDescription>{group.description}</CardDescription>
+            </CardHeader>
             <CardPanel>
-              <Stack spacing="relaxed">
-                <Heading render={<h2>{group.title}</h2>} />
-                <Grid variant="workspace">
-                  {group.fields.map(({ name, label, min, max }) => (
-                    <form.Field key={name} name={name}>
-                      {(field) => (
-                        <NumberField
-                          name={name}
-                          label={label}
-                          min={min}
-                          max={max}
-                          value={field.state.value}
-                          errors={field.state.meta.errors}
-                          onBlur={field.handleBlur}
-                          onChange={events.changeNumber}
-                        />
-                      )}
-                    </form.Field>
-                  ))}
-                  {group.title === "Sound" && (
-                    <>
-                      <form.Field name="alarm">
-                        {(field) => (
-                          <SettingsSelect
-                            name="alarm"
-                            label="Alarm"
-                            value={field.state.value}
-                            onBlur={field.handleBlur}
-                            onChange={events.changeAlarm}
-                          >
-                            <option value="none">None</option>
-                            <option value="bell">Bell</option>
-                            <option value="chime">Chime</option>
-                          </SettingsSelect>
-                        )}
-                      </form.Field>
-                      <form.Field name="focus_sound">
-                        {(field) => (
-                          <SettingsSelect
-                            name="focus_sound"
-                            label="Focus sound"
-                            value={field.state.value}
-                            onBlur={field.handleBlur}
-                            onChange={events.changeFocusSound}
-                          >
-                            <option value="none">None</option>
-                            <option value="rain">Rain</option>
-                            <option value="white_noise">White noise</option>
-                          </SettingsSelect>
-                        )}
-                      </form.Field>
-                    </>
-                  )}
-                </Grid>
-              </Stack>
-            </CardPanel>
-          </Card>
-        ))}
-        <Card>
-          <CardPanel>
-            <Stack spacing="relaxed">
-              <Heading render={<h2>Preferences</h2>} />
               <Grid variant="workspace">
-                {colors.map(({ name, label }) => (
+                {group.fields.map(({ name, label, min, max }) => (
                   <form.Field key={name} name={name}>
                     {(field) => (
-                      <ColorSelect
+                      <NumberField
                         name={name}
                         label={label}
+                        min={min}
+                        max={max}
                         value={field.state.value}
+                        errors={field.state.meta.errors}
                         onBlur={field.handleBlur}
-                        onChange={events.changeColor}
+                        onChange={events.changeNumber}
                       />
                     )}
                   </form.Field>
                 ))}
-                <form.Field name="theme">
-                  {(field) => (
-                    <SettingsSelect
-                      name="theme"
-                      label="Theme"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={events.changeTheme}
-                    >
-                      <option value="system">System</option>
-                      <option value="light">Light</option>
-                      <option value="dark">Dark</option>
-                    </SettingsSelect>
-                  )}
-                </form.Field>
-                <form.Field name="week_start">
-                  {(field) => (
-                    <SettingsSelect
-                      name="week_start"
-                      label="First day of week"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={events.changeWeekStart}
-                    >
-                      <option value="sunday">Sunday</option>
-                      <option value="monday">Monday</option>
-                      <option value="saturday">Saturday</option>
-                    </SettingsSelect>
-                  )}
-                </form.Field>
-                <form.Field name="hour_format">
-                  {(field) => (
-                    <SettingsSelect
-                      name="hour_format"
-                      label="Time format"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={events.changeHourFormat}
-                    >
-                      <option value="12h">12-hour</option>
-                      <option value="24h">24-hour</option>
-                    </SettingsSelect>
-                  )}
-                </form.Field>
+                {group.title === "Sound" && (
+                  <>
+                    <form.Field name="alarm">
+                      {(field) => (
+                        <SettingsSelect
+                          name="alarm"
+                          label="Alarm"
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={events.changeAlarm}
+                        >
+                          <option value="none">None</option>
+                          <option value="bell">Bell</option>
+                          <option value="chime">Chime</option>
+                        </SettingsSelect>
+                      )}
+                    </form.Field>
+                    <form.Field name="focus_sound">
+                      {(field) => (
+                        <SettingsSelect
+                          name="focus_sound"
+                          label="Focus sound"
+                          value={field.state.value}
+                          onBlur={field.handleBlur}
+                          onChange={events.changeFocusSound}
+                        >
+                          <option value="none">None</option>
+                          <option value="rain">Rain</option>
+                          <option value="white_noise">White noise</option>
+                        </SettingsSelect>
+                      )}
+                    </form.Field>
+                  </>
+                )}
               </Grid>
-            </Stack>
+            </CardPanel>
+          </Card>
+        ))}
+        <Card
+          render={
+            <section
+              id="settings-appearance"
+              aria-labelledby="settings-appearance-title"
+            />
+          }
+        >
+          <CardHeader>
+            <Heading
+              id="settings-appearance-title"
+              render={<h2>Appearance &amp; display</h2>}
+            />
+            <CardDescription>
+              Choose colors, theme, and how dates and times appear.
+            </CardDescription>
+          </CardHeader>
+          <CardPanel>
+            <Grid variant="workspace">
+              {colors.map(({ name, label }) => (
+                <form.Field key={name} name={name}>
+                  {(field) => (
+                    <ColorSelect
+                      name={name}
+                      label={label}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeColor}
+                    />
+                  )}
+                </form.Field>
+              ))}
+              <form.Field name="theme">
+                {(field) => (
+                  <SettingsSelect
+                    name="theme"
+                    label="Theme"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={events.changeTheme}
+                  >
+                    <option value="system">System</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                  </SettingsSelect>
+                )}
+              </form.Field>
+              <form.Field name="week_start">
+                {(field) => (
+                  <SettingsSelect
+                    name="week_start"
+                    label="First day of week"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={events.changeWeekStart}
+                  >
+                    <option value="sunday">Sunday</option>
+                    <option value="monday">Monday</option>
+                    <option value="saturday">Saturday</option>
+                  </SettingsSelect>
+                )}
+              </form.Field>
+              <form.Field name="hour_format">
+                {(field) => (
+                  <SettingsSelect
+                    name="hour_format"
+                    label="Time format"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={events.changeHourFormat}
+                  >
+                    <option value="12h">12-hour</option>
+                    <option value="24h">24-hour</option>
+                  </SettingsSelect>
+                )}
+              </form.Field>
+            </Grid>
           </CardPanel>
         </Card>
-        <Card>
+        <Card
+          render={
+            <section
+              id="settings-behavior"
+              aria-labelledby="settings-behavior-title"
+            />
+          }
+        >
+          <CardHeader>
+            <Heading
+              id="settings-behavior-title"
+              render={<h2>Automation &amp; reminders</h2>}
+            />
+            <CardDescription>
+              Choose what happens between sessions and when to be notified.
+            </CardDescription>
+          </CardHeader>
           <CardPanel>
             <Stack spacing="relaxed">
-              <Heading render={<h2>Behavior</h2>} />
               <Grid variant="workspace">
                 {numbers.slice(7).map(({ name, label, min, max }) => (
                   <form.Field key={name} name={name}>
@@ -345,10 +401,12 @@ export function SettingsForm({
                     )}
                   </form.Field>
                 ))}
+              </Grid>
+              <Grid>
                 {switches.map(({ name, label }) => (
                   <form.Field key={name} name={name}>
                     {(field) => (
-                      <Field>
+                      <Field layout="switch">
                         <FieldLabel htmlFor={name}>{label}</FieldLabel>
                         <Switch
                           id={name}
@@ -365,18 +423,34 @@ export function SettingsForm({
             </Stack>
           </CardPanel>
         </Card>
-        {error && (
-          <Text role="alert" tone="destructive">
-            {error}
-          </Text>
-        )}
-        <form.Subscribe>
-          {(state) => (
-            <Button type="submit" loading={state.isSubmitting}>
-              Save settings
-            </Button>
-          )}
-        </form.Subscribe>
+        <Box variant="settingsSave">
+          <Stack spacing="compact">
+            {error && (
+              <Text role="alert" tone="destructive">
+                {error}
+              </Text>
+            )}
+            <HStack layout="spread">
+              <Stack spacing="compact">
+                <Text variant="label">Workspace preferences</Text>
+                <Box
+                  render={
+                    <output aria-live="polite">
+                      {saveMessage ?? "Changes apply when you save."}
+                    </output>
+                  }
+                />
+              </Stack>
+              <form.Subscribe>
+                {(state) => (
+                  <Button type="submit" size="xl" loading={state.isSubmitting}>
+                    Save settings
+                  </Button>
+                )}
+              </form.Subscribe>
+            </HStack>
+          </Stack>
+        </Box>
       </Stack>
     </form>
   )

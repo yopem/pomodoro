@@ -11,6 +11,22 @@ import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
+  settingsNavigation: {
+    position: { default: "sticky", "@media (max-width: 768px)": "static" },
+    insetBlockStart: 24,
+    display: "flex",
+    flexDirection: { default: "column", "@media (max-width: 768px)": "row" },
+    flexWrap: "wrap",
+    gap: 4,
+  },
+  settingsSave: {
+    backgroundColor: tokens["--card"],
+    borderColor: tokens["--border"],
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderRadius: tokens["--radius-xl"],
+    padding: 20,
+  },
   loginPage: {
     display: "flex",
     flexDirection: "column",
@@ -99,6 +115,8 @@ export type BoxProps = StyleXComponentProps<useRender.ComponentProps<"div">> & {
     | "taskQueue"
     | "dailyOverview"
     | "loginPage"
+    | "settingsNavigation"
+    | "settingsSave"
 }
 
 export function Box({
@@ -116,6 +134,8 @@ export function Box({
         ...stylexProps(
           className,
           variant === "loginPage" && styles.loginPage,
+          variant === "settingsNavigation" && styles.settingsNavigation,
+          variant === "settingsSave" && styles.settingsSave,
           variant === "focusDial" && styles.focusDial,
           variant === "focusTask" && styles.focusTask,
           variant === "taskQueue" && styles.taskQueue,

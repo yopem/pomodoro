@@ -1,11 +1,17 @@
 import type { ChangeEvent } from "react"
 
+import { DownloadIcon, UploadIcon } from "lucide-react"
 import { startTransition, useActionState, useState } from "react"
 
 import type { Workspace } from "@/features/focus/schema"
 
 import { Button } from "@/components/ui/button"
-import { Card, CardPanel } from "@/components/ui/card"
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardPanel,
+} from "@/components/ui/card"
 import {
   Dialog,
   DialogClose,
@@ -16,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Field, FieldLabel } from "@/components/ui/field"
+import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
 import { Input } from "@/components/ui/input"
 import { Stack } from "@/components/ui/stack"
@@ -202,48 +209,71 @@ export function WorkspaceBackup({
   const { file, message, error, confirmation } = state
 
   return (
-    <Card>
+    <Card
+      render={
+        <section id="settings-backup" aria-labelledby="settings-backup-title" />
+      }
+    >
+      <CardHeader>
+        <Heading
+          id="settings-backup-title"
+          render={<h2>Workspace backup</h2>}
+        />
+        <CardDescription>
+          Keep a copy before clearing browser data or replacing your workspace.
+        </CardDescription>
+      </CardHeader>
       <CardPanel>
         <Stack>
-          <Heading render={<h2>Workspace backup</h2>} />
-          <Text>
-            Import replaces all tasks, projects, templates, sessions, settings,
-            and timer data.
-          </Text>
-          <Button type="button" variant="outline" onClick={events.download}>
-            Export backup
-          </Button>
-          <Field>
-            <FieldLabel htmlFor="backup-file">
-              Backup JSON file (maximum 10 MB)
-            </FieldLabel>
-            <Input
-              id="backup-file"
-              type="file"
-              accept="application/json,.json"
-              onChange={events.select}
-            />
-          </Field>
-          {file && (
-            <>
-              <Button
-                variant="destructive-outline"
-                size="sm"
-                disabled={pending}
-                onClick={events.prepare}
-              >
-                Import backup
+          <Grid variant="workspace">
+            <Stack>
+              <Heading render={<h3>Save a copy</h3>} />
+              <Text size="small" tone="muted">
+                Download your current workspace as a JSON file.
+              </Text>
+              <Button type="button" variant="outline" onClick={events.download}>
+                <DownloadIcon size={16} aria-hidden="true" /> Export backup
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={pending}
-                onClick={events.recover}
-              >
-                Recover corrupt workspace
-              </Button>
-            </>
-          )}
+            </Stack>
+            <Stack>
+              <Heading render={<h3>Restore a copy</h3>} />
+              <Text size="small" tone="muted">
+                Import replaces all tasks, projects, templates, sessions,
+                settings, and timer data.
+              </Text>
+              <Field>
+                <FieldLabel htmlFor="backup-file">
+                  Backup JSON file (maximum 10 MB)
+                </FieldLabel>
+                <Input
+                  id="backup-file"
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={events.select}
+                />
+              </Field>
+              {file && (
+                <>
+                  <Button
+                    variant="destructive-outline"
+                    size="sm"
+                    disabled={pending}
+                    onClick={events.prepare}
+                  >
+                    <UploadIcon size={16} aria-hidden="true" /> Import backup
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pending}
+                    onClick={events.recover}
+                  >
+                    Recover corrupt workspace
+                  </Button>
+                </>
+              )}
+            </Stack>
+          </Grid>
           <Dialog open={confirmation !== null} onOpenChange={events.changeOpen}>
             <DialogPopup>
               <DialogHeader>

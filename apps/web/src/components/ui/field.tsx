@@ -18,6 +18,15 @@ const styles = stylex.create({
     gap: "0.5rem",
     tabSize: 4,
   },
+  switchRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingBlock: 16,
+    borderBlockEndColor: tokens["--border"],
+    borderBlockEndStyle: "solid",
+    borderBlockEndWidth: { default: 1, ":last-child": 0 },
+  },
   label: {
     alignItems: "center",
     color: tokens["--foreground"],
@@ -42,17 +51,29 @@ const styles = stylex.create({
 })
 
 export function Field({
+  layout = "default",
   xstyle: consumerXstyle,
   className,
   ...restProps
-}: StyleXComponentProps<FieldPrimitive.Root.Props>) {
+}: StyleXComponentProps<
+  FieldPrimitive.Root.Props,
+  { layout?: "default" | "switch" }
+>) {
   const props = restProps
   const xstyle = consumerXstyle
 
   return (
     <FieldPrimitive.Root
       data-slot="field"
-      {...mergeStylexProps(stylexProps(className, styles.root, xstyle), props)}
+      {...mergeStylexProps(
+        stylexProps(
+          className,
+          styles.root,
+          layout === "switch" && styles.switchRow,
+          xstyle,
+        ),
+        props,
+      )}
     />
   )
 }
