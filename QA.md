@@ -5284,3 +5284,102 @@ app, tools, and service-worker configs. Root `git diff --check` passed. Logs:
 `docs/timer-ring-lint.log`, `docs/timer-ring-format.log`, and
 `docs/timer-ring-typecheck.log`. QA-174 and QA-175 remain pending. No browser,
 automated tests, builds, or endpoint checks ran.
+
+## Task section radius and save notifications
+
+Task: align the Tasks section with the card radius and add Yopem UI save
+notifications. Affected paths include `apps/web/src/components/ui/box.tsx`,
+`apps/web/src/components/ui/toast.tsx`, `apps/web/src/routes/__root.tsx`, and
+save forms under `apps/web/src/features/` and `apps/web/src/routes/projects/`.
+Use the shared setup above and isolated guest data. Save sanitized evidence in
+`qa-artifacts/`. Do not use production data. Execute these cases only in a
+separately requested QA pass.
+
+Coverage map: section and loading radius: QA-176; successful saves and feedback:
+QA-177; failed validation and storage: QA-178; keyboard, theme, and responsive
+behavior: QA-179; fullscreen and focus-window icons: QA-180. Authentication,
+payments, API contracts, and migrations are not changed by this task.
+
+### [ ] QA-176 — P2 — Task section radius
+
+- **Purpose:** match the Tasks section radius to other cards without changing
+  its contents or loading layout.
+- **Prerequisites:** shared setup; isolated guest workspace; web app at
+  `http://localhost:13001`.
+- **Inputs:** empty task list and one task named `QA radius task`.
+- **Steps:** 1. Open `/` and compare the Tasks outer border with another
+  card. 2. Add the task and compare again. 3. Reload and inspect the loading
+  state.
+- **Expected results:** outer Tasks corners match card corners in empty, filled,
+  and loading states; content remains visible and usable.
+- **Evidence:** `qa-artifacts/QA-176-radius.png`; inspect corner sizes and
+  layout.
+- **Cleanup:** delete the isolated task; stop only processes started for QA.
+- **Status:** pending.
+
+### [ ] QA-177 — P1 — Save success notifications
+
+- **Purpose:** confirm explicit saves show one success toast only after a save.
+- **Prerequisites:** shared setup; isolated guest workspace; web app available.
+- **Inputs:** task `QA toast task`, project `QA toast project`, template
+  `QA toast template`, a manual focus record, and a valid settings change.
+- **Steps:** 1. Create and edit each item through its form on `/`, `/projects`,
+  `/templates`, and `/reports`. 2. Save a valid change on `/settings`. 3. Reload
+  each page and confirm the saved data.
+- **Expected results:** each successful save persists and displays one relevant
+  success toast; the form closes where appropriate and the toast dismisses.
+- **Evidence:** `qa-artifacts/QA-177-saves.txt` and screenshots; inspect each
+  toast and the persisted results.
+- **Cleanup:** remove only isolated QA data and restore the changed setting.
+- **Status:** pending.
+
+### [ ] QA-178 — P1 — Save errors remain visible
+
+- **Purpose:** prevent a success toast for invalid or failed saves and preserve
+  actionable errors.
+- **Prerequisites:** shared setup; isolated guest workspace; browser tools able
+  to reproduce a local storage write failure without affecting other projects.
+- **Inputs:** empty task title and a valid `QA failed save` title.
+- **Steps:** 1. Submit an empty task title. 2. Restore a valid title, simulate a
+  storage write failure, and submit again. 3. Restore storage and retry.
+- **Expected results:** invalid and failed saves show their existing errors,
+  remain open, and do not show success; a successful retry shows one toast.
+- **Evidence:** `qa-artifacts/QA-178-errors.txt`; inspect errors, toasts, and
+  saved task state. Record a blocker if safe failure injection is unavailable.
+- **Cleanup:** restore storage access and delete only the isolated task.
+- **Status:** pending.
+
+### [ ] QA-179 — P2 — Toast accessibility and layout
+
+- **Purpose:** check announcements, keyboard access, themes, and small screens.
+- **Prerequisites:** shared setup; isolated guest workspace; screen reader and
+  keyboard; light and dark theme options.
+- **Inputs:** a valid task named `QA accessible toast`; desktop and 320px views.
+- **Steps:** 1. Save with keyboard in each theme and viewport. 2. Listen for the
+  notification and continue using the form until it closes automatically. 3.
+  Repeat with reduced motion enabled.
+- **Expected results:** the toast is announced and readable, closes
+  automatically, and does not block keyboard use, obscure essential controls, or
+  overflow.
+- **Evidence:** `qa-artifacts/QA-179-accessibility.txt` and screenshots; inspect
+  announcements, focus, and layouts.
+- **Cleanup:** delete the isolated task and restore theme and motion settings.
+- **Status:** pending.
+
+### [ ] QA-180 — P1 — Icon-only browser focus controls
+
+- **Purpose:** retain fullscreen and focus-window behavior after replacing text
+  buttons with icons in `browser-focus-controls.tsx`.
+- **Prerequisites:** shared setup; isolated guest workspace and a browser that
+  supports fullscreen and permits popups for `http://localhost:13001`.
+- **Inputs:** Full screen, Exit full screen, and Focus window controls; Escape.
+- **Steps:** 1. Open `/` and use keyboard to focus Full screen. 2. Activate it,
+  confirm the exit label and icon, then press Escape. 3. Activate Focus
+  window. 4. Block popups and repeat; then restore the browser setting.
+- **Expected results:** both icons have clear accessible names and visible
+  focus; fullscreen enters and exits correctly; the focus window opens `/focus`,
+  or the existing popup-blocked message and link appear when blocked.
+- **Evidence:** `qa-artifacts/QA-180-focus-controls.txt` and screenshot; inspect
+  accessible names, fullscreen state, popup URL, and error recovery.
+- **Cleanup:** close only the QA popup and restore browser popup settings.
+- **Status:** pending.
