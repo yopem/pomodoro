@@ -4172,3 +4172,63 @@ Coverage: 404 → QA-131; global error recovery → QA-132; offline fallback,
 reconnect, metadata, layout, and accessibility → QA-133; private/API/auth cache
 isolation → QA-134. Service-worker caching policy is unchanged. Payment,
 migration, and new integration checks are not applicable to these changes.
+
+## Workspace detail polish
+
+### [ ] QA-135 — P2 — Remove the global backup reminder
+
+- **Purpose:** remove the footer reminder without removing backup controls.
+- **Prerequisites:** local web app at `http://127.0.0.1:13001`; no API needed.
+- **Inputs:** `/`, `/settings`, `/login`.
+- **Steps:** 1. Open each route. 2. Inspect the footer. 3. Open Settings and
+  inspect the existing backup controls. 4. Check any PWA update notice.
+- **Expected results:** Export a backup in Settings is absent from the footer;
+  settings backup controls and PWA update notices remain available.
+- **Evidence:** inspect `qa-artifacts/polish/footer.png` and record findings in
+  `qa-artifacts/polish/results.txt`; use the existing ignored artifact root.
+- **Cleanup:** no data changes; restore the viewport if changed.
+- **Status:** pending; runtime QA has not run.
+
+### [ ] QA-136 — P1 — Daily summary hierarchy and responsive values
+
+- **Purpose:** improve the daily summary while preserving its calculations.
+- **Prerequisites:** same local app; isolated tasks and saved focus history.
+- **Inputs:** empty workspace; task `Summary check` with estimate `2`; a saved
+  focus session; 12h and 24h settings; widths 1440, 768, 390, and 320.
+- **Steps:** 1. Inspect the empty summary. 2. Add the isolated task and select
+  it. 3. Inspect sessions left and estimated finish. 4. Add focus history
+  through the existing manual entry UI. 5. Repeat in both clock formats and
+  themes. 6. Inspect the initial skeleton during a reload.
+- **Expected results:** three aligned metrics with clear values and labels; each
+  metric has supporting text. Empty finish has a clear unavailable value. Counts
+  and time match the saved data; no new calculations or fake values. Phone
+  layout reflows without narrow clipped columns; loading order matches.
+- **Evidence:** inspect `qa-artifacts/polish/summary-{width}-{theme}.png` and
+  record observed values in `qa-artifacts/polish/results.txt`.
+- **Cleanup:** remove only the isolated task and manual entry; restore settings.
+- **Status:** pending; responsive and runtime checks have not run.
+
+### [ ] QA-137 — P1 — Redesigned login screen and OAuth entry
+
+- **Purpose:** provide a focused login layout without changing authentication.
+- **Prerequisites:** same app; isolated signed-out browser; configured issuer
+  only for the actual sign-in step. No production accounts.
+- **Inputs:** `/login`; widths 1440, 1024, 768, 390, 320; light/dark themes;
+  reduced motion; keyboard only and 200% zoom.
+- **Steps:** 1. Direct-load and reload `/login`. 2. Inspect the page and
+  header. 3. Use Tab to reach return navigation and the sign-in action. 4.
+  Activate sign-in and inspect the existing `/auth/login` redirect. 5. Repeat at
+  each size and theme. 6. Return to `/` and inspect normal app navigation.
+- **Expected results:** dedicated, responsive login screen; one clear sign-in
+  action; no redundant account button or workspace navigation on this route.
+  Header navigation returns on other routes. Labels and focus remain visible; no
+  clipping or overflow. OAuth uses the existing same-origin endpoint with no new
+  credentials, session handling, or invented provider options.
+- **Evidence:** inspect `qa-artifacts/polish/login-{width}-{theme}.png` and
+  sanitized redirect results in `qa-artifacts/polish/results.txt`.
+- **Cleanup:** log out of the isolated session and restore browser settings.
+- **Status:** pending; browser and OAuth QA have not run.
+
+Coverage: footer request → QA-135; summary hierarchy and calculations → QA-136;
+login redesign and existing issuer entry → QA-137. No database, migrations, API
+contract, cache policy, or account ownership changes are in scope.

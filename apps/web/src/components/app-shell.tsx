@@ -80,9 +80,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Container variant="navigation">
           <Stack>
             <PwaUpdates />
-            <Text tone="muted" size="small">
-              Export a backup in Settings.
-            </Text>
           </Stack>
         </Container>
       </Box>
