@@ -4854,3 +4854,142 @@ contracts, payments, migrations, and external integrations are unchanged.
   popup placement.
 - **Cleanup:** Restore viewport and theme; remove isolated records.
 - **Status:** pending.
+
+## TanStack Form for report filters and backup selection
+
+Task: migrate the immediately applied report filters and the backup restore file
+selection to TanStack Form without changing their behavior. Affected files:
+`apps/web/src/features/reports/components/report-filters.tsx`,
+`apps/web/src/features/settings/components/workspace-backup.tsx`, and
+`apps/web/src/features/settings/components/backup-file-picker.tsx`. Routes:
+`/reports/` and `/settings#settings-backup`. Use the shared isolated setup
+above, the existing `13001` web port, installed Bun and the repository lockfile.
+Use an isolated guest workspace, not production data. Save only sanitized
+artifacts under ignored `qa-artifacts/`. Run P0 cases first. These cases are
+pending; written plans are not runtime evidence. Existing QA-155 and QA-157 also
+cover related behavior. No API, payments, SEO, or migration contract is changed
+by this task.
+
+Coverage: backup data and identity safety: QA-161 and QA-162; backup picker,
+validation and confirmation: QA-162 and QA-163; URL state, periods and
+navigation: QA-164 and QA-165; accessibility, pending and errors: QA-163 and
+QA-165; static tooling: QA-166.
+
+### [ ] QA-161 — P0 — Restore remains bound to the reviewed workspace
+
+- **Purpose:** prevent a pending restore or corrupt recovery from replacing a
+  different workspace or account after the user reviews a backup.
+- **Prerequisites:** shared isolated setup; two isolated guest/account owners if
+  available; a valid isolated empty workspace backup; never use production. If
+  safe owner switching or the fixture is unavailable, mark the case blocked.
+- **Inputs:** the isolated valid JSON backup and a different workspace with a
+  uniquely named task `QA restore guard`.
+- **Steps:** 1. From `/settings#settings-backup`, select the fixture and choose
+  Import backup. 2. Before confirming, change the workspace or owner through an
+  isolated second tab. 3. Confirm the first dialog. 4. Repeat with Recover
+  corrupt workspace only against an isolated corrupt fixture.
+- **Expected results:** stale confirmation fails closed; no replacement crosses
+  owners or overwrites changed data; an actionable error is visible. Recovery
+  retains corrupt data as specified by the existing workflow.
+- **Evidence:** `qa-artifacts/QA-161-restore-guard.txt`, sanitized owner-change,
+  alert, and before/after data checks; inspect for absence of a write.
+- **Cleanup:** close owned dialogs and tabs; remove only isolated fixtures.
+- **Status:** pending.
+
+### [ ] QA-162 — P1 — Backup selection and confirmation lifecycle
+
+- **Purpose:** preserve select, replace, remove, reselect, cancel and confirm
+  behavior after migration.
+- **Prerequisites:** shared setup; isolated guest workspace and a valid exported
+  backup saved under `qa-artifacts/`; backup the isolated current state first.
+- **Inputs:** the valid backup file and no file.
+- **Steps:** 1. Open `/settings#settings-backup`; choose, change and remove the
+  file, then reselect it. 2. Choose Import backup and Cancel. 3. Review again
+  and confirm replacement only in the isolated workspace. 4. Reload Settings.
+- **Expected results:** filename and size track the selection; removal returns
+  focus; cancel retains selection and does not write; successful replacement
+  clears selection and displays success; restored contents survive reload.
+- **Evidence:** `qa-artifacts/QA-162-backup-lifecycle.txt` and
+  `qa-artifacts/QA-162-backup-lifecycle.png`; inspect focus, dialog, and data.
+- **Cleanup:** restore only the isolated workspace backup and close owned tabs.
+- **Status:** pending.
+
+### [ ] QA-163 — P1 — Invalid backups do not reach confirmation
+
+- **Purpose:** preserve boundary validation, pending state and accessible error
+  feedback for the migrated file field.
+- **Prerequisites:** shared isolated setup and a guest workspace with a known
+  task; prepare local files in ignored `qa-artifacts/`.
+- **Inputs:** invalid JSON `{`, valid JSON `{}`, invalid UTF-8 bytes, and a file
+  larger than 10 MiB; also cancel the file chooser without selecting.
+- **Steps:** 1. Choose each invalid file on `/settings#settings-backup` and
+  activate Import backup. 2. Observe alerts, dialog state, and workspace. 3.
+  During file reading check that selection and action controls are disabled. 4.
+  Use keyboard to choose and remove a file and inspect focus and labels.
+- **Expected results:** each invalid file produces the existing relevant error,
+  no confirmation or workspace write; cancellation does not import; pending
+  controls are disabled, accessible labels and focus behavior remain intact.
+- **Evidence:** `qa-artifacts/QA-163-backup-errors.txt` and
+  `qa-artifacts/QA-163-backup-errors.png`; inspect errors and unchanged data.
+- **Cleanup:** remove isolated inputs and selection; keep sanitized evidence.
+- **Status:** pending.
+
+### [ ] QA-164 — P1 — Report filters synchronize with URL navigation
+
+- **Purpose:** preserve immediately applied report filters, paging reset, and
+  back/forward and direct-link synchronization.
+- **Prerequisites:** shared setup; isolated guest project `QA green` and dated
+  focus records with and without a project; existing `/reports/` route.
+- **Inputs:** date 2024-02-29, day/week/month/year, QA green, No project, and
+  All projects; use the existing report pagination controls when available.
+- **Steps:** 1. Open `/reports/`, select each period, set the date, then each
+  project filter. 2. Change the filter after moving to another history page. 3.
+  Use previous and next period, reload, then browser Back and Forward. 4. Open
+  the resulting URL directly in an owned tab.
+- **Expected results:** each action updates the URL and matching rows and totals
+  without a submit button; page returns to 1; date remains local; controls match
+  the URL after direct navigation, reload, Back and Forward.
+- **Evidence:** `qa-artifacts/QA-164-report-filters.txt` and
+  `qa-artifacts/QA-164-report-filters.png`; inspect URL, controls and records.
+- **Cleanup:** delete only isolated records/project and close the owned tab.
+- **Status:** pending.
+
+### [ ] QA-165 — P1 — Report filter keyboard and failure handling
+
+- **Purpose:** retain keyboard interaction, pending controls and safe handling
+  of invalid or failed navigation without stale values.
+- **Prerequisites:** shared setup; a way to simulate navigation failure without
+  production changes. If unavailable, mark the failure subcase blocked.
+- **Inputs:** an invalid date in a direct URL; keyboard Tab, arrows, Enter and
+  Escape; rapid date/project/period changes.
+- **Steps:** 1. Use keyboard on date and project controls on `/reports/`. 2.
+  Navigate to `/reports/?date=2024-02-30`. 3. Rapidly change filters and inspect
+  the displayed value against the URL. Attempt two Next period actions before
+  the control disables. 4. Simulate a failed navigation and inspect the alert
+  and recovery with a valid selection.
+- **Expected results:** labels and focus remain usable; invalid values do not
+  become accepted filter state; pending controls block conflicting actions;
+  accepted consecutive Next actions advance two periods. Errors are announced
+  and a later valid action recovers without stale values. Source review found a
+  pre-existing risk that queued Next actions use the same starting date.
+- **Evidence:** `qa-artifacts/QA-165-filter-errors.txt` and
+  `qa-artifacts/QA-165-filter-focus.png`; inspect URL, alert and focus.
+- **Cleanup:** restore normal navigation and close only owned tabs.
+- **Status:** pending.
+
+### [ ] QA-166 — P2 — Static checks for the migrated workflows
+
+- **Purpose:** check lint, formatting and web types without executing QA.
+- **Prerequisites:** repository root with installed dependencies and Bun canary.
+- **Inputs:** the changed files and their owning web TypeScript projects.
+- **Steps:** 1. From the repository root run `bun run lint` and
+  `bun run format:check`. 2. Run `bun run typecheck` after reviewing its
+  tasks. 3. With separate approval, review the React Doctor regression check
+  command and its package requirements before running it against the changed
+  files.
+- **Expected results:** commands pass with no new diagnostics; the standard
+  checks do not run tests, deploy, or connect to application services.
+- **Evidence:** `qa-artifacts/QA-166-static-checks.txt`; inspect exit status and
+  diagnostics. If execution is not requested, record command results separately.
+- **Cleanup:** none; keep sanitized evidence.
+- **Status:** pending.

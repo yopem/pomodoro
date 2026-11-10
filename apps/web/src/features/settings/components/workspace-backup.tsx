@@ -1,5 +1,8 @@
-import { DownloadIcon, UploadIcon } from "lucide-react"
-import { startTransition, useActionState, useState } from "react"
+import type { FormEvent } from "react"
+
+import { useForm } from "@tanstack/react-form"
+import { DownloadIcon } from "lucide-react"
+import { startTransition, useActionState, useRef, useState } from "react"
 
 import type { Workspace } from "@/features/focus/schema"
 
@@ -19,7 +22,6 @@ import {
   DialogHeader,
   DialogPopup,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
@@ -28,13 +30,31 @@ import { Text } from "@/components/ui/text"
 import { exportBackup } from "@/features/focus/reports"
 import { workspaceSchema } from "@/features/focus/schema"
 import { importBackup, useWorkspaceMutationOwner } from "@/features/focus/store"
-import { BackupFilePicker } from "@/features/settings/components/backup-file-picker"
+import {
+  BackupFilePicker,
+  BackupRestoreActions,
+} from "@/features/settings/components/backup-file-picker"
 import { downloadText } from "@/lib/download"
 
 const maxBackupBytes = 10 * 1024 * 1024
 
-interface BackupState {
+interface BackupSelection {
   file: File | null
+}
+
+function validateBackupFile({ value }: { value: File | null }) {
+  return value ? undefined : "Choose a backup file"
+}
+
+function selectIsSubmitting(formState: { isSubmitting: boolean }) {
+  return formState.isSubmitting
+}
+
+const backupFileValidators = {
+  onSubmit: validateBackupFile,
+}
+
+interface BackupState {
   message: string | null
   error: string | null
   confirmation: {
@@ -46,14 +66,17 @@ interface BackupState {
 }
 
 type BackupAction =
-  | { type: "select"; file: File | null }
-  | { type: "prepare"; recoverCorrupt: boolean }
+  | { type: "select" }
+  | {
+      type: "prepare"
+      file: File
+      recoverCorrupt: boolean
+    }
   | { type: "replace" }
   | { type: "download" }
   | { type: "close" }
 
 const initialBackupState: BackupState = {
-  file: null,
   message: null,
   error: null,
   confirmation: null,
@@ -67,6 +90,26 @@ export function WorkspaceBackup({
   identity: string | null
 }) {
   const owner = useWorkspaceMutationOwner()
+  const defaultValues: BackupSelection = { file: null }
+
+  const submitting = useRef(false)
+  const recoverCorrupt = useRef(false)
+
+  const form = useForm({
+    defaultValues,
+    onSubmit: ({ value }) => {
+      if (!value.file) return
+      const file = value.file
+
+      startTransition(() =>
+        dispatch({
+          type: "prepare",
+          file,
+          recoverCorrupt: recoverCorrupt.current,
+        }),
+      )
+    },
+  })
 
   const [state, dispatch, pending] = useActionState(
     async function handleBackupAction(
@@ -76,7 +119,6 @@ export function WorkspaceBackup({
       if (action.type === "select")
         return {
           ...state,
-          file: action.file,
           message: null,
           error: null,
           confirmation: null,
@@ -85,13 +127,12 @@ export function WorkspaceBackup({
       if (action.type === "close") return { ...state, confirmation: null }
 
       if (action.type === "prepare") {
-        if (!state.file) return state
         const observed = workspace
 
         try {
-          if (state.file.size > maxBackupBytes)
+          if (action.file.size > maxBackupBytes)
             throw new Error("Backup must be 10 MB or smaller")
-          const bytes = await state.file.arrayBuffer()
+          const bytes = await action.file.arrayBuffer()
           let text: string
 
           try {
@@ -152,11 +193,12 @@ export function WorkspaceBackup({
             { owner },
           )
 
+          form.setFieldValue("file", null)
+
           return {
             ...state,
             error: null,
             message: "Workspace replaced from backup.",
-            file: null,
             confirmation: null,
           }
         } catch (cause) {
@@ -200,17 +242,32 @@ export function WorkspaceBackup({
 
   const [events] = useState(function createBackupEvents() {
     function select(file: File | null) {
-      startTransition(() => dispatch({ type: "select", file }))
+      if (submitting.current) return
+      form.setFieldValue("file", file)
+      startTransition(() => dispatch({ type: "select" }))
     }
 
-    function prepare() {
-      startTransition(() =>
-        dispatch({ type: "prepare", recoverCorrupt: false }),
-      )
-    }
+    async function submit(event: FormEvent<HTMLFormElement>) {
+      event.preventDefault()
+      event.stopPropagation()
 
-    function recover() {
-      startTransition(() => dispatch({ type: "prepare", recoverCorrupt: true }))
+      if (submitting.current) return
+
+      submitting.current = true
+
+      const submitter =
+        event.nativeEvent instanceof SubmitEvent
+          ? event.nativeEvent.submitter
+          : null
+
+      recoverCorrupt.current =
+        submitter instanceof HTMLButtonElement && submitter.value === "recover"
+
+      try {
+        await form.handleSubmit()
+      } finally {
+        submitting.current = false
+      }
     }
 
     function replace() {
@@ -225,10 +282,10 @@ export function WorkspaceBackup({
       startTransition(() => dispatchOpenChange(open))
     }
 
-    return { select, prepare, recover, replace, download, changeOpen }
+    return { select, submit, replace, download, changeOpen }
   })
 
-  const { file, message, error, confirmation } = state
+  const { message, error, confirmation } = state
 
   return (
     <Dialog open={confirmation !== null} onOpenChange={events.changeOpen}>
@@ -277,68 +334,42 @@ export function WorkspaceBackup({
                     settings, and timer data. Download a copy first if needed.
                   </Text>
                 </Stack>
-                <BackupFilePicker
-                  file={file}
-                  disabled={pending}
-                  onSelect={events.select}
-                />
-                {file && (
-                  <HStack layout="row">
-                    <DialogTrigger
-                      render={
-                        <Button variant="destructive-outline" size="xl" />
-                      }
-                      disabled={pending}
-                      onClick={events.prepare}
-                    >
-                      <UploadIcon size={16} aria-hidden="true" /> Import backup
-                    </DialogTrigger>
-                    <DialogTrigger
-                      render={<Button variant="ghost" size="xl" />}
-                      disabled={pending}
-                      onClick={events.recover}
-                    >
-                      Recover corrupt workspace
-                    </DialogTrigger>
-                  </HStack>
-                )}
+                <form onSubmit={events.submit} noValidate>
+                  <form.Subscribe selector={selectIsSubmitting}>
+                    {(isSubmitting) => (
+                      <form.Field name="file" validators={backupFileValidators}>
+                        {(field) => (
+                          <>
+                            <BackupFilePicker
+                              file={field.state.value}
+                              disabled={pending || isSubmitting}
+                              onSelect={events.select}
+                              onBlur={field.handleBlur}
+                            />
+                            {field.state.meta.errors.length > 0 && (
+                              <Text role="alert" tone="destructive">
+                                {field.state.meta.errors.join(", ")}
+                              </Text>
+                            )}
+                            {field.state.value && (
+                              <BackupRestoreActions
+                                disabled={pending || isSubmitting}
+                              />
+                            )}
+                          </>
+                        )}
+                      </form.Field>
+                    )}
+                  </form.Subscribe>
+                </form>
               </Stack>
             </Box>
-            <DialogPopup>
-              <DialogHeader>
-                <DialogTitle>
-                  {confirmation?.expected === null
-                    ? "Recover corrupt workspace"
-                    : "Replace workspace"}
-                </DialogTitle>
-                <DialogDescription>
-                  {confirmation?.expected === null
-                    ? "Restore this backup only if the current workspace storage is corrupt. The corrupt data will be retained."
-                    : "This replaces all current workspace data. Export a backup first if you need to keep it."}
-                </DialogDescription>
-              </DialogHeader>
-              {error && (
-                <Text role="alert" tone="destructive">
-                  {error}
-                </Text>
-              )}
-              <DialogFooter>
-                <DialogClose
-                  render={<Button variant="outline" disabled={pending} />}
-                >
-                  Cancel
-                </DialogClose>
-                <Button
-                  variant="destructive"
-                  loading={pending}
-                  onClick={events.replace}
-                >
-                  {confirmation?.expected === null
-                    ? "Recover workspace"
-                    : "Replace workspace"}
-                </Button>
-              </DialogFooter>
-            </DialogPopup>
+            <BackupConfirmation
+              recoverCorrupt={confirmation?.expected === null}
+              pending={pending}
+              error={error}
+              onReplace={events.replace}
+            />
             {error && !confirmation && (
               <Text role="alert" tone="destructive">
                 {error}
@@ -349,5 +380,45 @@ export function WorkspaceBackup({
         </CardPanel>
       </Card>
     </Dialog>
+  )
+}
+
+export function BackupConfirmation({
+  recoverCorrupt,
+  pending,
+  error,
+  onReplace,
+}: {
+  recoverCorrupt: boolean
+  pending: boolean
+  error: string | null
+  onReplace: () => void
+}) {
+  return (
+    <DialogPopup>
+      <DialogHeader>
+        <DialogTitle>
+          {recoverCorrupt ? "Recover corrupt workspace" : "Replace workspace"}
+        </DialogTitle>
+        <DialogDescription>
+          {recoverCorrupt
+            ? "Restore this backup only if the current workspace storage is corrupt. The corrupt data will be retained."
+            : "This replaces all current workspace data. Export a backup first if you need to keep it."}
+        </DialogDescription>
+      </DialogHeader>
+      {error && (
+        <Text role="alert" tone="destructive">
+          {error}
+        </Text>
+      )}
+      <DialogFooter>
+        <DialogClose render={<Button variant="outline" disabled={pending} />}>
+          Cancel
+        </DialogClose>
+        <Button variant="destructive" loading={pending} onClick={onReplace}>
+          {recoverCorrupt ? "Recover workspace" : "Replace workspace"}
+        </Button>
+      </DialogFooter>
+    </DialogPopup>
   )
 }

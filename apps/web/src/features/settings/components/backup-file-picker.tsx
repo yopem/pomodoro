@@ -4,6 +4,7 @@ import { FileJsonIcon, FolderOpenIcon, UploadIcon, XIcon } from "lucide-react"
 import { useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
+import { DialogTrigger } from "@/components/ui/dialog"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
@@ -12,10 +13,12 @@ export function BackupFilePicker({
   file,
   disabled,
   onSelect,
+  onBlur,
 }: {
   file: File | null
   disabled: boolean
   onSelect: (file: File | null) => void
+  onBlur: () => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const chooseRef = useRef<HTMLButtonElement>(null)
@@ -49,6 +52,7 @@ export function BackupFilePicker({
         aria-label="Backup JSON file"
         disabled={disabled}
         hidden
+        onBlur={onBlur}
         onChange={events.select}
       />
       <HStack layout="spread">
@@ -72,6 +76,7 @@ export function BackupFilePicker({
         <HStack layout="row">
           <Button
             ref={chooseRef}
+            type="button"
             variant="outline"
             size="xl"
             disabled={disabled}
@@ -84,6 +89,7 @@ export function BackupFilePicker({
           </Button>
           {file && (
             <Button
+              type="button"
               variant="ghost"
               size="xl"
               disabled={disabled}
@@ -99,5 +105,28 @@ export function BackupFilePicker({
         JSON backup · Maximum 10 MB
       </Text>
     </Stack>
+  )
+}
+
+export function BackupRestoreActions({ disabled }: { disabled: boolean }) {
+  return (
+    <HStack layout="row">
+      <DialogTrigger
+        render={<Button variant="destructive-outline" size="xl" />}
+        type="submit"
+        value="prepare"
+        disabled={disabled}
+      >
+        <UploadIcon size={16} aria-hidden="true" /> Import backup
+      </DialogTrigger>
+      <DialogTrigger
+        render={<Button variant="ghost" size="xl" />}
+        type="submit"
+        value="recover"
+        disabled={disabled}
+      >
+        Recover corrupt workspace
+      </DialogTrigger>
+    </HStack>
   )
 }
