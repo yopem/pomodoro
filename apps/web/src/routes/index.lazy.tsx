@@ -25,7 +25,10 @@ import { useFocusSnapshot } from "@/features/focus/store"
 import { TaskList } from "@/features/tasks/components/task-list"
 import { FocusBrowserControls } from "@/features/timer/components/browser-focus-controls"
 import { FocusTimer } from "@/features/timer/components/focus-timer"
-import { TimerWorkspaceSkeleton } from "@/features/timer/components/timer-loading"
+import {
+  FocusBrowserControlsSkeleton,
+  TimerWorkspaceSkeleton,
+} from "@/features/timer/components/timer-loading"
 import { useBrowserFullscreen } from "@/features/timer/hooks/use-browser-fullscreen"
 import { formatFocusTime } from "@/lib/focus-time"
 
@@ -54,13 +57,16 @@ export function TimerRoute() {
       <Box render={<main id="main" tabIndex={-1} />}>
         <Container variant={fullscreen ? "focus" : "workspace"}>
           <Stack spacing="page">
-            <Stack spacing="compact">
-              <Heading render={<h1>Pomodoro timer</h1>} />
-              <Text tone="muted">
-                Plan your tasks, work in focus intervals, and take regular
-                breaks. Track completed sessions and review your focus time.
-              </Text>
-            </Stack>
+            <HStack layout="pageHeader">
+              <Stack spacing="compact">
+                <Heading render={<h1>Pomodoro timer</h1>} />
+                <Text tone="muted">
+                  Plan your tasks, work in focus intervals, and take regular
+                  breaks. Track completed sessions and review your focus time.
+                </Text>
+              </Stack>
+              <FocusBrowserControlsSkeleton />
+            </HStack>
             <TimerWorkspaceSkeleton fullscreen={fullscreen} />
           </Stack>
         </Container>

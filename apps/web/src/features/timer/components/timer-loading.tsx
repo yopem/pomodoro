@@ -4,6 +4,7 @@ import { Box } from "@/components/ui/box"
 import { Card, CardPanel } from "@/components/ui/card"
 import { Grid } from "@/components/ui/grid"
 import { HStack } from "@/components/ui/hstack"
+import { List } from "@/components/ui/list"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Stack } from "@/components/ui/stack"
 import {
@@ -16,14 +17,43 @@ import { Text } from "@/components/ui/text"
 
 const styles = stylex.create({
   timer: { marginBlock: { default: 24, "@media (max-width: 640px)": 8 } },
-  label: { blockSize: 16, inlineSize: 96 },
-  clock: { blockSize: 80, inlineSize: "60%" },
-  control: { blockSize: 44, inlineSize: 80 },
-  primaryControl: { blockSize: 44, inlineSize: 104 },
+  label: { blockSize: 24, inlineSize: 96 },
+  clock: {
+    blockSize: {
+      default: "clamp(3.5rem, 6vw, 5.5rem)",
+      "@media (max-width: 640px)": "clamp(2.75rem, 17vw, 5rem)",
+    },
+    inlineSize: "60%",
+  },
+  phaseControl: {
+    blockSize: { default: 32, "@media (min-width: 640px)": 28 },
+    inlineSize: 80,
+  },
+  control: {
+    blockSize: { default: 40, "@media (min-width: 640px)": 36 },
+    inlineSize: 80,
+  },
+  primaryControl: {
+    blockSize: { default: 40, "@media (min-width: 640px)": 36 },
+    inlineSize: 104,
+  },
+  iconControl: {
+    blockSize: { default: 44, "@media (min-width: 640px)": 40 },
+    inlineSize: { default: 44, "@media (min-width: 640px)": 40 },
+  },
   title: { blockSize: 24, inlineSize: "65%" },
   line: { blockSize: 16, inlineSize: "85%" },
   shortLine: { blockSize: 16, inlineSize: "45%" },
 })
+
+export function FocusBrowserControlsSkeleton() {
+  return (
+    <HStack wrap aria-hidden="true">
+      <Skeleton xstyle={styles.iconControl} />
+      <Skeleton xstyle={styles.iconControl} />
+    </HStack>
+  )
+}
 
 export function FocusTimerSkeleton() {
   return (
@@ -31,9 +61,9 @@ export function FocusTimerSkeleton() {
       <CardPanel>
         <Stack layout="centered" spacing="relaxed" xstyle={styles.timer}>
           <HStack layout="centered">
-            <Skeleton xstyle={styles.control} />
-            <Skeleton xstyle={styles.control} />
-            <Skeleton xstyle={styles.control} />
+            <Skeleton xstyle={styles.phaseControl} />
+            <Skeleton xstyle={styles.phaseControl} />
+            <Skeleton xstyle={styles.phaseControl} />
           </HStack>
           <Box variant="focusDial">
             <Skeleton xstyle={styles.label} />
@@ -47,8 +77,7 @@ export function FocusTimerSkeleton() {
           </HStack>
           <Skeleton xstyle={styles.label} />
           <Box variant="focusTask">
-            <Stack layout="centered" spacing="compact">
-              <Skeleton xstyle={styles.label} />
+            <Stack layout="centered">
               <Skeleton xstyle={styles.title} />
             </Stack>
           </Box>
@@ -95,22 +124,33 @@ export function TimerWorkspaceSkeleton({
           </Box>
         </Stack>
         <Box variant="taskQueue" hidden={fullscreen} aria-hidden="true">
-          <Stack spacing="relaxed">
-            <Stack spacing="compact">
-              <Text variant="label">Tasks</Text>
-              <Skeleton xstyle={styles.shortLine} />
-            </Stack>
-            {[0, 1, 2].map((row) => (
-              <Card key={row}>
-                <CardPanel>
-                  <Stack>
-                    <Skeleton xstyle={styles.title} />
-                    <Skeleton xstyle={styles.line} />
-                    <Skeleton xstyle={styles.shortLine} />
-                  </Stack>
-                </CardPanel>
-              </Card>
-            ))}
+          <Stack>
+            <HStack layout="spread">
+              <Skeleton xstyle={styles.label} />
+              <HStack layout="row">
+                <Skeleton xstyle={styles.primaryControl} />
+                <Skeleton xstyle={styles.primaryControl} />
+              </HStack>
+            </HStack>
+            <List variant="plain">
+              {[0, 1, 2].map((row) => (
+                <Card key={row} render={<li />}>
+                  <CardPanel density="compact">
+                    <Stack spacing="compact">
+                      <HStack layout="spread">
+                        <Skeleton xstyle={styles.shortLine} />
+                        <Skeleton xstyle={styles.label} />
+                      </HStack>
+                      <HStack layout="row">
+                        <Skeleton xstyle={styles.iconControl} />
+                        <Skeleton xstyle={styles.control} />
+                        <Skeleton xstyle={styles.control} />
+                      </HStack>
+                    </Stack>
+                  </CardPanel>
+                </Card>
+              ))}
+            </List>
           </Stack>
         </Box>
       </Grid>
