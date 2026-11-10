@@ -13,24 +13,24 @@ const styles = stylex.create({
     color: tokens["--foreground"],
     fontFamily: tokens["--font-heading"],
     fontSize: {
-      default: "1.25rem",
-      "@media (max-width: 640px)": "1.125rem",
+      default: "1.5rem",
+      "@media (max-width: 640px)": "1.25rem",
       ":is(h1)": {
-        default: "1.875rem",
-        "@media (max-width: 640px)": "1.5rem",
+        default: "2.25rem",
+        "@media (max-width: 640px)": "1.75rem",
       },
       ":is(h3)": {
-        default: "1.125rem",
-        "@media (max-width: 640px)": "1rem",
+        default: "1.25rem",
+        "@media (max-width: 640px)": "1.125rem",
       },
-      ":is(h4)": "1rem",
+      ":is(h4)": "1.125rem",
       ":is(h5)": "1rem",
       ":is(h6)": "0.875rem",
     },
-    fontWeight: 600,
+    fontWeight: 400,
     lineHeight: 1.25,
     margin: 0,
-    letterSpacing: "-0.025em",
+    letterSpacing: "-0.02em",
   },
 })
 

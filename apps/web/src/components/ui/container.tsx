@@ -17,13 +17,13 @@ const styles = stylex.create({
     paddingInline: `calc(${tokens["--spacing"]} * 4)`,
   },
   appWidth: {
-    maxInlineSize: 1160,
+    maxInlineSize: 1280,
     paddingInline: { default: 32, "@media (max-width: 640px)": 20 },
   },
   workspace: {
-    paddingBlock: { default: 40, "@media (max-width: 640px)": 24 },
+    paddingBlock: { default: 48, "@media (max-width: 640px)": 24 },
   },
-  navigation: { paddingBlock: 16 },
+  navigation: { paddingBlock: 12 },
   focus: { maxInlineSize: 640 },
   fluid: { maxInlineSize: "none" },
 })
