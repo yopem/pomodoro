@@ -4617,3 +4617,136 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   both closed it and returned focus to Import backup. No workspace PUT occurred;
   reload retained the original preference and account. Actual replacement
   remains blocked on isolated data.
+
+### [x] QA-151 — P1 — Settings saved status follows the current draft
+
+- **Purpose:** never show Settings saved for edits that were not submitted.
+- **Prerequisites:** existing signed-in Settings tab; record original week
+  preference and focus value. Use reversible preferences only.
+- **Inputs:** First day of week Monday/Sunday and original focus value + 1.
+- **Steps:** 1. Toggle week preference and save; wait for automatic PUT 200. 2.
+  Inspect Settings saved. 3. Edit Focus minutes without saving and inspect
+  Unsaved changes. 4. Restore focus draft without saving. 5. Restore original
+  week value, save, reload and verify restoration.
+- **Expected results:** success feedback describes only the last saved values. A
+  new edit shows Unsaved changes. Original preferences are retained at end.
+- **Evidence:** `qa-artifacts/account-settings/settings-draft-results.json`;
+  sanitized statuses only, no private workspace content.
+- **Cleanup:** restore original preferences and remove the added listener.
+- **Status:** passed, 2026-11-10, native dev browser. Saved feedback clears for
+  a new draft; local save and later cloud PUT 200 pass. Evidence:
+  settings-draft-results.json and select-results.json under
+  qa-artifacts/account-settings/. Source hashes identify the tested working
+  tree.
+
+### [ ] QA-152 — P1 — Explicit reload after an external Settings change
+
+- **Purpose:** recover a stale form baseline without silently dropping drafts.
+- **Prerequisites:** existing signed-in project tab and one owned peer tab in
+  the same project group; no new profile, account, server or database. Record
+  original focus and week values. This non-destructive peer case is allowed by
+  shared setup. Keep all unrelated preferences unchanged.
+- **Inputs:** current draft Focus minutes + 1; peer First day of week toggle.
+- **Steps:** 1. Keep an unsaved focus draft in the main tab. 2. In the peer,
+  change only First day of week and save. 3. Observe main-tab external-change
+  feedback and disabled stale Save; verify draft remains. 4. Click Reload
+  settings explicitly and verify current settings replace the old draft. 5. Save
+  a reversible preference change successfully, restore originals and reload. 6.
+  Close only the owned peer tab.
+- **Expected results:** external changes do not silently discard a dirty draft.
+  Reload refreshes values and expected baseline. Subsequent Save succeeds. Owner
+  guards remain; account transitions remount both Settings and backup controls
+  so drafts and selected files do not cross owners.
+- **Evidence:** `qa-artifacts/account-settings/settings-external-results.json`;
+  source hashes, safe field values, request statuses and restoration result.
+- **Cleanup:** restore all changed preferences, close the owned peer and remove
+  only added listeners. Preserve session and other tabs.
+- **Status:** partial, 2026-11-10. Peer local change preserves main draft 26,
+  disables stale Save and exposes Reload. Reload updates the baseline and resets
+  focus to 25. Later saves and original Monday restoration return PUT 200.
+  Initial peer PUT observer timed out at 12s; a repeat peer did not regain
+  Account in 8s. Do not claim peer cloud-write verification. Evidence:
+  settings-external-results.json. Original values retained; owned peer closed.
+
+### [x] QA-153 — P1 — Settings loading skeleton
+
+- **Purpose:** replace plain loading text with layout-matched Yopem skeletons.
+- **Prerequisites:** existing project tab and services. Preserve session and
+  preferences. Use only page-scoped script delay for the loading observation;
+  release every held request and remove only the added route handler.
+- **Inputs:** `/settings`, widths 1440/768/390/320, both color schemes and
+  reduced motion. Existing loaded Settings layout is the reference.
+- **Steps:** 1. Inspect server HTML for Loading settings and skeleton markup. 2.
+  Delay scripts in only this tab and load Settings. 3. Inspect sidebar,
+  field-card, toggle-row, save-area and backup placeholders, one loading
+  announcement, aria-hidden placeholders and absence of fake inputs/values. 4.
+  Inspect narrow layout and reduced-motion styles. 5. Release scripts and verify
+  real labelled controls replace placeholders; loading announcement
+  disappears. 6. Restore browser emulation and inspect retained preferences.
+- **Expected results:** placeholders match the loaded structure and responsive
+  breakpoints. No horizontal overflow or focusable placeholder controls. One
+  polite loading announcement remains outside hidden decorative content. Reduced
+  motion suppresses shimmer. Hydration retains session and values.
+- **Evidence:** sanitized screenshots, source hashes, structural counts and
+  hydration outcomes in `qa-artifacts/account-settings/loading-results.json`.
+- **Cleanup:** release held script requests, unregister only the owned handler,
+  restore emulation and keep the original tab and user session.
+- **Status:** passed, 2026-11-10, native dev browser. All four widths, hidden
+  placeholders, single announcement, both themes, reduced motion and replacement
+  on hydration pass. Loading screenshots and loading-results.json inspected.
+  Existing inline-style CSP warning remains a separate open issue.
+
+### [x] QA-154 — P1 — Settings uses Yopem Select
+
+- **Purpose:** replace native Settings dropdowns with installed Yopem Select
+  without changing accepted values or saving behavior.
+- **Prerequisites:** existing Settings tab and account; record original
+  preferences. Use only reversible draft selections until the save case.
+- **Inputs:** Alarm Bell/Chime; Focus sound None/Rain; the existing seven
+  colors; Theme System/Light/Dark; week Monday/Sunday/Saturday; 12/24-hour.
+- **Steps:** 1. Inspect labels and displayed current values for all eight
+  selects. 2. Open by pointer and keyboard, navigate options and select a
+  reversible value. 3. Escape without a choice and verify focus returns. 4.
+  Confirm draft status and no write before Save. 5. Save a reversible week
+  preference, observe automatic PUT 200 and reload. 6. Restore the original
+  preference and inspect narrow popup bounds and theme contrast.
+- **Expected results:** real Yopem combobox/listbox controls, proper labels,
+  selected-value text, keyboard support and focus return. Values remain
+  schema-validated. Blur/submit validation remains; no native select remains in
+  Settings. Save and automatic sync preserve existing contracts.
+- **Evidence:** sanitized role/value/focus/write results and screenshots in
+  `qa-artifacts/account-settings/select-results.json`.
+- **Cleanup:** restore changed preferences, close popups and restore emulation.
+- **Status:** passed, 2026-11-10, native dev browser. Eight labelled Yopem
+  comboboxes replace native selects. Pointer/keyboard/focus, both theme
+  screenshots, Sunday PUT 200, remote read and reload pass. Monday restored with
+  PUT 200 and remote read. Evidence: select-results.json and
+  select-320-final/light.png.
+
+### [ ] QA-155 — P1 — Backup file selection panel
+
+- **Purpose:** replace the raw file input with a clear, accessible selection
+  panel. Keep preflight checks and the separate restore confirmation.
+- **Prerequisites:** existing Settings tab. Use only local in-memory fixtures or
+  `qa-artifacts/account-settings/empty-workspace.json`. Do not restore data.
+- **Inputs:** the existing valid empty-workspace fixture; malformed `{"`;
+  filename `a-very-long-backup-name-for-the-settings-layout.json`; no file.
+- **Steps:** 1. Open `/settings#settings-backup`. Inspect the empty panel and
+  JSON/10 MB guidance. 2. Activate Choose file by pointer and keyboard; cancel
+  the native picker and check focus. 3. Use the native input to select the valid
+  fixture; inspect filename and size. 4. Change, remove, and reselect the same
+  file. 5. Inspect Remove focus return and 320px wrapping in both themes. 6.
+  Review malformed JSON and inspect the existing alert without a dialog. 7.
+  Review the valid fixture and Cancel; inspect the retained selection,
+  invoking-button focus and zero workspace writes. Do not confirm replacement.
+- **Expected results:** visible Yopem controls open the native single-file
+  picker; no fake drop affordance or immediate import. Labels and help remain
+  available. Removing a selection never deletes a file or workspace data.
+  Pending state blocks selection changes. Existing size, UTF-8, schema, owner,
+  expected-workspace and confirmation checks remain intact.
+- **Evidence:** sanitized screenshots and selection/focus/write results at
+  `qa-artifacts/account-settings/upload-results.json`.
+- **Cleanup:** remove the selected file, close only the owned confirmation,
+  restore emulation and keep the original session and workspace unchanged.
+- **Status:** pending. Native picker cancellation needs user observation if
+  Chrome automation cannot inspect the operating-system picker.

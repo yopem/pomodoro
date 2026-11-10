@@ -1,11 +1,10 @@
-import type { ChangeEvent, FormEvent, ReactNode } from "react"
+import type { ChangeEvent, FormEvent } from "react"
 
 import { useForm } from "@tanstack/react-form"
 import { useRef, useState } from "react"
 
 import type { Settings } from "@/features/focus/schema"
 
-import { FieldMessages } from "@/components/field-messages"
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,12 +13,18 @@ import {
   CardHeader,
   CardPanel,
 } from "@/components/ui/card"
-import { Field, FieldLabel } from "@/components/ui/field"
+import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
 import { Input } from "@/components/ui/input"
-import { NativeSelect } from "@/components/ui/native-select"
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Stack } from "@/components/ui/stack"
 import { Switch } from "@/components/ui/switch"
 import { Text } from "@/components/ui/text"
@@ -29,6 +34,49 @@ import {
   updateSettings,
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
+import { useEventCallback } from "@/hooks/use-event-callback"
+
+const colorOptions = projectColorSchema.options.map((value) => ({
+  value,
+  label: value.charAt(0).toUpperCase() + value.slice(1),
+}))
+
+const selectOptions = {
+  alarm: [
+    { value: "none", label: "None" },
+    { value: "bell", label: "Bell" },
+    { value: "chime", label: "Chime" },
+  ],
+  focus_sound: [
+    { value: "none", label: "None" },
+    { value: "rain", label: "Rain" },
+    { value: "white_noise", label: "White noise" },
+  ],
+  focus_color: colorOptions,
+  short_color: colorOptions,
+  long_color: colorOptions,
+  theme: [
+    { value: "system", label: "System" },
+    { value: "light", label: "Light" },
+    { value: "dark", label: "Dark" },
+  ],
+  week_start: [
+    { value: "sunday", label: "Sunday" },
+    { value: "monday", label: "Monday" },
+    { value: "saturday", label: "Saturday" },
+  ],
+  hour_format: [
+    { value: "12h", label: "12-hour" },
+    { value: "24h", label: "24-hour" },
+  ],
+} as const
+
+type SelectSettingName = keyof typeof selectOptions
+
+interface SettingsSelectChange {
+  name: SelectSettingName
+  value: string | null
+}
 
 const numbers = [
   { name: "focus_minutes", label: "Focus minutes", min: 1, max: 180 },
@@ -67,20 +115,15 @@ const switches = [
   { name: "notifications", label: "Enable notifications" },
 ] as const
 
-export function useSettingsForm({
-  settings,
-  onSaved,
-}: {
-  settings: Settings
-  onSaved: (message: string) => void
-}) {
+export function useSettingsForm({ settings }: { settings: Settings }) {
   const owner = useWorkspaceMutationOwner()
   const formRef = useRef<HTMLFormElement>(null)
-  const baseline = useRef(settings)
+  const [baseline, setBaseline] = useState(settings)
+  const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const form = useForm({
-    defaultValues: settings,
+    defaultValues: baseline,
     validators: { onBlur: settingsFormSchema, onSubmit: settingsFormSchema },
     onSubmitInvalid: () => {
       requestAnimationFrame(() =>
@@ -91,20 +134,25 @@ export function useSettingsForm({
     },
     onSubmit: async ({ value }) => {
       setError(null)
+      setSaved(false)
 
       try {
-        await updateSettings(
-          { settings: value, expected: baseline.current },
-          { owner },
-        )
-        baseline.current = value
-        onSaved("Settings saved.")
+        await updateSettings({ settings: value, expected: baseline }, { owner })
+        setBaseline(value)
+        setSaved(true)
       } catch (cause) {
         setError(
           cause instanceof Error ? cause.message : "Could not save settings",
         )
       }
     },
+  })
+
+  const reloadSettings = useEventCallback(function reloadSettings() {
+    form.reset(settings)
+    setBaseline(settings)
+    setSaved(false)
+    setError(null)
   })
 
   const [events] = useState(function createSettingsEvents() {
@@ -121,84 +169,23 @@ export function useSettingsForm({
       if (name) form.setFieldValue(name, event.currentTarget.valueAsNumber)
     }
 
-    function changeColor(event: ChangeEvent<HTMLSelectElement>) {
-      const name = colors.find(
-        (item) => item.name === event.currentTarget.id,
-      )?.name
+    function changeSelect({ name, value }: SettingsSelectChange) {
+      const result = settingsSchema.shape[name].safeParse(value)
 
-      const result = projectColorSchema.safeParse(event.currentTarget.value)
-
-      if (name && result.success) form.setFieldValue(name, result.data)
+      if (result.success) form.setFieldValue(name, result.data)
     }
 
-    function changeAlarm(event: ChangeEvent<HTMLSelectElement>) {
-      const result = settingsSchema.shape.alarm.safeParse(
-        event.currentTarget.value,
-      )
-
-      if (result.success) form.setFieldValue("alarm", result.data)
-    }
-
-    function changeFocusSound(event: ChangeEvent<HTMLSelectElement>) {
-      const result = settingsSchema.shape.focus_sound.safeParse(
-        event.currentTarget.value,
-      )
-
-      if (result.success) form.setFieldValue("focus_sound", result.data)
-    }
-
-    function changeTheme(event: ChangeEvent<HTMLSelectElement>) {
-      const result = settingsSchema.shape.theme.safeParse(
-        event.currentTarget.value,
-      )
-
-      if (result.success) form.setFieldValue("theme", result.data)
-    }
-
-    function changeWeekStart(event: ChangeEvent<HTMLSelectElement>) {
-      const result = settingsSchema.shape.week_start.safeParse(
-        event.currentTarget.value,
-      )
-
-      if (result.success) form.setFieldValue("week_start", result.data)
-    }
-
-    function changeHourFormat(event: ChangeEvent<HTMLSelectElement>) {
-      const result = settingsSchema.shape.hour_format.safeParse(
-        event.currentTarget.value,
-      )
-
-      if (result.success) form.setFieldValue("hour_format", result.data)
-    }
-
-    return {
-      submit,
-      changeNumber,
-      changeColor,
-      changeAlarm,
-      changeFocusSound,
-      changeTheme,
-      changeWeekStart,
-      changeHourFormat,
-    }
+    return { submit, changeNumber, changeSelect }
   })
 
-  return { form, formRef, events, error }
+  return { form, formRef, events, error, baseline, saved, reloadSettings }
 }
 
-export function SettingsForm({
-  settings,
-  onSaved,
-  saveMessage,
-}: {
-  settings: Settings
-  onSaved: (message: string) => void
-  saveMessage: string | null
-}) {
-  const { form, formRef, events, error } = useSettingsForm({
-    settings,
-    onSaved,
-  })
+export function SettingsForm({ settings }: { settings: Settings }) {
+  const { form, formRef, events, error, baseline, saved, reloadSettings } =
+    useSettingsForm({ settings })
+
+  const changedElsewhere = JSON.stringify(settings) !== JSON.stringify(baseline)
 
   return (
     <form ref={formRef} noValidate onSubmit={events.submit}>
@@ -257,12 +244,8 @@ export function SettingsForm({
                           label="Alarm"
                           value={field.state.value}
                           onBlur={field.handleBlur}
-                          onChange={events.changeAlarm}
-                        >
-                          <option value="none">None</option>
-                          <option value="bell">Bell</option>
-                          <option value="chime">Chime</option>
-                        </SettingsSelect>
+                          onChange={events.changeSelect}
+                        />
                       )}
                     </form.Field>
                     <form.Field name="focus_sound">
@@ -272,12 +255,8 @@ export function SettingsForm({
                           label="Focus sound"
                           value={field.state.value}
                           onBlur={field.handleBlur}
-                          onChange={events.changeFocusSound}
-                        >
-                          <option value="none">None</option>
-                          <option value="rain">Rain</option>
-                          <option value="white_noise">White noise</option>
-                        </SettingsSelect>
+                          onChange={events.changeSelect}
+                        />
                       )}
                     </form.Field>
                   </>
@@ -308,12 +287,12 @@ export function SettingsForm({
               {colors.map(({ name, label }) => (
                 <form.Field key={name} name={name}>
                   {(field) => (
-                    <ColorSelect
+                    <SettingsSelect
                       name={name}
                       label={label}
                       value={field.state.value}
                       onBlur={field.handleBlur}
-                      onChange={events.changeColor}
+                      onChange={events.changeSelect}
                     />
                   )}
                 </form.Field>
@@ -325,12 +304,8 @@ export function SettingsForm({
                     label="Theme"
                     value={field.state.value}
                     onBlur={field.handleBlur}
-                    onChange={events.changeTheme}
-                  >
-                    <option value="system">System</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                  </SettingsSelect>
+                    onChange={events.changeSelect}
+                  />
                 )}
               </form.Field>
               <form.Field name="week_start">
@@ -340,12 +315,8 @@ export function SettingsForm({
                     label="First day of week"
                     value={field.state.value}
                     onBlur={field.handleBlur}
-                    onChange={events.changeWeekStart}
-                  >
-                    <option value="sunday">Sunday</option>
-                    <option value="monday">Monday</option>
-                    <option value="saturday">Saturday</option>
-                  </SettingsSelect>
+                    onChange={events.changeSelect}
+                  />
                 )}
               </form.Field>
               <form.Field name="hour_format">
@@ -355,11 +326,8 @@ export function SettingsForm({
                     label="Time format"
                     value={field.state.value}
                     onBlur={field.handleBlur}
-                    onChange={events.changeHourFormat}
-                  >
-                    <option value="12h">12-hour</option>
-                    <option value="24h">24-hour</option>
-                  </SettingsSelect>
+                    onChange={events.changeSelect}
+                  />
                 )}
               </form.Field>
             </Grid>
@@ -430,25 +398,58 @@ export function SettingsForm({
                 {error}
               </Text>
             )}
-            <HStack layout="spread">
-              <Stack spacing="compact">
-                <Text variant="label">Workspace preferences</Text>
-                <Box
-                  render={
-                    <output aria-live="polite">
-                      {saveMessage ?? "Changes apply when you save."}
-                    </output>
-                  }
-                />
-              </Stack>
-              <form.Subscribe>
-                {(state) => (
-                  <Button type="submit" size="xl" loading={state.isSubmitting}>
-                    Save settings
-                  </Button>
-                )}
-              </form.Subscribe>
-            </HStack>
+            <form.Subscribe>
+              {(state) => {
+                const hasUnsavedChanges =
+                  JSON.stringify(state.values) !== JSON.stringify(baseline)
+
+                let message = "Changes apply when you save."
+
+                if (saved) message = "Settings saved."
+
+                if (hasUnsavedChanges) message = "Unsaved changes."
+
+                if (changedElsewhere) message = "Settings changed elsewhere."
+
+                return (
+                  <Stack spacing="compact">
+                    {changedElsewhere && (
+                      <Text>
+                        Reload to use the current settings. Your draft stays
+                        here until you reload.
+                      </Text>
+                    )}
+                    <HStack layout="spread">
+                      <Stack spacing="compact">
+                        <Text variant="label">Workspace preferences</Text>
+                        <output aria-live="polite">{message}</output>
+                      </Stack>
+                      <HStack>
+                        {changedElsewhere && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="xl"
+                            onClick={reloadSettings}
+                            disabled={state.isSubmitting}
+                          >
+                            Reload settings
+                          </Button>
+                        )}
+                        <Button
+                          type="submit"
+                          size="xl"
+                          loading={state.isSubmitting}
+                          disabled={changedElsewhere}
+                        >
+                          Save settings
+                        </Button>
+                      </HStack>
+                    </HStack>
+                  </Stack>
+                )
+              }}
+            </form.Subscribe>
           </Stack>
         </Box>
       </Stack>
@@ -462,21 +463,41 @@ export function SettingsSelect({
   value,
   onBlur,
   onChange,
-  children,
 }: {
-  name: string
+  name: SelectSettingName
   label: string
-  value: string
+  value: Settings[SelectSettingName]
   onBlur: () => void
-  onChange: (event: ChangeEvent<HTMLSelectElement>) => void
-  children: ReactNode
+  onChange: (input: SettingsSelectChange) => void
 }) {
+  const items: readonly { label: string; value: string }[] = selectOptions[name]
+
+  const changeValue = useEventCallback(function selectValue(
+    value: string | null,
+  ) {
+    onChange({ name, value })
+  })
+
   return (
     <Field>
       <FieldLabel htmlFor={name}>{label}</FieldLabel>
-      <NativeSelect id={name} value={value} onBlur={onBlur} onChange={onChange}>
-        {children}
-      </NativeSelect>
+      <Select
+        name={name}
+        value={value}
+        items={items}
+        onValueChange={changeValue}
+      >
+        <SelectTrigger id={name} onBlur={onBlur}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectPopup>
+          {items.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectPopup>
+      </Select>
     </Field>
   )
 }
@@ -517,36 +538,9 @@ export function NumberField({
         aria-invalid={errors.length > 0}
         aria-describedby={errors.length ? `${name}-error` : undefined}
       />
-      <FieldMessages id={`${name}-error`} errors={errors} />
-    </Field>
-  )
-}
-
-export function ColorSelect({
-  name,
-  label,
-  value,
-  onBlur,
-  onChange,
-}: {
-  name: string
-  label: string
-  value: Settings["focus_color"]
-  onBlur: () => void
-  onChange: (event: ChangeEvent<HTMLSelectElement>) => void
-}) {
-  return (
-    <Field>
-      <FieldLabel htmlFor={name}>{label}</FieldLabel>
-      <NativeSelect id={name} value={value} onBlur={onBlur} onChange={onChange}>
-        <option value="red">Red</option>
-        <option value="orange">Orange</option>
-        <option value="yellow">Yellow</option>
-        <option value="green">Green</option>
-        <option value="blue">Blue</option>
-        <option value="purple">Purple</option>
-        <option value="gray">Gray</option>
-      </NativeSelect>
+      <FieldError id={`${name}-error`} match={errors.length > 0}>
+        Enter a whole number from {min} to {max}.
+      </FieldError>
     </Field>
   )
 }

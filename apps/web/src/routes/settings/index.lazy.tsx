@@ -7,7 +7,6 @@ import {
   TimerIcon,
   Volume2Icon,
 } from "lucide-react"
-import { useState } from "react"
 
 import { Box } from "@/components/ui/box"
 import { Container } from "@/components/ui/container"
@@ -17,6 +16,7 @@ import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { useFocusSnapshot } from "@/features/focus/store"
 import { SettingsForm } from "@/features/settings/components/settings-form"
+import { SettingsSkeleton } from "@/features/settings/components/settings-loading"
 import { WorkspaceBackup } from "@/features/settings/components/workspace-backup"
 import { tokens } from "@/styles/tokens.stylex"
 
@@ -33,11 +33,9 @@ const sections = [
 ]
 
 export function SettingsRoute() {
-  const { workspace, hydrated, identity } = useFocusSnapshot(
+  const { workspace, hydrated, identity, owner } = useFocusSnapshot(
     (snapshot) => snapshot,
   )
-
-  const [message, setMessage] = useState<string | null>(null)
 
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
@@ -45,11 +43,15 @@ export function SettingsRoute() {
         <Stack spacing="page">
           <Stack spacing="compact">
             <Heading render={<h1>Settings</h1>} />
-            <Text tone="muted">
-              {identity === null
-                ? "Preferences and backups for work saved in this browser."
-                : "Preferences and backups for your account workspace."}
-            </Text>
+            {hydrated ? (
+              <Text tone="muted">
+                {identity === null
+                  ? "Preferences and backups for work saved in this browser."
+                  : "Preferences and backups for your account workspace."}
+              </Text>
+            ) : (
+              <output aria-live="polite">Loading settings…</output>
+            )}
           </Stack>
           {hydrated ? (
             <Grid variant="settings">
@@ -71,15 +73,18 @@ export function SettingsRoute() {
               </Box>
               <Stack spacing="page">
                 <SettingsForm
+                  key={`settings-${owner.generation}`}
                   settings={workspace.settings}
-                  onSaved={setMessage}
-                  saveMessage={message}
                 />
-                <WorkspaceBackup workspace={workspace} identity={identity} />
+                <WorkspaceBackup
+                  key={`backup-${owner.generation}`}
+                  workspace={workspace}
+                  identity={identity}
+                />
               </Stack>
             </Grid>
           ) : (
-            <Text>Loading settings…</Text>
+            <SettingsSkeleton />
           )}
         </Stack>
       </Container>
