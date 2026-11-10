@@ -19,16 +19,18 @@ export const Route = createFileRoute("/auth/login/")({
   component: LoginRoute,
 })
 
+function startLogin() {
+  window.location.assign("/auth/authorize")
+}
+
 export function LoginRoute() {
   return (
     <Box variant="loginPage" render={<main id="main" tabIndex={-1} />}>
       <Heading render={<h1>Welcome</h1>} />
       <Text>Use your Yopem account to continue</Text>
-      <form action="/auth/authorize" method="get">
-        <Button variant="outline" size="lg" type="submit">
-          Log in with Yopem
-        </Button>
-      </form>
+      <Button variant="outline" size="lg" onClick={startLogin}>
+        Log in with Yopem
+      </Button>
     </Box>
   )
 }

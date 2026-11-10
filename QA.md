@@ -4289,3 +4289,71 @@ security regressions → QA-138.
 
 Coverage addition: SSR backend-guard regression → QA-139; related routing and
 OAuth cases QA-137 and QA-138 remain pending.
+
+### [x] QA-140 — P1 — Nitro development API and login proxy
+
+- **Purpose:** fix the reproduced login failure when Nitro handles requests
+  before Vite's development proxy.
+- **Prerequisites:** existing native web/API listeners at 13001 and 18001;
+  Playwriter Pomodoro group; issuer configuration for a full login. No restart
+  or new service without checking the existing process. No production writes.
+- **Inputs:** `/auth/login`, `/health`, `/api/session`, `/openapi.json`,
+  `/auth/authorize`, `/auth/unknown`.
+- **Steps:** 1. Open login in Playwriter. 2. Observe the welcome and login
+  button. 3. Request health/session/spec through the web origin and record safe
+  response status and content type, without tokens or account fields. 4. Click
+  the button. 5. Inspect the issuer page or safe error without recording OAuth
+  query values. 6. If the browser already has a valid issuer session, verify
+  return to the timer and signed-in account controls. Ask for user action if
+  sign-in needs credentials or account selection. 7. Inspect unknown auth path
+  rejection.
+- **Expected results:** health/session/spec reach the listening Rust API, not
+  the SSR Backend route is unavailable fallback. The login page remains HTML and
+  its button starts OAuth. Cookies, return paths, query strings and methods
+  retain their contracts. Unknown backend paths never return frontend HTML.
+- **Evidence:** inspect `qa-artifacts/login-proxy/results.json` and sanitized
+  screenshots in the same ignored directory. Never save OAuth URLs or cookies.
+- **Cleanup:** remove only added network listeners; preserve existing sessions
+  and processes. Do not clear storage or stop the user's dev servers.
+- **Status:** passed on 2026-11-10 with native web/API at 13001/18001. Tested
+  revision: `236073f` plus the source hashes saved in the report. Health,
+  readiness, session and OpenAPI returned 200 through the web origin; both login
+  paths returned 200 no-store/noindex HTML. Unknown auth returned 404 JSON. The
+  user completed Google selection; Playwriter confirmed timer return,
+  authenticated session, Account control and persistence after reload. Inspected
+  `qa-artifacts/login-proxy/results.json`, `account-button.png`,
+  `login-page.png`, and `migration.txt`. The user approved the exact database
+  target and existing up migration; no reset, down or manual data edit ran.
+  Backend transport now uses Nitro devProxy, before the SSR fallback.
+
+Coverage addition: native development transport and real login entry → QA-140.
+
+### [x] QA-141 — P1 — Login button under the existing CSP
+
+- **Purpose:** start OAuth through actual pointer and keyboard activation, not
+  only direct navigation. Preserve the restrictive form-action policy.
+- **Prerequisites:** QA-140 transport and schema setup; existing Pomodoro
+  Playwriter group and native web/API servers; no production data changes.
+- **Inputs:** `/auth/login`, Log in with Yopem button, pointer click and Enter.
+- **Steps:** 1. Open the login route. 2. Click its button and record the OAuth
+  endpoint status and destination origin/path without query values. 3. Return to
+  the login page and activate the button with Enter. 4. Inspect browser
+  securitypolicyviolation events and the existing response CSP. 5. Return to the
+  timer without logging out or changing workspace data.
+- **Expected results:** each real activation reaches `/auth/authorize`, gets 303
+  and reaches the issuer/Google chooser; no form-action violation occurs. CSP
+  remains unchanged. The existing signed-in session survives reload.
+- **Evidence:** sanitized observations in
+  `qa-artifacts/login-proxy/button-results.json`; no OAuth queries or names.
+- **Cleanup:** remove only added event listeners, preserve user sessions, and
+  leave the timer open. Temporary challenge records expire by existing rules.
+- **Status:** passed on 2026-11-10. Tested revision: `236073f` plus the source
+  hashes in `qa-artifacts/login-proxy/button-results.json`. Real pointer and
+  Enter activation each returned 303 from `/auth/authorize` and reached Google's
+  chooser. No form-action block occurred with the new top-level navigation; the
+  response CSP was not changed. The signed-in session remained valid after
+  reload. Inspected the sanitized JSON report. Removed added listeners and
+  closed only the extra QA tab. Existing app tab, user session, storage,
+  workspace data and dev processes were preserved.
+
+Coverage addition: real pointer/keyboard login activation and CSP → QA-141.
