@@ -17,6 +17,14 @@ import { Text } from "@/components/ui/text"
 
 const styles = stylex.create({
   timer: { marginBlock: { default: 24, "@media (max-width: 640px)": 8 } },
+  loadingStatus: {
+    position: "absolute",
+    inlineSize: 1,
+    blockSize: 1,
+    overflow: "hidden",
+    clipPath: "inset(50%)",
+    whiteSpace: "nowrap",
+  },
   label: { blockSize: 24, inlineSize: 96 },
   clock: {
     blockSize: {
@@ -93,8 +101,10 @@ export function TimerWorkspaceSkeleton({
   fullscreen: boolean
 }) {
   return (
-    <Stack spacing="page">
-      <output aria-live="polite">Loading your workspace…</output>
+    <>
+      <output aria-live="polite" {...stylex.props(styles.loadingStatus)}>
+        Loading your workspace…
+      </output>
       <Grid variant={fullscreen ? "default" : "focus"} aria-busy="true">
         <Stack spacing="page">
           <FocusTimerSkeleton />
@@ -154,6 +164,6 @@ export function TimerWorkspaceSkeleton({
           </Stack>
         </Box>
       </Grid>
-    </Stack>
+    </>
   )
 }
