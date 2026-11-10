@@ -1,4 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router"
+import { AppWindowIcon, MaximizeIcon, MinimizeIcon } from "lucide-react"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -95,13 +96,26 @@ export function FocusBrowserControls() {
     <HStack wrap ref={listenForFullscreenEscape}>
       <Button
         variant="outline"
+        size="icon-xl"
+        aria-label={fullscreen ? "Exit full screen" : "Full screen"}
+        title={fullscreen ? "Exit full screen" : "Full screen"}
         aria-disabled={pending}
         onClick={toggleFullscreen}
       >
-        {fullscreen ? "Exit full screen" : "Full screen"}
+        {fullscreen ? (
+          <MinimizeIcon size={16} aria-hidden="true" />
+        ) : (
+          <MaximizeIcon size={16} aria-hidden="true" />
+        )}
       </Button>
-      <Button variant="outline" onClick={openFocusWindow}>
-        Focus window
+      <Button
+        variant="outline"
+        size="icon-xl"
+        aria-label="Focus window"
+        title="Focus window"
+        onClick={openFocusWindow}
+      >
+        <AppWindowIcon size={16} aria-hidden="true" />
       </Button>
       {error && (
         <Text role="alert">
