@@ -107,6 +107,17 @@ docker compose stop postgres
 
 Do not remove volumes or change an existing target to fix a setup error.
 
+### Native PostgreSQL without containers
+
+You can use an existing native PostgreSQL service instead of Docker or Podman.
+Set `DATABASE_URL` in the root `.env` to an isolated database that you own.
+Confirm the host, port, database, and user before you apply migrations. Do not
+use another project's database because it already listens on port 5432.
+
+The dev command does not start a database or a container. A valid URL does not
+create the database. Create the database and grant its user access through your
+PostgreSQL installation before you run the approved migration command.
+
 ### Account sign-in
 
 The application sends its own callback as `redirect_uri` to the existing
@@ -137,7 +148,8 @@ After approved database setup and migrations, start the web and API:
 bun run dev
 ```
 
-Bun loads the root `.env`; Turborepo forwards the declared settings. Open
+The API dev command explicitly loads the root `.env`, including when you run it
+from `apps/server`. Turborepo forwards the declared settings. Open
 `http://127.0.0.1:13001`. The web server proxies backend paths to port 18001.
 Use the web origin for application requests, not a separate cross-origin API.
 

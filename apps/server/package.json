@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "cargo run --locked --bin pomodoro-server",
+    "dev": "bun --env-file=../../.env run cargo run --locked --bin pomodoro-server",
     "build": "cargo build --release --locked --bin pomodoro-server",
     "lint": "cargo clippy --workspace --all-targets --locked -- -D warnings",
     "format:check": "cargo fmt --all -- --check",

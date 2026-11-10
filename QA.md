@@ -4061,3 +4061,31 @@ Coverage: signed-out header, dedicated login, existing OAuth entry, account
 control regression, and unavailable API UI → QA-129. The session discovery
 request remains necessary to detect existing sessions; this change removes its
 signed-out UI, not server authentication checks.
+
+## Local API environment
+
+### [ ] QA-130 — P1 — Load root environment for native API development
+
+- **Purpose:** prevent the missing DATABASE_URL error caused by a workspace
+  command starting outside the root environment-file directory.
+- **Prerequisites:** Bun, Rust, and a user-approved native PostgreSQL service; a
+  private root `.env` with valid DATABASE_URL; required migrations already
+  applied to that isolated target. No Podman or Docker is needed.
+- **Inputs:** root `bun run dev`; direct `bun run --cwd apps/server dev`.
+- **Steps:** 1. Stop any owned dev processes on ports 13001 and 18001. 2. Set
+  DATABASE_URL in the root `.env` to the approved native database. 3. Run each
+  command separately, from the repository root. 4. Stop each started process
+  before the next command. 5. On an isolated copy, remove DATABASE_URL and
+  repeat to check failure.
+- **Expected results:** both commands load the root file; valid configuration
+  starts the API on port 18001 without a missing-variable error. Missing or
+  invalid values still fail safely. No secret value is logged. An unavailable
+  database is reported as a connection failure, not a successful startup.
+- **Evidence:** inspect sanitized startup output in
+  `qa-artifacts/native-dev/startup.txt`; never save environment values.
+- **Cleanup:** stop only owned processes; restore the isolated config copy.
+- **Status:** blocked pending a user-approved native PostgreSQL target. The
+  environment-file loading check is complete without opening a connection.
+
+Coverage: workspace cwd, root env loading, safe missing configuration, and
+native startup → QA-130. No database schema or production configuration changes.
