@@ -23,22 +23,21 @@ const styles = stylex.create({
     },
   },
   title: {
+    blockSize: { default: 30, "@media (max-width: 640px)": 25 },
+    inlineSize: "45%",
+  },
+  subtitle: {
     blockSize: { default: 25, "@media (max-width: 640px)": 22.5 },
     inlineSize: "45%",
   },
   description: { blockSize: 20, inlineSize: "85%" },
   label: { blockSize: 16, inlineSize: "60%" },
-  control: {
-    blockSize: { default: 36, "@media (min-width: 640px)": 32 },
-    inlineSize: "100%",
-  },
+  control: { blockSize: 40, inlineSize: "100%" },
   saveText: { inlineSize: "min(100%, 240px)" },
   toggleLabel: { blockSize: 20, inlineSize: "65%" },
-  toggle: { blockSize: 20, inlineSize: 36 },
-  button: {
-    blockSize: { default: 40, "@media (min-width: 640px)": 36 },
-    inlineSize: 132,
-  },
+  toggle: { blockSize: 18, inlineSize: 37 },
+  button: { blockSize: 48, inlineSize: 132 },
+  defaultButton: { blockSize: 40, inlineSize: 132 },
 })
 
 export function SettingsFieldSkeleton() {
@@ -92,7 +91,7 @@ export function SettingsSkeleton() {
                   </Field>
                 ))}
               </Grid>
-              <Skeleton xstyle={styles.button} />
+              <Skeleton xstyle={styles.defaultButton} />
             </Stack>
           </CardPanel>
         </Card>
@@ -114,7 +113,7 @@ export function SettingsSkeleton() {
             <Stack>
               <HStack layout="spread">
                 <Stack spacing="compact" xstyle={styles.saveText}>
-                  <Skeleton xstyle={styles.title} />
+                  <Skeleton xstyle={styles.subtitle} />
                   <Skeleton xstyle={styles.description} />
                 </Stack>
                 <Skeleton xstyle={styles.button} />
@@ -122,7 +121,7 @@ export function SettingsSkeleton() {
               <Box variant="backupUpload">
                 <Stack spacing="relaxed">
                   <Stack spacing="compact">
-                    <Skeleton xstyle={styles.title} />
+                    <Skeleton xstyle={styles.subtitle} />
                     <Skeleton xstyle={styles.description} />
                   </Stack>
                   <Stack>

@@ -21,25 +21,16 @@ const styles = stylex.create({
   label: { blockSize: 16, inlineSize: 96 },
   tableLabel: { blockSize: 16, inlineSize: 64 },
   title: {
-    blockSize: { default: 25, "@media (max-width: 640px)": 22.5 },
+    blockSize: { default: 30, "@media (max-width: 640px)": 25 },
     inlineSize: "60%",
   },
   value: {
-    blockSize: { default: 24, "@media (max-width: 640px)": 22 },
+    blockSize: { default: 25, "@media (max-width: 640px)": 22.5 },
     inlineSize: 112,
   },
-  control: {
-    blockSize: { default: 36, "@media (min-width: 640px)": 32 },
-    inlineSize: 132,
-  },
-  period: {
-    blockSize: { default: 36, "@media (min-width: 640px)": 32 },
-    inlineSize: 64,
-  },
-  icon: {
-    blockSize: { default: 36, "@media (min-width: 640px)": 32 },
-    inlineSize: { default: 36, "@media (min-width: 640px)": 32 },
-  },
+  control: { blockSize: 40, inlineSize: 132 },
+  period: { blockSize: 40, inlineSize: 64 },
+  icon: { blockSize: 40, inlineSize: 40 },
   bar: { blockSize: 8, inlineSize: "100%" },
 })
 

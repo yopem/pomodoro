@@ -33,22 +33,15 @@ const styles = stylex.create({
     },
     inlineSize: "60%",
   },
-  phaseControl: {
-    blockSize: { default: 32, "@media (min-width: 640px)": 28 },
-    inlineSize: 80,
+  phaseControl: { blockSize: 32, inlineSize: 80 },
+  control: { blockSize: 48, inlineSize: 80 },
+  primaryControl: { blockSize: 48, inlineSize: 104 },
+  iconControl: { blockSize: 48, inlineSize: 48 },
+  heading: {
+    blockSize: { default: 30, "@media (max-width: 640px)": 25 },
+    inlineSize: 96,
   },
-  control: {
-    blockSize: { default: 40, "@media (min-width: 640px)": 36 },
-    inlineSize: 80,
-  },
-  primaryControl: {
-    blockSize: { default: 40, "@media (min-width: 640px)": 36 },
-    inlineSize: 104,
-  },
-  iconControl: {
-    blockSize: { default: 44, "@media (min-width: 640px)": 40 },
-    inlineSize: { default: 44, "@media (min-width: 640px)": 40 },
-  },
+  value: { blockSize: 37.5, inlineSize: "65%" },
   title: { blockSize: 24, inlineSize: "65%" },
   line: { blockSize: 16, inlineSize: "85%" },
   shortLine: { blockSize: 16, inlineSize: "45%" },
@@ -120,7 +113,7 @@ export function TimerWorkspaceSkeleton({
                           <Skeleton xstyle={styles.line} />
                         </StatLabel>
                         <StatValue>
-                          <Skeleton xstyle={styles.title} />
+                          <Skeleton xstyle={styles.value} />
                         </StatValue>
                         <StatDescription>
                           <Skeleton xstyle={styles.line} />
@@ -136,7 +129,7 @@ export function TimerWorkspaceSkeleton({
         <Box variant="taskQueue" hidden={fullscreen} aria-hidden="true">
           <Stack>
             <HStack layout="spread">
-              <Skeleton xstyle={styles.label} />
+              <Skeleton xstyle={styles.heading} />
               <HStack layout="row">
                 <Skeleton xstyle={styles.primaryControl} />
                 <Skeleton xstyle={styles.primaryControl} />

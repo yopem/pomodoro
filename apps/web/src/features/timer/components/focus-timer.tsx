@@ -61,8 +61,8 @@ const styles = stylex.create({
       default: "clamp(3.5rem, 6vw, 5.5rem)",
       "@media (max-width: 640px)": "clamp(2.75rem, 17vw, 5rem)",
     },
-    fontWeight: 600,
-    letterSpacing: "-0.06em",
+    fontWeight: 400,
+    letterSpacing: "-0.05em",
     lineHeight: 1,
   },
 })
