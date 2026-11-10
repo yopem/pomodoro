@@ -5760,3 +5760,29 @@ change does not alter them. Existing behavior cases remain applicable.
 - **Status:** pending.
 
 Coverage addition: offline and install presentation QA-205.
+
+### Style refresh implementation checks — 2026-11-11
+
+Implementation is complete. Runtime QA has not run for this refresh. QA-198
+through QA-205 remain pending. Rerun QA-194 through QA-197 for the updated
+loading placeholders; earlier results do not cover this code.
+
+- `bun run lint`: passed at the repository root. This includes native Bun lint
+  and the existing locked Cargo Clippy task with warnings denied.
+- `bun run format:check`: passed at the repository root after formatting
+  `apps/web/src/components/ui/dialog.tsx`. This includes the existing Rust
+  formatter check.
+- `bun run typecheck`: passed at the repository root. This includes route
+  generation, web app/tool/service-worker checks, shared package checks, and the
+  existing locked Cargo check task.
+- `git diff --check`: passed after the final source merge.
+
+The changes preserve app component variants and existing mutation handlers.
+Inter remains the loaded font. No dependency, lockfile, server contract, or
+persistence format changed. The offline assets now use the same neutral palette.
+The generated 192px icon was inspected as a source asset; this is not an
+installability or browser QA pass.
+
+Deferred: browser workflows, accessibility review, responsive screenshots, SSR
+and hydration checks, automated tests, production build, installability, and
+service-worker offline/update checks. These need the separate QA pass.
