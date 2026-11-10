@@ -4524,3 +4524,65 @@ emulation was reset and the original preference was restored. The existing
 LoginRoute code-splitting warning remains. Screenshot automation was
 intermittent; only saved desktop/mobile captures were reviewed. No full visual
 skill gate, screen-reader pass or destructive backup/conflict run is claimed.
+
+### [x] QA-147 — P2 — Lazy login route and metadata
+
+- **Purpose:** remove the LoginRoute code-splitting warning without changing the
+  login page, URL, CSP-safe navigation or noindex metadata.
+- **Prerequisites:** existing native web/API services and project browser tab.
+  Preserve the signed-in session and do not complete a new OAuth flow.
+- **Inputs:** `/auth/login`, `/auth/login/`, Welcome, Log in with Yopem.
+- **Steps:** 1. Direct-load each login URL. 2. Inspect the Welcome heading, one
+  login action and noindex/nofollow metadata. 3. Inspect the rendered action and
+  retained `/auth/authorize` page-navigation handler in source. 4. Reload the
+  app and inspect new console logs for the old LoginRoute code-splitting
+  warning. 5. Run scoped lint/format, web typecheck and build.
+- **Expected results:** login UI loads from its lazy route. The metadata stays
+  in the eager route. Both URLs render and no LoginRoute export warning is
+  produced. Existing session, backend routing and OAuth behavior stay unchanged.
+- **Evidence:** sanitized results and source hashes in
+  `qa-artifacts/account-settings/login-lazy-results.json`, plus build log.
+- **Cleanup:** return the same tab to Settings and keep the session.
+- **Status:** passed on 2026-11-10 against source hashes in the evidence. Both
+  URLs load Welcome and exactly one action; slash normalizes to the canonical
+  path. Noindex metadata remains and fresh logs contain no LoginRoute split
+  warning. Native checks and production build passed. UI and navigation handler
+  are unchanged. OAuth callback/security coverage remains in the existing
+  authentication cases; this case does not claim that coverage.
+
+### [ ] QA-148 — P1 — Invalid backup cannot replace the workspace
+
+- **Purpose:** verify safe backup validation in the reorganized Settings page.
+- **Prerequisites:** existing Settings tab; do not submit a valid restore or
+  write a backup with personal data. Use in-memory file inputs only.
+- **Inputs:** `invalid.json` containing `{`; `wrong-shape.json` containing `{}`;
+  `invalid-utf8.json` bytes `ff`; `too-large.json` with 10,485,761 safe bytes.
+- **Steps:** 1. Record visible settings and monitor workspace PUT responses. 2.
+  Upload each input through Backup JSON file. 3. Inspect the specific validation
+  error and verify no replacement confirmation becomes available. 4. Reload
+  Settings and confirm the same visible settings and session.
+- **Expected results:** malformed JSON, unsupported shape, invalid UTF-8 and
+  over-10-MB files are rejected before replacement. No workspace PUT occurs. No
+  raw backup data or private identifiers appear in errors or artifacts.
+- **Evidence:** input names/sizes, sanitized error strings and write count in
+  `qa-artifacts/account-settings/backup-validation-results.json`.
+- **Cleanup:** reload to clear the file input and remove only the added response
+  listener. Do not change existing user records.
+- **Status:** pending. Valid replacement and owner-race tests remain QA-144.
+
+### [ ] QA-149 — P1 — Numeric Settings draft boundaries
+
+- **Purpose:** finish numeric validation checks without writing preferences.
+- **Prerequisites:** existing Settings tab; record the original focus value.
+- **Inputs:** Focus minutes values `0`, `1`, `180`, `181`, empty and `1.5`.
+- **Steps:** 1. Monitor workspace PUTs. 2. Enter each value and blur. 3. Inspect
+  aria-invalid and the linked error. 4. Submit only invalid values and verify
+  focus returns to Focus minutes. 5. Restore the original input without saving
+  and reload to verify the persisted preference is unchanged.
+- **Expected results:** 1 and 180 are valid; 0, 181, empty and non-integer 1.5
+  show errors. Invalid submits do not write. Every error is connected through
+  aria-describedby; the first invalid field receives focus.
+- **Evidence:** sanitized validation flags/errors, focused control IDs and
+  no-write count in `qa-artifacts/account-settings/numeric-results.json`.
+- **Cleanup:** restore original draft, reload and remove the response listener.
+- **Status:** pending. This case does not submit valid boundary changes.
