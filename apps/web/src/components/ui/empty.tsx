@@ -6,7 +6,7 @@ import { clsx } from "clsx"
 import type { StyleXComponentProps } from "@/lib/stylex"
 
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
-import { themeMarker, tokens } from "@/styles/tokens.stylex"
+import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
   root: {
@@ -41,14 +41,10 @@ const styles = stylex.create({
     backgroundColor: tokens["--card"],
     blockSize: "2.25rem",
     borderColor: tokens["--border"],
-    borderRadius: tokens["--radius-md"],
+    borderRadius: tokens["--radius"],
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: {
-      default: "0 1px 2px color-mix(in oklab, #000 5%, transparent)",
-      [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-        "0 -1px 0 color-mix(in oklab, #fff 6%, transparent)",
-    },
+    boxShadow: tokens["--shadow-sm"],
     color: tokens["--foreground"],
     inlineSize: "2.25rem",
     position: "relative",
@@ -70,7 +66,7 @@ const styles = stylex.create({
   title: {
     fontFamily: tokens["--font-heading"],
     fontSize: "1.25rem",
-    fontWeight: 600,
+    fontWeight: 400,
   },
   description: {
     color: tokens["--muted-foreground"],

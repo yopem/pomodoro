@@ -13,28 +13,15 @@ const styles = stylex.create({
   card: {
     backgroundClip: "padding-box",
     backgroundColor: tokens["--card"],
-    borderColor: tokens["--border"],
-    borderRadius: "var(--radius-md)",
+    borderColor: tokens["--card-border"],
+    borderRadius: "var(--radius)",
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: "var(--button-outline-shadow)",
     color: tokens["--card-foreground"],
     display: "flex",
     flexDirection: "column",
     minInlineSize: 0,
     position: "relative",
-    "::before": {
-      borderRadius: "calc(var(--radius-md) - 1px)",
-      boxShadow: {
-        default: "var(--button-outline-inset-shadow)",
-        [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-          "var(--button-outline-inset-shadow-dark)",
-      },
-      content: '""',
-      inset: 0,
-      pointerEvents: "none",
-      position: "absolute",
-    },
     margin: {
       default: null,
       ':is([data-slot="card-frame"] > [data-slot="card"])': "-1px",
@@ -43,19 +30,17 @@ const styles = stylex.create({
   selected: { borderColor: tokens["--success-foreground"] },
   frame: {
     backgroundColor: tokens["--card"],
-    borderColor: tokens["--border"],
-    borderRadius: "var(--radius-md)",
+    borderColor: tokens["--card-border"],
+    borderRadius: "var(--radius)",
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: "var(--button-outline-shadow)",
     color: tokens["--card-foreground"],
     display: "flex",
     flexDirection: "column",
     position: "relative",
     "::before": {
-      backgroundColor:
-        "color-mix(in oklab, var(--muted, transparent) 72%, transparent)",
-      borderRadius: "calc(var(--radius-md) - 1px)",
+      backgroundColor: tokens["--muted"],
+      borderRadius: "calc(var(--radius) - 1px)",
       boxShadow: {
         default: "var(--button-outline-inset-shadow)",
         [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
@@ -125,8 +110,8 @@ const styles = stylex.create({
   title: {
     fontFamily: tokens["--font-heading"],
     fontSize: "1.125rem",
-    fontWeight: 600,
-    lineHeight: 1,
+    fontWeight: 400,
+    lineHeight: 1.375,
   },
   description: {
     color: tokens["--muted-foreground"],

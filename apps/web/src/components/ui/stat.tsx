@@ -42,13 +42,10 @@ const styles = stylex.create({
   },
   value: {
     color: tokens["--foreground"],
-    fontSize: {
-      default: "1.875rem",
-      "@media (max-width: 640px)": "1.5rem",
-    },
+    fontSize: "1.875rem",
     fontVariantNumeric: "tabular-nums",
-    fontWeight: 600,
-    lineHeight: 1.2,
+    fontWeight: 400,
+    lineHeight: 1.25,
     margin: 0,
   },
   compactValue: {

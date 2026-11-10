@@ -25,7 +25,7 @@ const styles = stylex.create({
     overflow: "hidden",
   },
   indicator: {
-    backgroundColor: tokens["--primary"],
+    backgroundColor: tokens["--accent-solid"],
     transitionDuration: "500ms",
     transitionProperty: "all",
   },

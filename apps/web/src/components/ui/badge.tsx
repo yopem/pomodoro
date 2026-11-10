@@ -14,7 +14,7 @@ const styles = stylex.create({
   root: {
     alignItems: "center",
     borderColor: "transparent",
-    borderRadius: tokens["--radius-md"],
+    borderRadius: tokens["--radius"],
     borderStyle: "solid",
     borderWidth: 1,
     display: "inline-flex",
@@ -124,7 +124,7 @@ const styles = stylex.create({
       default: "1.25rem",
       "@media (min-width: 640px)": "1rem",
     },
-    borderRadius: "var(--radius-md)",
+    borderRadius: tokens["--radius"],
     fontSize: {
       default: "0.75rem",
       "@media (min-width: 640px)": "0.625rem",
@@ -157,7 +157,7 @@ const styles = stylex.create({
       ':is(a[data-slot="badge"][data-variant="destructive"]:hover)':
         "color-mix( in oklab, var(--destructive, currentColor) 90%, transparent )",
     },
-    color: "#fff",
+    color: tokens["--destructive-solid-foreground"],
   },
   error: {
     backgroundColor: {
@@ -177,11 +177,7 @@ const styles = stylex.create({
     color: tokens["--info-foreground"],
   },
   outline: {
-    backgroundColor: {
-      default: tokens["--background"],
-      [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-        "color-mix(in oklab, var(--input, currentColor) 32%, transparent)",
-    },
+    backgroundColor: tokens["--muted"],
     borderColor: tokens["--input"],
     color: tokens["--foreground"],
   },

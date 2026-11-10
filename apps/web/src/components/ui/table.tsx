@@ -44,12 +44,12 @@ const styles = stylex.create({
     borderRadius: {
       default: null,
       ':is([data-slot="table-container"][data-variant="card"] [data-slot="table-body"])':
-        tokens["--radius-md"],
+        tokens["--radius"],
     },
     boxShadow: {
       default: null,
       ':is([data-slot="table-container"][data-variant="card"] [data-slot="table-body"])':
-        "0 1px 2px color-mix(in oklab, #000 5%, transparent)",
+        tokens["--shadow-sm"],
     },
   },
   footer: {
@@ -69,8 +69,8 @@ const styles = stylex.create({
     position: "relative",
     backgroundColor: {
       default: "transparent",
-      ":hover": "color-mix(in srgb, var(--background), #000 2%)",
-      "[data-state=selected]": "color-mix(in srgb, var(--background), #000 4%)",
+      ":hover": tokens["--muted"],
+      "[data-state=selected]": tokens["--accent"],
     },
   },
   head: {
@@ -105,10 +105,10 @@ const styles = stylex.create({
       default: null,
       ':is([data-slot="table-container"][data-variant="card"] [data-slot="table-cell"])':
         tokens["--card"],
+      ':is([data-slot="table-container"][data-variant="card"] [data-slot="table-row"][data-state="selected"] [data-slot="table-cell"])':
+        tokens["--accent"],
       ':is([data-slot="table-container"][data-variant="card"] [data-slot="table-row"]:hover [data-slot="table-cell"])':
-        "color-mix(in srgb, var(--card), #000 2%)",
-      ':is([data-theme="dark"] [data-slot="table-container"][data-variant="card"] [data-slot="table-row"]:hover [data-slot="table-cell"])':
-        "color-mix(in srgb, var(--card), #fff 2%)",
+        tokens["--muted"],
     },
     borderBlockEnd: {
       default: null,
