@@ -5732,3 +5732,31 @@ change does not alter them. Existing behavior cases remain applicable.
   network controls, and stop only processes started for this case. Do not clear
   existing user storage.
 - **Status:** pending.
+
+### [ ] QA-205 — P2 — Offline page and install assets
+
+- **Purpose:** Check the offline page, browser theme color, and install icons
+  against the shared neutral theme. Affected files: `apps/web/public/`, and the
+  root route metadata.
+- **Prerequisites:** Shared refresh setup; an installed service worker from the
+  current build. Build and browser execution need a separate QA request.
+- **Inputs:** `/offline.html`, `/manifest.webmanifest`, `/favicon.svg`,
+  `/icon-192.png`, `/icon-512.png`, and `/icon-maskable.png`; light and dark
+  system themes; 390 and 1440 CSS pixel viewports.
+- **Steps:** 1. Open the offline page in each system theme and viewport. 2. Use
+  the retry link by keyboard. 3. Inspect manifest colors and icon previews,
+  including a circular mask. 4. Install the isolated preview app, go offline,
+  and open a route that is not cached.
+- **Expected results:** The offline page uses neutral surfaces, readable text,
+  clear focus, and a reachable retry action without external assets. Icons
+  retain a recognizable timer and safe mask padding. Manifest and browser colors
+  match the light theme. Existing offline fallback and private-route cache
+  exclusions stay unchanged.
+- **Evidence:** Save sanitized offline screenshots, manifest values, install
+  icon previews, and network notes in `qa-artifacts/QA-205/`. Inspect them and
+  record revision, date, and environment.
+- **Cleanup:** Restore network and system theme. Remove only the isolated
+  preview install. Preserve existing browser storage.
+- **Status:** pending.
+
+Coverage addition: offline and install presentation QA-205.

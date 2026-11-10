@@ -57,7 +57,7 @@ export const Route = createRootRouteWithContext<{
       { name: "robots", content: "noindex, nofollow" },
       { name: "page-type", content: "software" },
       { name: "site-kind", content: "software" },
-      { name: "theme-color", content: "#173f35" },
+      { name: "theme-color", content: "#ffffff" },
     ],
     links: [
       { rel: "manifest", href: "/manifest.webmanifest" },

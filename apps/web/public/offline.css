@@ -1,7 +1,8 @@
 :root {
-  font-family: system-ui, sans-serif;
-  color: #173f35;
-  background: #f6f8f5;
+  color-scheme: light dark;
+  font-family: "Inter Variable", Inter, system-ui, sans-serif;
+  color: #111111;
+  background: #fff;
 }
 body {
   margin: 0;
@@ -10,24 +11,63 @@ body {
   place-items: center;
 }
 main {
-  max-width: 28rem;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 30rem;
   padding: 2rem;
 }
+img {
+  margin-bottom: 2rem;
+}
 h1 {
-  font-size: 2.5rem;
-  letter-spacing: -0.04em;
+  margin-block: 0.75rem 1rem;
+  font-size: clamp(1.75rem, 6vw, 2.25rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 p {
+  color: #606775;
+  font-size: 0.875rem;
   line-height: 1.6;
 }
 a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   min-height: 44px;
-  color: inherit;
-  text-underline-offset: 4px;
+  margin-top: 1rem;
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background: #111111;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+a:hover {
+  opacity: 0.9;
 }
 a:focus-visible {
-  outline: 2px solid currentColor;
+  outline: 2px solid #2563eb;
   outline-offset: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #f5f5f5;
+    background: #090909;
+  }
+  p {
+    color: #a3a3a3;
+  }
+  a {
+    border-color: #292929;
+    background: #f5f5f5;
+    color: #090909;
+  }
+  a:focus-visible {
+    outline-color: #60a5fa;
+  }
 }
