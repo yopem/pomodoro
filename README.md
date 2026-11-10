@@ -24,7 +24,7 @@ rankings are not included.
 
 ## Stack
 
-- Bun workspaces and native workspace commands.
+- Bun workspaces and Turborepo.
 - React 19, TanStack Start, Router, Query, and Form.
 - Source-owned Yopem UI components and StyleX.
 - Rust, Axum, Tokio, SeaORM, PostgreSQL, and utoipa OpenAPI.
@@ -41,14 +41,16 @@ Required tools:
 - Docker Compose v2, or compatible Podman Compose, for the local database.
 
 Do not change a global toolchain or replace an existing service without review.
-The commands below use the repository root as their working directory. Native
-Bun workspace commands need no package-manager version declaration or extra task
-runner. They do not replay cached task results.
+The commands below use the repository root as their working directory. Turbo
+owns workspace task dispatch. There is no exact Bun version/revision lock. Turbo
+uses the standard `devEngines` Bun 1.x compatibility range for discovery. It
+allows Bun 1.5 and does not select a specific version, revision or binary.
 
 ## Install and configure
 
 ```sh
 bun install --frozen-lockfile
+bunx --no-install lefthook install
 test -e .env || cp .env.example .env
 chmod 600 .env
 ```
@@ -135,7 +137,7 @@ After approved database setup and migrations, start the web and API:
 bun run dev
 ```
 
-Bun loads the root `.env`; workspace processes inherit these settings. Open
+Bun loads the root `.env`; Turborepo forwards the declared settings. Open
 `http://127.0.0.1:13001`. The web server proxies backend paths to port 18001.
 Use the web origin for application requests, not a separate cross-origin API.
 
@@ -180,10 +182,18 @@ separate notice; neither path guarantees background delivery.
 
 ## Static checks
 
-There are no project-managed commit or push hooks. CI runs lint, format checks
-and typechecks. Existing checkouts must remove their old Lefthook-generated
-pre-commit/pre-push files after checking for user changes; preserve custom
-hooks.
+Lefthook runs staged-file lint and nonwriting format checks on pre-commit, with
+full workspace typechecks and relevant Rust checks. Pre-push checks all tracked
+source/configuration files and full workspace types, Clippy and Rustfmt.
+Configuration lives in `lefthook.yml`; there are no custom snapshot scripts or
+exact Bun version/revision gates. These checks use the current checkout, not
+separate snapshots of arbitrary pushed refs. Typecheck/Rust push jobs use an
+all-files no-op to activate the checks even when Lefthook finds no push diff.
+Preserve custom user hooks when installing the managed hooks:
+
+```sh
+bunx --no-install lefthook install
+```
 
 Individual existing checks:
 

@@ -49,7 +49,7 @@ services:
         COPY .container/bun /usr/local/bin/bun
         RUN chmod 755 /usr/local/bin/bun && bun --version
         WORKDIR /app
-        COPY package.json bun.lock bunfig.toml tsconfig.json ./
+        COPY package.json bun.lock bunfig.toml tsconfig.json turbo.json ./
         COPY apps/web ./apps/web
         COPY apps/server/package.json ./apps/server/package.json
         COPY packages ./packages

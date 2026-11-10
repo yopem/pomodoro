@@ -1,9 +1,10 @@
 # Web application QA
 
-Current tooling policy: the user removed snapshot Git hooks and Bun pinning.
-QA-062–065, QA-109 and QA-120 retain historical evidence only; their former
-snapshot/pin acceptance criteria no longer apply. They are not new passes.
-QA-121 covers CI's three checks; QA-123 covers the requested removal.
+Current tooling policy: remove the custom snapshot checker and Bun pinning, not
+Lefthook or Turbo. Keep their requirements in AGENTS.md. QA-062–065, QA-109 and
+QA-120 retain historical evidence only; their former snapshot/pin acceptance
+criteria no longer apply. They are not new passes. QA-121 covers CI's three
+checks; QA-123 covers the requested removal.
 
 ## Scope and setup
 
@@ -3918,6 +3919,10 @@ not affected by this source-only change.
   Historical snapshot/pin evidence is not a pass for this configuration. Hosted
   CI and dev/build launch remain unrun; see QA-121 and QA-124.
 
+User clarification supersedes the hook-removal/native-dispatch parts of this
+historical run. Retain Lefthook and Turbo; only fixed Bun settings and the
+custom snapshot checker should remain removed. See QA-125.
+
 ### [ ] QA-124 — P1 — Native workspace development and build dispatch
 
 - **Purpose:** Preserve dev/build entrypoints after removing Turbo's runtime
@@ -3939,4 +3944,40 @@ not affected by this source-only change.
   owned process cleanup. Current static-only run must not be reported as launch
   proof.
 - **Cleanup:** Stop only processes explicitly started for the approved case.
-- **Status:** Pending. Dev/build will not run during the user's manual session.
+- **Status:** Superseded. The user requires Turbo; native root task dispatch was
+  an overly broad change and is restored under QA-125. No dev/build launch is
+  needed to accept removal of exact Bun pins.
+
+### [ ] QA-125 — P1 — Retain Turbo and Lefthook without Bun pins
+
+- **Purpose:** Apply the user's correction: keep Turbo monorepo dispatch,
+  Lefthook staged/push checks and their AGENTS instructions. Remove only fixed
+  Bun version/revision gates and custom snapshot scripts.
+- **Prerequisites:** Existing installed native-capable canary and Rust tools;
+  clean initial worktree. Preserve global tools, manual app/browser and data.
+- **Inputs:** Four existing workspaces; restored turbo.json and lefthook.yml. CI
+  still selects canary and has only lint, format checks and typechecks.
+- **Steps:**
+  1. Restore existing Turbo root tasks/dependency/config without a fixed Bun
+     version/revision. Inspect supported package-manager detection and dry task
+     graph; all four check workspaces must remain present.
+  2. Restore Lefthook as a root dev dependency. Inspect supported configuration,
+     install its managed pre-commit/pre-push hooks and preserve user hooks.
+  3. Check staged JS/TS explicitly with type-aware zero-warning native lint;
+     check supported staged text formatting without writes. Include Rust checks
+     for staged Rust sources/manifests and full owning-project typechecks.
+  4. Run pre-push checks for all current tracked source/config files plus full
+     workspace typechecks, Clippy and Rustfmt. Do not make a real remote push.
+  5. Make the requested commit through the installed pre-commit hook; inspect
+     source, effective config, hook output and final Git status.
+- **Expected results:** Neither hook calls a snapshot script or checks the Bun
+  version/revision. Relevant failures block commit/push; rules remain strict.
+  Turbo and Lefthook instructions remain in AGENTS.md. Normal built-in staged
+  handling is used, not custom snapshot exports. Pre-push checks the current
+  checkout; no distinct pushed-tip snapshot coverage is claimed.
+- **Evidence:** `qa-artifacts/QA-125/`; dry graph, configuration and static hook
+  logs with tested revision and global-tool preservation.
+- **Cleanup:** Preserve installed requested hooks. No app/data cleanup or
+  service changes. Do not reset the user's manual records or push to a remote.
+- **Status:** Pending. Earlier removal of Lefthook/Turbo was too broad and is
+  superseded by this clarification, not an accepted architecture change.

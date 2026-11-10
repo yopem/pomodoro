@@ -1,0 +1,63 @@
+assert_lefthook_installed: true
+glob_matcher: doublestar
+
+pre-commit:
+  piped: true
+  commands:
+    typecheck:
+      priority: 1
+      run: bun run typecheck
+    lint-staged:
+      priority: 2
+      glob: "**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs}"
+      file_types: text
+      run:
+        bun lint --no-script --type-aware --max-warnings=0 --no-ignore
+        {staged_files}
+    format-staged:
+      priority: 3
+      glob: "**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs,json,jsonc,webmanifest,toml,yaml,yml,md,css,html,htm}"
+      file_types: text
+      run: bun fmt --no-script --check {staged_files}
+    lint-rust:
+      priority: 4
+      glob:
+        - "**/*.rs"
+        - "**/Cargo.toml"
+        - Cargo.lock
+        - rust-toolchain.toml
+      run: cargo clippy --workspace --all-targets --locked -- -D warnings
+    format-rust:
+      priority: 5
+      glob:
+        - "**/*.rs"
+        - "**/rustfmt.toml"
+        - "**/.rustfmt.toml"
+      run: cargo fmt --all -- --check
+
+pre-push:
+  piped: true
+  commands:
+    typecheck:
+      priority: 1
+      run: ": {all_files} && bun run typecheck"
+    lint:
+      priority: 2
+      glob: "**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs}"
+      file_types: text
+      run:
+        bun lint --no-script --type-aware --max-warnings=0 --no-ignore
+        {all_files}
+    format:
+      priority: 3
+      glob: "**/*.{ts,tsx,js,jsx,mts,cts,mjs,cjs,json,jsonc,webmanifest,toml,yaml,yml,md,css,html,htm}"
+      file_types: text
+      run: bun fmt --no-script --check {all_files}
+    lint-rust:
+      priority: 4
+      run:
+        ": {all_files} && cargo clippy --workspace --all-targets --locked -- -D
+        warnings"
+    format-rust:
+      priority: 5
+      run: ": {all_files} && cargo fmt --all -- --check"

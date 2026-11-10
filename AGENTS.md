@@ -3,7 +3,7 @@
 | Profile | Choice |
 | --- | --- |
 | Runtime | Bun canary; ESM |
-| Package model | Bun workspaces; native workspace commands |
+| Package model | Bun workspaces; Turborepo tasks |
 | Backend | Rust, Axum, JSON HTTP, and utoipa OpenAPI |
 | Validation | Rust boundary validation and Zod; lint, format, and typecheck by default; other QA needs approval |
 | Tooling | Native `bun lint`, `bun fmt`, `bun check`; `bunfig.toml` |
@@ -101,7 +101,7 @@
 - **TypeScript:** use `bun check` and compatible `@yopem/typescript-config`
   presets. Verify the installed Bun version supports the required commands.
 - **Backend:** Rust with Axum and Tokio. Use Cargo workspaces for Rust crates;
-  Bun workspaces and native commands manage the frontend and app targets.
+  Bun workspaces and Turborepo continue to manage the frontend and app targets.
   Pin a Rust toolchain and compatible crate versions. Use typed Rust errors,
   explicit application state, and structured tracing.
 - **Frontend:** React 19, TanStack Start, TanStack Router, TanStack Query, and
@@ -149,19 +149,18 @@
   appropriate explicit checks or a verified validation crate. Generated
   TypeScript types do not validate runtime data.
 - Use `bun lint`, `bun check`, and `bun fmt` for TypeScript, and Cargo, rustfmt,
-  and Clippy for Rust. Use native Bun workspace commands for frontend tasks.
+  and Clippy for Rust. Use Turborepo for frontend workspace ordering and caching.
   Do not use Vite+. Use Vite for frontend builds required by TanStack Start and
   StyleX. Build the backend with Cargo.
 
 ### Runtime and tool compatibility
 
-- Use the installed Bun canary while the native commands require it. Do not
-  pin Bun versions or revisions, add a custom runtime gate, or require a
-  `packageManager` version declaration. Verify `bun lint`, `bun check` and
-  `bun fmt` support; report gaps. CI uses canary. Do not change a user's global
-  installation without approval.
-- Pin compatible Rust, Axum, Tokio, SeaORM, SQLx, utoipa, Zod, OpenAPI tooling
-  versions. Check their documentation and feature flags before
+- Use the installed Bun canary while native lint, format and check require it.
+  Do not pin an exact Bun version/revision or add custom runtime gates for
+  developers, hooks, CI or containers. Verify command support and report gaps.
+  Do not change a user's global Bun installation without approval.
+- Pin compatible Rust, Axum, Tokio, SeaORM, SQLx, utoipa, Zod, OpenAPI tooling,
+  and Turborepo versions. Check their documentation and feature flags before
   selecting APIs. Keep Rust dependencies out of browser bundles.
 
 ### Additional app targets
@@ -212,7 +211,7 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
 
 ### Configuration ownership
 
-- Root `package.json` owns Bun workspaces, root
+- Root `package.json` owns Bun workspaces, package-manager selection, root
   scripts, and tooling dependencies. Commit one `bun.lock`. Do not add pnpm,
   npm, or Yarn lockfiles.
 - `bunfig.toml` owns native lint, format, and supported native check options.
@@ -258,7 +257,7 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
   fallback. Report a separate declaration-build need before selecting tooling.
 - Read scripts before commands. A script named `check`, `lint`, or `fmt` can
   shadow the native Bun command. Use `--no-script` when native execution is
-  required, especially inside workspace commands. Do not create recursive scripts.
+  required, especially inside Turborepo tasks. Do not create recursive scripts.
 
 ### Lint suppression: last resort only
 
@@ -275,22 +274,31 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
 - Rerun the affected lint command after the change. Confirm that the exception
   is still required and the other checks pass.
 
-### Workspace tasks
+### Workspace tasks and cache safety
 
-- Root scripts use native `bun run --workspaces`. Each workspace owns its
-  leaf scripts. Do not make leaf scripts call the same root script recursively.
-- Run development scripts with `--parallel --if-present`. Build uses
-  `--if-present` for workspaces without a build script. Every owning workspace
-  must define lint, format and typecheck scripts; do not skip missing checks.
-- Native workspace commands do not cache task results. Do not add a task runner
-  or runtime version declaration just to dispatch workspace scripts.
-- Workspace processes inherit the supplied environment. Keep credentials out
-  of client configuration, task logs and artifacts.
+- Install Turborepo as a pinned root development dependency. Root scripts run
+  the installed `turbo` CLI through Bun. Workspaces define the leaf scripts.
+  Do not make a leaf task call the same root Turbo task recursively.
+- Use `turbo.json` for dependency ordering and caching. Build tasks depend on
+  required upstream builds, normally `^build`. Declare actual outputs, not
+  guessed framework paths. Track source, lockfile, shared config, tool inputs,
+  and environment inputs that affect results.
+- Keep development tasks `persistent: true` and `cache: false`. Disable caching
+  for format writes, lint fixes, migrations, seeds, deployment, and every task
+  with external mutations. Never replay a cached result as proof of a write.
+- Cache lint, format checks, typechecks, and builds only with complete inputs.
+  Each package typecheck must select its own `tsconfig.json`; a root check in
+  the wrong directory must not substitute for workspace coverage.
+- Include shared `bunfig.toml`, TypeScript presets, and lint config in relevant
+  task inputs. Account for runtime environment pass-through and hashed values.
+  Do not put credentials in task logs or publicly shared cache artifacts.
 - Preserve required framework and StyleX build plugins. Bun manages the CLI
   process; it does not make every Vite plugin a Bun bundler plugin.
-- Do not install project Git hooks. Preserve user-managed hooks and partially
-  staged changes. CI runs only lint, format checks and typechecks after setup.
-  Run relevant checks locally by default, including type-aware lint.
+- Use Lefthook for staged and push checks as specified in Git hooks. Preserve
+  existing hooks and partially staged changes. CI still runs workspace checks.
+- CI runs only lint, format checks and typechecks after tool/dependency setup. Run relevant
+  lint, format, and typecheck commands locally by default, including type-aware
+  lint and commands that enable typechecking indirectly.
 
 ### Command patterns
 
@@ -301,13 +309,13 @@ scripts and exact workspace names before use. Do not assume these scripts exist.
 bun install
 bun install --frozen-lockfile             # CI
 
-bun run dev
-bun run build
-bun run lint
-bun run lint:fix
-bun run format:check
-bun run format:write
-bun run typecheck
+bun run dev                              # root: turbo run dev
+bun run build                            # root: turbo run build
+bun run lint                             # root: turbo run lint
+bun run lint:fix                          # root: turbo run lint:fix; uncached
+bun run format:check                      # root: turbo run format:check
+bun run format:write                      # root: turbo run format:write; uncached
+bun run typecheck                         # root: turbo run typecheck
 
 # Native leaf commands, from the owning workspace:
 bun lint --no-script
@@ -325,7 +333,7 @@ cargo build --workspace --locked
 
 Do not define an aggregate root `check` script that hides native `bun check`.
 Keep `typecheck` as the script name. Run lint, format, and typecheck locally by
-default. CI also runs these checks. Do not run builds or other
+default. CI and Lefthook also run these checks. Do not run builds or other
 restricted operations indirectly without the required approval.
 
 After pulling dependency changes, run `bun install` to apply the lockfile and
@@ -359,6 +367,7 @@ code through `packages/`.
 ├── bun.lock                                         frontend dependency lockfile
 ├── Cargo.toml, Cargo.lock, rust-toolchain.toml       Rust workspace, lockfile, and toolchain
 ├── bunfig.toml                                      native lint, format, supported check options
+├── turbo.json                                       task inputs, outputs, and dependencies
 ├── tsconfig.json                                    shared workspace config
 ├── alchemy.run.ts                                   only when existing docs app requires Pages deployment
 ├── apps/
@@ -1119,9 +1128,9 @@ Add Polar only when a requested feature needs payments or subscriptions.
 
 ### Runtime and release safety
 
-- Pin tested Rust build and compatible base images. Web SSR uses the supplied
-  Bun binary without a version or revision gate. Avoid floating `latest` tags
-  for Rust and base images. Install frontend dependencies with
+- Pin tested Rust build and compatible base images. Use the supplied Bun binary
+  for web SSR without an exact version/revision gate. Avoid floating `latest`
+  tags for Rust and base images. Install frontend dependencies with
   `bun install --frozen-lockfile`; use Cargo's locked mode for Rust builds.
 - On termination, stop accepting requests, allow bounded draining, stop owned
   tasks, and close resources. Check container signal delivery during requested QA.
@@ -1145,18 +1154,25 @@ Add Polar only when a requested feature needs payments or subscriptions.
 - Keep deployment credentials and Alchemy state out of git. Follow the existing
   environment isolation and deployment approval rules before a live deploy.
 
-## Local and CI checks
+## Git hooks
 
-- Do not install Git hooks, Lefthook, or custom snapshot check scripts.
-  Preserve unrelated user-managed hooks. Do not gate commits or pushes on
-  a Bun version or revision.
-- CI runs only lint, format checks, and typechecks after tool/dependency setup.
-  Do not add builds, audits, contract drift, tests, or deployment to CI without
-  an explicit request. Keep failures visible; do not suppress diagnostics.
-- Run ordinary lint, format checks, and typechecks locally by default.
-  Other QA follows the approval rules in Validation workflow.
-- Use native Bun for frontend checks and Rustfmt, Clippy, and Cargo checks
-  for Rust. Cover the owning workspaces and affected dependents.
+- Keep Lefthook as the root Git hook manager and its configuration in
+  `lefthook.yml`. Do not remove it when changing Bun runtime settings.
+- On pre-commit, lint and check formatting for every applicable staged file,
+  including root and nested configuration files. Typecheck full owning projects
+  and affected dependents; do not substitute individual-file type checks.
+- On pre-push, run lint, nonwriting format checks and typechecks for the full
+  repository checkout, covering applicable pushed files and Rust workspaces.
+- Use Lefthook's built-in staged-file handling. Preserve staged, unstaged,
+  partially staged and untracked content. Do not auto-fix, auto-stage unrelated
+  files, or replace user-managed hooks without review.
+- Do not add custom snapshot exports/checkers or exact Bun version/revision
+  gates. These standard hooks check the current checkout, not separate archives
+  of each arbitrary pushed ref tip; do not claim snapshot isolation.
+- Relevant failures must block commit or push. Keep type-aware zero-warning
+  frontend lint, Rust Clippy/Cargo checks and native formatter check modes.
+- CI runs only lint, format checks and typechecks after setup. Do not add
+  builds, audits, contract drift, tests or deployment without a request.
 
 
 ## Validation workflow
@@ -1183,7 +1199,7 @@ Add Polar only when a requested feature needs payments or subscriptions.
   explicitly includes verification in the task.
 - Run relevant lint, format, and typecheck commands by default after changes.
   Fix failures and rerun the affected commands. Preserve unrelated changes
-  when formatting. Keep the requested CI checks enabled.
+  when formatting. Keep CI and Lefthook checks enabled.
 - Review the changed source and instructions for consistency without running
   the application. Written plans and source review do not prove runtime success.
 - Run lint, format, and typecheck without separate approval, including during
@@ -1362,6 +1378,7 @@ applicable category into concrete cases with the details required above.
 - OpenAPI TypeScript and openapi-fetch: https://openapi-ts.dev/.
 - Zod: https://zod.dev/.
 - OpenAuth: https://openauth.js.org/docs.
+- Turborepo: https://turborepo.com/docs/crafting-your-repository/configuring-tasks.
 - PWA: https://vite-pwa-org.netlify.app.
 - WCAG 2.2: https://www.w3.org/TR/WCAG22/.
 - Google Analytics 4: https://developers.google.com/analytics/devguides/collection/ga4.
