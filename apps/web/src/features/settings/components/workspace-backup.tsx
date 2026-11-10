@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogPopup,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Grid } from "@/components/ui/grid"
@@ -28,6 +29,7 @@ import { Input } from "@/components/ui/input"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { exportBackup } from "@/features/focus/reports"
+import { workspaceSchema } from "@/features/focus/schema"
 import { importBackup, useWorkspaceMutationOwner } from "@/features/focus/store"
 import { downloadText } from "@/lib/download"
 
@@ -74,7 +76,13 @@ export function WorkspaceBackup({
       action: BackupAction,
     ) {
       if (action.type === "select")
-        return { ...state, file: action.file, message: null }
+        return {
+          ...state,
+          file: action.file,
+          message: null,
+          error: null,
+          confirmation: null,
+        }
 
       if (action.type === "close") return { ...state, confirmation: null }
 
@@ -87,6 +95,16 @@ export function WorkspaceBackup({
             throw new Error("Backup must be 10 MB or smaller")
           const bytes = await state.file.arrayBuffer()
           const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes)
+          let parsed: unknown
+
+          try {
+            parsed = JSON.parse(text)
+          } catch {
+            throw new Error("Backup is not valid JSON")
+          }
+
+          if (!workspaceSchema.safeParse(parsed).success)
+            throw new Error("Backup does not contain a valid workspace")
 
           return {
             ...state,
@@ -209,72 +227,80 @@ export function WorkspaceBackup({
   const { file, message, error, confirmation } = state
 
   return (
-    <Card
-      render={
-        <section id="settings-backup" aria-labelledby="settings-backup-title" />
-      }
-    >
-      <CardHeader>
-        <Heading
-          id="settings-backup-title"
-          render={<h2>Workspace backup</h2>}
-        />
-        <CardDescription>
-          Keep a copy before clearing browser data or replacing your workspace.
-        </CardDescription>
-      </CardHeader>
-      <CardPanel>
-        <Stack>
-          <Grid variant="workspace">
-            <Stack>
-              <Heading render={<h3>Save a copy</h3>} />
-              <Text size="small" tone="muted">
-                Download your current workspace as a JSON file.
-              </Text>
-              <Button type="button" variant="outline" onClick={events.download}>
-                <DownloadIcon size={16} aria-hidden="true" /> Export backup
-              </Button>
-            </Stack>
-            <Stack>
-              <Heading render={<h3>Restore a copy</h3>} />
-              <Text size="small" tone="muted">
-                Import replaces all tasks, projects, templates, sessions,
-                settings, and timer data.
-              </Text>
-              <Field>
-                <FieldLabel htmlFor="backup-file">
-                  Backup JSON file (maximum 10 MB)
-                </FieldLabel>
-                <Input
-                  id="backup-file"
-                  type="file"
-                  accept="application/json,.json"
-                  onChange={events.select}
-                />
-              </Field>
-              {file && (
-                <>
-                  <Button
-                    variant="destructive-outline"
-                    size="sm"
-                    disabled={pending}
-                    onClick={events.prepare}
-                  >
-                    <UploadIcon size={16} aria-hidden="true" /> Import backup
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={pending}
-                    onClick={events.recover}
-                  >
-                    Recover corrupt workspace
-                  </Button>
-                </>
-              )}
-            </Stack>
-          </Grid>
-          <Dialog open={confirmation !== null} onOpenChange={events.changeOpen}>
+    <Dialog open={confirmation !== null} onOpenChange={events.changeOpen}>
+      <Card
+        render={
+          <section
+            id="settings-backup"
+            aria-labelledby="settings-backup-title"
+          />
+        }
+      >
+        <CardHeader>
+          <Heading
+            id="settings-backup-title"
+            render={<h2>Workspace backup</h2>}
+          />
+          <CardDescription>
+            Keep a copy before clearing browser data or replacing your
+            workspace.
+          </CardDescription>
+        </CardHeader>
+        <CardPanel>
+          <Stack>
+            <Grid variant="workspace">
+              <Stack>
+                <Heading render={<h3>Save a copy</h3>} />
+                <Text size="small" tone="muted">
+                  Download your current workspace as a JSON file.
+                </Text>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={events.download}
+                >
+                  <DownloadIcon size={16} aria-hidden="true" /> Export backup
+                </Button>
+              </Stack>
+              <Stack>
+                <Heading render={<h3>Restore a copy</h3>} />
+                <Text size="small" tone="muted">
+                  Import replaces all tasks, projects, templates, sessions,
+                  settings, and timer data.
+                </Text>
+                <Field>
+                  <FieldLabel htmlFor="backup-file">
+                    Backup JSON file (maximum 10 MB)
+                  </FieldLabel>
+                  <Input
+                    id="backup-file"
+                    type="file"
+                    accept="application/json,.json"
+                    onChange={events.select}
+                  />
+                </Field>
+                {file && (
+                  <>
+                    <DialogTrigger
+                      render={
+                        <Button variant="destructive-outline" size="sm" />
+                      }
+                      disabled={pending}
+                      onClick={events.prepare}
+                    >
+                      <UploadIcon size={16} aria-hidden="true" /> Import backup
+                    </DialogTrigger>
+                    <DialogTrigger
+                      render={<Button variant="outline" size="sm" />}
+                      disabled={pending}
+                      onClick={events.recover}
+                    >
+                      Recover corrupt workspace
+                    </DialogTrigger>
+                  </>
+                )}
+              </Stack>
+            </Grid>
             <DialogPopup>
               <DialogHeader>
                 <DialogTitle>
@@ -310,15 +336,15 @@ export function WorkspaceBackup({
                 </Button>
               </DialogFooter>
             </DialogPopup>
-          </Dialog>
-          {error && !confirmation && (
-            <Text role="alert" tone="destructive">
-              {error}
-            </Text>
-          )}
-          {message && <output>{message}</output>}
-        </Stack>
-      </CardPanel>
-    </Card>
+            {error && !confirmation && (
+              <Text role="alert" tone="destructive">
+                {error}
+              </Text>
+            )}
+            {message && <output>{message}</output>}
+          </Stack>
+        </CardPanel>
+      </Card>
+    </Dialog>
   )
 }

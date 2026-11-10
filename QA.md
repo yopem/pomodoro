@@ -4550,7 +4550,7 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   are unchanged. OAuth callback/security coverage remains in the existing
   authentication cases; this case does not claim that coverage.
 
-### [ ] QA-148 — P1 — Invalid backup cannot replace the workspace
+### [x] QA-148 — P1 — Invalid backup cannot replace the workspace
 
 - **Purpose:** verify safe backup validation in the reorganized Settings page.
 - **Prerequisites:** existing Settings tab; do not submit a valid restore or
@@ -4568,7 +4568,11 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   `qa-artifacts/account-settings/backup-validation-results.json`.
 - **Cleanup:** reload to clear the file input and remove only the added response
   listener. Do not change existing user records.
-- **Status:** pending. Valid replacement and owner-race tests remain QA-144.
+- **Status:** Passed on 2026-11-10 against source hash and parent revision in
+  the evidence. All four invalid files were rejected without a dialog or
+  workspace write. New file selection cleared old errors. Reload retained the
+  original focus value and signed-in account. Valid replacement and owner-race
+  tests remain QA-144.
 
 ### [ ] QA-149 — P1 — Numeric Settings draft boundaries
 
@@ -4586,3 +4590,30 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   no-write count in `qa-artifacts/account-settings/numeric-results.json`.
 - **Cleanup:** restore original draft, reload and remove the response listener.
 - **Status:** pending. This case does not submit valid boundary changes.
+
+### [x] QA-150 — P1 — Valid backup review and cancellation
+
+- **Purpose:** retain the destructive confirmation for a valid backup while
+  rejecting malformed files before that prompt.
+- **Prerequisites:** use `createEmptyWorkspace` from the existing focus schema
+  to create an empty local fixture under ignored
+  `qa-artifacts/account-settings/`. Never export private user data or confirm
+  replacement of the live workspace.
+- **Inputs:** `empty-workspace.json`, generated with the existing helper.
+- **Steps:** 1. Monitor workspace PUT responses. 2. Select the fixture in
+  Settings and click Import backup. 3. Inspect Replace workspace and its
+  warning. 4. Cancel and inspect closed state and focus return to Import
+  backup. 5. Repeat and press Escape; inspect the same focus return. 6. Reload
+  and inspect the original visible preference and account control.
+- **Expected results:** valid data reaches explicit confirmation, but Cancel and
+  Escape do not replace or sync the workspace. The original preference and
+  signed-in session remain. Existing restore guards remain in source.
+- **Evidence:** sanitized outcomes and source hashes in
+  `qa-artifacts/account-settings/backup-cancel-results.json`.
+- **Cleanup:** reload to clear selected file; remove only the added listener.
+  Keep the safe empty fixture ignored for a repeat run.
+- **Status:** Passed on 2026-11-10 against source hash and parent revision in
+  the evidence. The safe empty fixture reached confirmation. Cancel and Escape
+  both closed it and returned focus to Import backup. No workspace PUT occurred;
+  reload retained the original preference and account. Actual replacement
+  remains blocked on isolated data.
