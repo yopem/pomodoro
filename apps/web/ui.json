@@ -33,7 +33,9 @@
     "src/themes/theme-provider.tsx": "sha256-3zVFwz05V7ZS+hJ1BqanyvToWvGVQhGbp3XmU0vYwe0=",
     "src/components/ui/skeleton.tsx": "sha256-vcdJpond3ltD5Vchbp8pay/GbMyy5wuPnGBuYeej0bs=",
     "src/components/ui/menu.tsx": "sha256-FqqMECjvVFmCmTscEWCxQlq9KXBeDkD4ssZVWt04OCk=",
-    "src/components/ui/select.tsx": "sha256-DBuSTyjat8T6LkNebXsiG9ztcz4uY/IE0o+urFz6VPg="
+    "src/components/ui/select.tsx": "sha256-DBuSTyjat8T6LkNebXsiG9ztcz4uY/IE0o+urFz6VPg=",
+    "src/components/ui/calendar.tsx": "sha256-rdhqaNlGT5aZOHz5LynN9KLAmqSPIMJtmj+hnvxbi8I=",
+    "src/components/ui/popover.tsx": "sha256-ucbq+hph9HWw+4yC9z/Ejb3h8PwQhaTTopGJwGUs3rg="
   },
   "paths": {
     "ui": "src/components/ui",
@@ -275,6 +277,20 @@
         "select": "0.1.0"
       },
       "target": "@/components/ui/select.tsx"
+    },
+    "src/components/ui/calendar.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "calendar": "0.1.0"
+      },
+      "target": "@/components/ui/calendar.tsx"
+    },
+    "src/components/ui/popover.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "popover": "0.1.0"
+      },
+      "target": "@/components/ui/popover.tsx"
     }
   },
   "importPrefix": "@"
