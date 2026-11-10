@@ -91,23 +91,29 @@ const styles = stylex.create({
     borderBlockStartWidth: 1,
     paddingBlockStart: 24,
   },
+  appBrandLabel: {
+    display: { default: "inline", "@media (max-width: 480px)": "none" },
+  },
   appHeader: {
     borderBlockEndStyle: "solid",
     borderBlockEndWidth: 1,
     borderBlockEndColor: tokens["--border"],
-    backgroundColor: tokens["--background"],
+    backgroundColor: tokens["--card"],
   },
   appNavigation: {
     display: "flex",
     alignItems: "center",
-    justifyContent: {
-      default: "center",
-      "@media (max-width: 768px)": "space-between",
-    },
-    gap: 4,
+    justifyContent: "center",
+    gap: { default: tokens["--spacing"], "@media (max-width: 390px)": 0 },
+    padding: tokens["--spacing"],
+    borderColor: tokens["--border"],
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderRadius: tokens["--radius-lg"],
+    backgroundColor: tokens["--muted"],
     minInlineSize: 0,
-    flexBasis: { default: "auto", "@media (max-width: 768px)": "100%" },
-    order: { default: 0, "@media (max-width: 768px)": 1 },
+    flexBasis: { default: "auto", "@media (max-width: 900px)": "100%" },
+    order: { default: 0, "@media (max-width: 900px)": 1 },
     overflowX: "auto",
   },
 })
@@ -117,6 +123,7 @@ export type BoxElement = keyof JSX.IntrinsicElements
 export type BoxProps = StyleXComponentProps<useRender.ComponentProps<"div">> & {
   variant?:
     | "default"
+    | "appBrandLabel"
     | "appHeader"
     | "appNavigation"
     | "focusDial"
@@ -151,6 +158,7 @@ export function Box({
           variant === "focusTask" && styles.focusTask,
           variant === "taskQueue" && styles.taskQueue,
           variant === "dailyOverview" && styles.dailyOverview,
+          variant === "appBrandLabel" && styles.appBrandLabel,
           variant === "appHeader" && styles.appHeader,
           variant === "appNavigation" && styles.appNavigation,
           xstyle,

@@ -5,6 +5,7 @@ import * as stylex from "@stylexjs/stylex"
 import { Link, useRouterState } from "@tanstack/react-router"
 import { TimerIcon } from "lucide-react"
 
+import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Box } from "@/components/ui/box"
 import { Container } from "@/components/ui/container"
 import { HStack } from "@/components/ui/hstack"
@@ -42,8 +43,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               {...stylex.props(styles.brand)}
               aria-label="Pomodoro timer"
             >
-              <TimerIcon size={24} aria-hidden="true" />
-              <Box render={<span>pomodoro</span>} />
+              <TimerIcon
+                size={40}
+                aria-hidden="true"
+                {...stylex.props(styles.brandIcon)}
+              />
+              <Box render={<span>pomodoro</span>} variant="appBrandLabel" />
             </Link>
             <Box
               render={<nav aria-label="Main navigation" />}
@@ -69,7 +74,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 Settings
               </Link>
             </Box>
-            <AccountControls controller={controller} state={state} />
+            <HStack layout="actions">
+              <ThemeSwitcher key={snapshot.owner.generation} />
+              <AccountControls controller={controller} state={state} />
+            </HStack>
           </HStack>
         </Container>
       </Box>
@@ -93,35 +101,51 @@ const styles = stylex.create({
   brand: {
     display: "inline-flex",
     alignItems: "center",
-    gap: 9,
+    gap: `calc(${tokens["--spacing"]} * 3)`,
     minBlockSize: 44,
     color: tokens["--foreground"],
     textDecoration: "none",
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 700,
     letterSpacing: "-0.04em",
     flexShrink: 0,
+  },
+  brandIcon: {
+    padding: `calc(${tokens["--spacing"]} * 2)`,
+    borderRadius: tokens["--radius-md"],
+    backgroundColor: tokens["--primary"],
+    color: tokens["--primary-foreground"],
   },
   navLink: {
     display: "inline-flex",
     alignItems: "center",
     minBlockSize: 44,
-    fontSize: 13,
-    fontWeight: 500,
-    paddingInline: 8,
+    justifyContent: "center",
+    flexGrow: { default: 0, "@media (max-width: 900px)": 1 },
+    fontSize: { default: 14, "@media (max-width: 390px)": 12 },
+    fontWeight: 600,
+    paddingInline: {
+      default: `calc(${tokens["--spacing"]} * 4)`,
+      "@media (max-width: 1024px)": `calc(${tokens["--spacing"]} * 2)`,
+      "@media (max-width: 390px)": tokens["--spacing"],
+    },
     whiteSpace: "nowrap",
     borderRadius: tokens["--radius-md"],
     backgroundColor: {
       default: "transparent",
-      ":hover": tokens["--muted"],
-      ":is([data-status=active])": tokens["--accent"],
+      ":hover": tokens["--accent"],
+      ":is([data-status=active])": tokens["--primary"],
     },
     color: {
       default: tokens["--muted-foreground"],
       ":hover": tokens["--foreground"],
-      ":is([data-status=active])": tokens["--foreground"],
+      ":is([data-status=active])": tokens["--primary-foreground"],
     },
     textDecoration: "none",
+    outlineOffset: -3,
+    outlineColor: tokens["--ring"],
+    outlineStyle: { default: "none", ":focus-visible": "solid" },
+    outlineWidth: 2,
     transitionProperty: "color, background-color",
     transitionDuration: {
       default: "150ms",

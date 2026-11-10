@@ -5016,3 +5016,96 @@ QA-163 and QA-165; static tooling: QA-166.
   counts, URLs, headings, and browser errors. Inspect each result.
 - **Cleanup:** close only tabs opened for this case. No data cleanup is needed.
 - **Status:** pending.
+
+## Header navigation redesign and theme switch
+
+Task: redesign the header shown in the supplied screenshot. Keep Yopem UI, typed
+routes, Account actions, focus mode, and the existing theme contract. Affected
+files: `apps/web/src/components/app-shell.tsx`,
+`apps/web/src/components/theme-switcher.tsx`, and the header variants in
+`apps/web/src/components/ui/box.tsx`. No endpoint or schema change.
+
+### Shared setup and coverage
+
+Use the existing approved non-production web environment from Scope and setup.
+Do not start another server or change ports. Use an isolated guest workspace for
+preference changes. Record the current theme and dark-while-running setting. Use
+the installed Bun and existing web lint, format, and typecheck scripts. Save
+sanitized evidence in ignored `qa-artifacts/header-redesign/`. Run QA-168,
+QA-169, then QA-170. Header acceptance and navigation regressions map to QA-168;
+persistence, Settings integration, and timer override map to QA-169; keyboard,
+responsive states, and motion map to QA-170. API, migrations, payments, new
+analytics, and SEO are not applicable: their contracts do not change.
+
+### [ ] QA-168 — P1 — Header navigation and Account regression
+
+- **Purpose:** Confirm the new header retains all existing destinations and
+  actions.
+- **Prerequisites:** Shared setup; guest and approved signed-in session.
+- **Inputs:** `/`, `/projects`, `/templates`, `/reports`, `/settings`, `/focus`.
+- **Steps:** 1. Open `/`. 2. Follow each navigation link and use
+  Back/Forward. 3. Open Account; close with Escape. 4. Open `/focus` and timer
+  fullscreen. 5. Check guest sign-in and `/auth/login`.
+- **Expected results:** The current link alone is active; links keep their URLs;
+  Account retains its actions and focus return; focus/fullscreen hides the
+  header; login has no app header. No timer, task, or account data changes.
+- **Evidence:** Save and inspect `qa-artifacts/header-redesign/navigation.json`
+  with routes, active link, Account actions, and browser errors.
+- **Cleanup:** Close owned popups and return to `/`; keep the session.
+- **Status:** Pending.
+
+### [ ] QA-169 — P1 — Theme toggle persistence and timer override
+
+- **Purpose:** Use the existing guarded Settings mutation, not a second theme
+  store.
+- **Prerequisites:** Shared setup; isolated guest; record original preferences.
+- **Inputs:** Light, dark, system with OS light/dark; `dark_while_running`
+  on/off.
+- **Steps:** 1. Set theme Light in Settings, then use the header theme
+  button. 2. Reload and inspect Settings; toggle back. 3. Repeat from System
+  under each OS scheme. 4. Enable dark while running and start a timer. Inspect
+  the disabled theme control and its explanation; pause, then toggle. 5. Attempt
+  repeated clicks while saving. 6. In an isolated failure fixture, deny local
+  storage writes.
+- **Expected results:** Toggle chooses the opposite resolved theme and persists
+  to the current workspace. Settings and reload agree. The system preference
+  becomes an explicit choice only on toggle. Active dark-while-running override
+  is explained and cannot produce a misleading light selection. Loading prevents
+  duplicate clicks. Failed writes show an alert, not a false success; no other
+  settings, timer, or owner data are overwritten. Not-ready workspaces are
+  disabled.
+- **Evidence:** Save and inspect `qa-artifacts/header-redesign/theme.json` with
+  before/after preferences, resolved theme, error, and unchanged settings.
+- **Cleanup:** Restore OS emulation, original settings, and storage permission;
+  stop only the isolated timer created here.
+- **Status:** Pending; write-failure fixture needs discovery before execution.
+
+### [ ] QA-170 — P2 — Header layout, keyboard, and static checks
+
+- **Purpose:** Confirm usable navigation and theme controls on desktop and
+  mobile.
+- **Prerequisites:** Shared setup; source checkout with dependencies installed.
+- **Inputs:** 1440, 1024, 768, 390, 320 CSS-pixel widths; both themes; reduced
+  motion.
+- **Steps:** 1. Inspect each width with long Account state and guest sign-in. 2.
+  Tab through brand, all routes, theme, and Account; activate with keyboard. 3.
+  Inspect focus visibility, active contrast, 200% zoom, and reduced motion. 4.
+  From `apps/web`, run `bun run lint`, `bun run format:check`, and
+  `bun run typecheck`. Production build and runtime checks need the requested QA
+  pass.
+- **Expected results:** Equal header/content edges; all links accessible without
+  page overflow; mobile navigation on its own row; controls at least 44px high;
+  meaningful theme action label and visible keyboard focus; reduced motion
+  rests; static checks pass without rule changes.
+- **Evidence:** Inspect screenshots under `qa-artifacts/header-redesign/` and
+  save static diagnostics in `docs/header-redesign-checks.log`.
+- **Cleanup:** Restore viewport, zoom, theme, and motion settings.
+- **Status:** Pending.
+
+Static validation for the header working-tree change: `bun run lint`,
+`bun run format:check`, and `bun run typecheck` passed from `apps/web`.
+Typecheck covered app, tools, and service worker; route generation also passed.
+`git diff --check` passed from the repository root. Logs are local at
+`docs/header-redesign-lint.log`, `docs/header-redesign-format.log`, and
+`docs/header-redesign-typecheck.log`. QA-168, QA-169, and QA-170 remain pending:
+these static results do not establish browser or runtime behavior.
