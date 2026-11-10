@@ -1,4 +1,11 @@
+import * as stylex from "@stylexjs/stylex"
 import { Link } from "@tanstack/react-router"
+import {
+  ChevronDownIcon,
+  LogOutIcon,
+  SettingsIcon,
+  UserRoundIcon,
+} from "lucide-react"
 import { useRef, useState } from "react"
 import { z } from "zod"
 
@@ -26,6 +33,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { HStack } from "@/components/ui/hstack"
+import {
+  Menu,
+  MenuGroup,
+  MenuGroupLabel,
+  MenuItem,
+  MenuLinkItem,
+  MenuPopup,
+  MenuSeparator,
+  MenuTrigger,
+} from "@/components/ui/menu"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { ImportPlanChangedError } from "@/features/account/sync-contract"
@@ -100,8 +117,6 @@ export function AccountControls({
   state: AccountSnapshot
 }) {
   const focus = useFocusSnapshot((value) => value)
-  const accountCloseRef = useRef<HTMLButtonElement>(null)
-  const [accountCloseProps] = useState(() => ({ ref: accountCloseRef }))
 
   if (state.user === null || focus.owner.identity === null) {
     return (
@@ -112,23 +127,103 @@ export function AccountControls({
   }
 
   return (
-    <Dialog>
-      <DialogTrigger render={<Button variant="outline" size="xl" />}>
-        Account
-      </DialogTrigger>
-      <DialogPopup closeProps={accountCloseProps}>
+    <SignedInAccountControls
+      key={focus.owner.generation}
+      controller={controller}
+      state={state}
+      workspace={focus.workspace}
+      owner={focus.owner}
+    />
+  )
+}
+
+export function SignedInAccountControls({
+  controller,
+  state,
+  workspace,
+  owner,
+}: {
+  controller: AccountController
+  state: AccountSnapshot
+  workspace: Workspace
+  owner: WorkspaceOwner
+}) {
+  const accountCloseRef = useRef<HTMLButtonElement>(null)
+  const accountTriggerRef = useRef<HTMLButtonElement>(null)
+  const [accountOpen, setAccountOpen] = useState(false)
+  const [accountCloseProps] = useState(() => ({ ref: accountCloseRef }))
+  const openAccount = useEventCallback(() => setAccountOpen(true))
+  const accountName = state.user?.name?.trim() ?? ""
+  const [accountOwner] = useState(() => ({ controller, owner }))
+
+  return (
+    <Dialog open={accountOpen} onOpenChange={setAccountOpen}>
+      <Menu>
+        <MenuTrigger
+          ref={accountTriggerRef}
+          render={<Button variant="ghost" size="xl" />}
+        >
+          <UserRoundIcon size={18} aria-hidden="true" />
+          Account
+          <ChevronDownIcon size={14} aria-hidden="true" />
+        </MenuTrigger>
+        <MenuPopup align="end" sideOffset={8} xstyle={styles.accountMenu}>
+          <MenuGroup>
+            <MenuGroupLabel>
+              <Stack spacing="compact">
+                <Text variant="label" size="small">
+                  {accountName.length > 0 ? accountName : "Your account"}
+                </Text>
+                <Text size="small" tone="muted">
+                  {accountStatus(state)}
+                </Text>
+              </Stack>
+            </MenuGroupLabel>
+            <MenuSeparator />
+            <MenuLinkItem render={<Link to="/settings" />}>
+              <SettingsIcon size={16} aria-hidden="true" /> Settings
+            </MenuLinkItem>
+            <MenuItem onClick={openAccount}>
+              <UserRoundIcon size={16} aria-hidden="true" /> Account details
+            </MenuItem>
+            <MenuSeparator />
+            <ConfirmAction
+              title="Log out"
+              description="Unsynced account work stays on this device. Export a backup in Settings if needed."
+              targetId="logout"
+              data={null}
+              owner={accountOwner}
+              onConfirm={logout}
+              trigger={
+                <MenuItem
+                  nativeButton
+                  render={<button type="button" aria-label="Log out" />}
+                  variant="destructive"
+                  closeOnClick={false}
+                />
+              }
+            >
+              <LogOutIcon size={16} aria-hidden="true" /> Log out
+            </ConfirmAction>
+          </MenuGroup>
+        </MenuPopup>
+      </Menu>
+      <DialogPopup
+        closeProps={accountCloseProps}
+        finalFocus={accountTriggerRef}
+      >
         <DialogHeader>
           <DialogTitle>Your workspace</DialogTitle>
           <DialogDescription>
-            Manage your account and sync your work.
+            Changes sync automatically. Manage saved data and account access.
           </DialogDescription>
         </DialogHeader>
         <DialogPanel>
           <AccountActions
-            key={focus.owner.generation}
+            key={owner.generation}
             controller={controller}
             state={state}
-            workspace={focus.workspace}
+            workspace={workspace}
             accountCloseRef={accountCloseRef}
           />
         </DialogPanel>
@@ -142,11 +237,11 @@ function accountStatus(state: AccountSnapshot) {
     case "guest":
       return "Guest work stays on this device."
     case "syncing":
-      return "Syncing account work."
+      return "Saving changes automatically."
     case "saved":
       return state.dirty || state.revision === null
         ? "Changes are waiting to sync."
-        : "Account work is synced."
+        : "All changes saved."
     case "offline":
       return "Offline. Changes may not be synced."
     case "error":
@@ -209,20 +304,15 @@ export function AccountActions({
       <HStack wrap>
         {state.user && (
           <>
-            <Button
-              variant="outline"
-              loading={pending}
-              disabled={
-                state.status === "conflict" ||
-                state.status === "loading" ||
-                state.status === "syncing"
-              }
-              onClick={commands.sync}
-            >
-              {state.status === "error" || state.status === "offline"
-                ? "Retry sync"
-                : "Sync now"}
-            </Button>
+            {(state.status === "error" || state.status === "offline") && (
+              <Button
+                variant="outline"
+                loading={pending}
+                onClick={commands.sync}
+              >
+                Retry sync
+              </Button>
+            )}
             <AccountImportAction
               bound={bound}
               state={state}
@@ -303,9 +393,7 @@ export function AccountFeedback({
       )}
       <Box
         render={
-          <output>
-            {pending ? "Working on account sync." : accountStatus(state)}
-          </output>
+          <output>{pending ? "Retrying sync." : accountStatus(state)}</output>
         }
       />
       {(error ?? state.error) && (
@@ -563,3 +651,9 @@ export function ImportContent({
     </DialogPopup>
   )
 }
+
+const styles = stylex.create({
+  accountMenu: {
+    inlineSize: "min(280px, calc(100vw - 32px))",
+  },
+})

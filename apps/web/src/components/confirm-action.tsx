@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { ReactElement, ReactNode } from "react"
 
 import { useRef, useState } from "react"
 
@@ -20,6 +20,7 @@ export function ConfirmAction<T, Owner>({
   title,
   description,
   children,
+  trigger,
   targetId,
   data,
   owner,
@@ -28,6 +29,7 @@ export function ConfirmAction<T, Owner>({
   title: string
   description: string
   children: ReactNode
+  trigger?: ReactElement
   targetId: string
   data: T
   owner: Owner
@@ -56,7 +58,7 @@ export function ConfirmAction<T, Owner>({
   return (
     <Dialog open={opening?.open ?? false} onOpenChange={changeOpen}>
       <DialogTrigger
-        render={<Button variant="destructive-outline" size="sm" />}
+        render={trigger ?? <Button variant="destructive-outline" size="sm" />}
       >
         {children}
       </DialogTrigger>
