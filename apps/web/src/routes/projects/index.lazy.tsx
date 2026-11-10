@@ -11,9 +11,10 @@ import type { WorkspaceOwner } from "@/features/focus/store"
 
 import { ConfirmAction } from "@/components/confirm-action"
 import { FieldMessages } from "@/components/field-messages"
+import { Badge } from "@/components/ui/badge"
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
-import { Card, CardPanel } from "@/components/ui/card"
+import { Card, CardFooter, CardPanel } from "@/components/ui/card"
 import { Container } from "@/components/ui/container"
 import {
   Dialog,
@@ -227,28 +228,37 @@ export function ProjectCard({
 
   return (
     <Card>
-      <CardPanel density="compact" render={<Stack />}>
+      <CardPanel render={<Stack spacing="relaxed" />}>
         <HStack layout="spread">
           <HStack layout="row">
             <ColorIndicator color={project.color} />
             <Heading>{project.name}</Heading>
           </HStack>
-          <Text size="small" tone="muted">
+          <Badge variant="secondary">
             {project.archived ? "Archived" : "Active"}
-          </Text>
+          </Badge>
         </HStack>
-        <HStack layout="row">
-          <Text size="small" tone="muted">
-            {project.color}
-          </Text>
+        <Stack spacing="compact">
           <Text size="small">{formatFocusTime(seconds)} focused</Text>
-          <Text size="small" tone="muted">
-            {tasks} open {tasks === 1 ? "task" : "tasks"}
+          <HStack layout="row">
+            <Text size="small" tone="muted">
+              {project.color}
+            </Text>
+            <Text size="small" tone="muted">
+              {tasks} open {tasks === 1 ? "task" : "tasks"}
+            </Text>
+          </HStack>
+        </Stack>
+        {error && (
+          <Text role="alert" tone="destructive">
+            {error}
           </Text>
-        </HStack>
+        )}
+      </CardPanel>
+      <CardFooter separator>
         <HStack layout="row">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             disabled={pending}
             onClick={events.edit}
@@ -275,12 +285,7 @@ export function ProjectCard({
             Delete
           </ConfirmAction>
         </HStack>
-        {error && (
-          <Text role="alert" tone="destructive">
-            {error}
-          </Text>
-        )}
-      </CardPanel>
+      </CardFooter>
     </Card>
   )
 }

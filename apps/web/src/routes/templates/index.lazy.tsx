@@ -9,7 +9,7 @@ import type { WorkspaceOwner } from "@/features/focus/store"
 import { ConfirmAction } from "@/components/confirm-action"
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
-import { Card, CardPanel } from "@/components/ui/card"
+import { Card, CardFooter, CardPanel } from "@/components/ui/card"
 import { Container } from "@/components/ui/container"
 import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty"
 import { Grid } from "@/components/ui/grid"
@@ -177,14 +177,14 @@ export function TemplatesRoute() {
               <Grid variant="workspace">
                 {workspace.templates.map((template) => (
                   <Card key={template.id}>
-                    <CardPanel density="compact" render={<Stack />}>
-                      <Stack spacing="compact">
-                        <Heading render={<h2>{template.name}</h2>} />
-                        <Text size="small" tone="muted">
-                          {template.tasks.length}{" "}
-                          {template.tasks.length === 1 ? "task" : "tasks"}
-                        </Text>
-                      </Stack>
+                    <CardPanel render={<Stack spacing="compact" />}>
+                      <Heading render={<h2>{template.name}</h2>} />
+                      <Text size="small" tone="muted">
+                        {template.tasks.length}{" "}
+                        {template.tasks.length === 1 ? "task" : "tasks"}
+                      </Text>
+                    </CardPanel>
+                    <CardFooter separator>
                       <HStack layout="row">
                         <Button
                           size="sm"
@@ -214,7 +214,7 @@ export function TemplatesRoute() {
                           Delete
                         </ConfirmAction>
                       </HStack>
-                    </CardPanel>
+                    </CardFooter>
                   </Card>
                 ))}
               </Grid>
