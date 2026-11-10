@@ -4031,3 +4031,33 @@ and saved-state transition → QA-128. No HTTP, auth, database, or migration
 contracts change; those categories are not applicable to this task. Native lint,
 format, and owning web typechecks run during implementation. Production build
 and browser checks remain deferred to the QA pass.
+
+## Login navigation
+
+### [ ] QA-129 — P1 — Signed-out login and signed-in account controls
+
+- **Purpose:** show a Log in link instead of guest/account-check UI, and use a
+  dedicated login page without changing OAuth or account ownership rules.
+- **Prerequisites:** local app at `http://127.0.0.1:13001`; isolated signed-out
+  browser and a test account with the existing configured OpenAuth issuer.
+- **Inputs:** `/`, `/login`, `/auth/login`; API available and unavailable.
+- **Steps:** 1. Open `/` signed out, including when the API is unavailable. 2.
+  Select Log in. 3. Reload `/login` directly. 4. Select its sign-in action. 5.
+  Complete existing issuer sign-in. 6. Open Account and use existing sync
+  controls. 7. Log out and return to `/`. 8. Check keyboard navigation and phone
+  layout on `/login`.
+- **Expected results:** signed-out users see Log in, not Guest mode or Retry
+  account check; no account-error dialog is exposed to them. Login is a real
+  route with a page title, heading, issuer action, and return-to-timer link. The
+  issuer action uses `/auth/login`; tokens remain server-side. Signed-in users
+  keep sync, conflict, import, and logout actions. Failure does not falsely
+  report sign-in success or expose another account's workspace.
+- **Evidence:** inspect `qa-artifacts/login/signed-out.png`, `login.png`, and
+  `qa-artifacts/login/results.txt`; omit credentials and tokens.
+- **Cleanup:** log out of the isolated test account; restore network settings.
+- **Status:** pending; runtime account QA has not run.
+
+Coverage: signed-out header, dedicated login, existing OAuth entry, account
+control regression, and unavailable API UI → QA-129. The session discovery
+request remains necessary to detect existing sessions; this change removes its
+signed-out UI, not server authentication checks.

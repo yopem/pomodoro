@@ -103,10 +103,18 @@ export function AccountControls({
   const accountCloseRef = useRef<HTMLButtonElement>(null)
   const [accountCloseProps] = useState(() => ({ ref: accountCloseRef }))
 
+  if (state.user === null || focus.owner.identity === null) {
+    return (
+      <Button variant="outline" size="xl" render={<Link to="/login" />}>
+        Log in
+      </Button>
+    )
+  }
+
   return (
     <Dialog>
       <DialogTrigger render={<Button variant="outline" size="xl" />}>
-        {focus.owner.identity === null ? "Guest mode" : "Account"}
+        Account
       </DialogTrigger>
       <DialogPopup closeProps={accountCloseProps}>
         <DialogHeader>
@@ -172,25 +180,7 @@ export function useAccountCommands(bound: BoundAccount) {
       }
     }
 
-    async function refresh() {
-      if (inFlight.current) return
-      inFlight.current = true
-      setPending(true)
-      setError(null)
-
-      try {
-        await bound.controller.refresh()
-      } catch (cause) {
-        setError(
-          cause instanceof Error ? cause.message : "Account check failed",
-        )
-      } finally {
-        inFlight.current = false
-        setPending(false)
-      }
-    }
-
-    return { sync, refresh }
+    return { sync }
   })
 
   return { commands, pending, error }
@@ -217,13 +207,7 @@ export function AccountActions({
     <Stack spacing="compact">
       <AccountFeedback state={state} pending={pending} error={error} />
       <HStack wrap>
-        {!state.user && (
-          <Button
-            variant="outline"
-            render={<a href="/auth/login">Sign in</a>}
-          />
-        )}
-        {state.user ? (
+        {state.user && (
           <>
             <Button
               variant="outline"
@@ -255,16 +239,6 @@ export function AccountActions({
               Log out
             </ConfirmAction>
           </>
-        ) : (
-          (state.status === "error" || state.status === "offline") && (
-            <Button
-              variant="outline"
-              loading={pending}
-              onClick={commands.refresh}
-            >
-              Retry account check
-            </Button>
-          )
         )}
       </HStack>
       {state.user &&
