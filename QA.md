@@ -5460,20 +5460,32 @@ P2. Keep artifacts in the ignored `qa-artifacts/` directory.
 ### [ ] QA-194 — P1 — Timer and focus loading placeholders
 
 - **Purpose:** Check the timer, phase controls, action buttons, task list, and
-  daily summary against their loaded layouts.
+  daily summary against their loaded layouts. Check that the home skeleton and
+  loaded content have the same width.
 - **Prerequisites:** Shared setup; a fresh page load and throttled scripts.
 - **Inputs:** `/` and `/focus`; viewport widths 390 and 1440 CSS pixels.
 - **Steps:** 1. Open each route with scripts throttled and capture its
   skeleton. 2. Let hydration finish and capture the same view. 3. Compare button
-  heights, spacing, dial, task and summary placement at each width.
+  heights, spacing, dial, task and summary placement at each width. Compare the
+  left and right edges of the home timer and task columns before and after
+  hydration.
 - **Expected results:** Placeholders follow the same responsive layout and
-  button scale as the loaded interface. The focus route does not show the task
-  list or daily summary. The loading announcement is available to assistive
-  technology; decorative placeholders are hidden.
+  button scale as the loaded interface. The home grid and its columns have the
+  same width and edges before and after hydration, without horizontal overflow.
+  The focus route does not show the task list or daily summary. The loading
+  announcement is available to assistive technology; decorative placeholders are
+  hidden.
 - **Evidence:** Save sanitized before-and-after screenshots in
   `qa-artifacts/QA-194/`; inspect both routes and widths.
 - **Cleanup:** Restore normal network settings; stop only case-owned processes.
-- **Status:** pending.
+- **Status:** pending. On 2026-11-11, a focused browser check at revision
+  `7ed34fa` with the uncommitted home skeleton fix found matching grid and
+  timer-card left edges and widths at 390px and 1440px. The grid also starts at
+  the same vertical position. See `qa-artifacts/QA-194/home-layout.txt`. The
+  loading check blocked scripts, which caused expected resource errors. The
+  loaded page also returned HTTP 500 for `/api/session` because the local API
+  was not running. Focus-route, full visual, and accessibility checks remain
+  pending.
 
 ### [ ] QA-195 — P1 — Reports loading placeholders
 
