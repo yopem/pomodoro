@@ -13,20 +13,17 @@ const styles = stylex.create({
     color: tokens["--foreground"],
     fontFamily: tokens["--font-heading"],
     fontSize: {
-      default: "1.5rem",
-      "@media (max-width: 640px)": "1.25rem",
+      default: "1.25rem",
+      "@media (max-width: 640px)": "1.125rem",
       ":is(h1)": {
-        default: "2.25rem",
-        "@media (max-width: 640px)": "1.75rem",
+        default: "1.875rem",
+        "@media (max-width: 640px)": "1.5rem",
       },
       ":is(h3)": {
-        default: "1.25rem",
-        "@media (max-width: 640px)": "1.125rem",
-      },
-      ":is(h4)": {
         default: "1.125rem",
         "@media (max-width: 640px)": "1rem",
       },
+      ":is(h4)": "1rem",
       ":is(h5)": "1rem",
       ":is(h6)": "0.875rem",
     },

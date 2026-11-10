@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-label="Pomodoro timer"
             >
               <TimerIcon
-                size={40}
+                size={36}
                 aria-hidden="true"
                 {...stylex.props(styles.brandIcon)}
               />
@@ -114,13 +114,13 @@ const styles = stylex.create({
   brand: {
     display: "inline-flex",
     alignItems: "center",
-    gap: `calc(${tokens["--spacing"]} * 3)`,
+    gap: `calc(${tokens["--spacing"]} * 2)`,
     minBlockSize: 44,
     color: tokens["--foreground"],
     textDecoration: "none",
-    fontSize: 22,
-    fontWeight: 700,
-    letterSpacing: "-0.04em",
+    fontSize: 17,
+    fontWeight: 600,
+    letterSpacing: "-0.025em",
     flexShrink: 0,
   },
   brandIcon: {
@@ -147,12 +147,12 @@ const styles = stylex.create({
     backgroundColor: {
       default: "transparent",
       ":hover": tokens["--accent"],
-      ":is([data-status=active])": tokens["--primary"],
+      ":is([data-status=active])": tokens["--muted"],
     },
     color: {
       default: tokens["--muted-foreground"],
       ":hover": tokens["--foreground"],
-      ":is([data-status=active])": tokens["--primary-foreground"],
+      ":is([data-status=active])": tokens["--foreground"],
     },
     textDecoration: "none",
     outlineOffset: -3,
