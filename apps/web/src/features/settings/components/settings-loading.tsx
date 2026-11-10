@@ -22,16 +22,23 @@ const styles = stylex.create({
       "@media (max-width: 768px)": 120,
     },
   },
-  title: { blockSize: 28, inlineSize: "45%" },
+  title: {
+    blockSize: { default: 25, "@media (max-width: 640px)": 22.5 },
+    inlineSize: "45%",
+  },
   description: { blockSize: 20, inlineSize: "85%" },
   label: { blockSize: 16, inlineSize: "60%" },
   control: {
     blockSize: { default: 36, "@media (min-width: 640px)": 32 },
     inlineSize: "100%",
   },
+  saveText: { inlineSize: "min(100%, 240px)" },
   toggleLabel: { blockSize: 20, inlineSize: "65%" },
   toggle: { blockSize: 20, inlineSize: 36 },
-  button: { blockSize: 44, inlineSize: 132 },
+  button: {
+    blockSize: { default: 40, "@media (min-width: 640px)": 36 },
+    inlineSize: 132,
+  },
 })
 
 export function SettingsFieldSkeleton() {
@@ -91,7 +98,10 @@ export function SettingsSkeleton() {
         </Card>
         <Box variant="settingsSave">
           <HStack layout="spread">
-            <Skeleton xstyle={styles.label} />
+            <Stack spacing="compact" xstyle={styles.saveText}>
+              <Skeleton xstyle={styles.label} />
+              <Skeleton xstyle={styles.description} />
+            </Stack>
             <Skeleton xstyle={styles.button} />
           </HStack>
         </Box>
@@ -103,19 +113,28 @@ export function SettingsSkeleton() {
           <CardPanel>
             <Stack>
               <HStack layout="spread">
-                <Skeleton xstyle={styles.title} />
-                <Skeleton xstyle={styles.button} />
-              </HStack>
-              <Skeleton xstyle={styles.description} />
-              <Box variant="backupUpload">
-                <Stack spacing="relaxed">
+                <Stack spacing="compact" xstyle={styles.saveText}>
                   <Skeleton xstyle={styles.title} />
                   <Skeleton xstyle={styles.description} />
-                  <HStack layout="spread">
+                </Stack>
+                <Skeleton xstyle={styles.button} />
+              </HStack>
+              <Box variant="backupUpload">
+                <Stack spacing="relaxed">
+                  <Stack spacing="compact">
+                    <Skeleton xstyle={styles.title} />
+                    <Skeleton xstyle={styles.description} />
+                  </Stack>
+                  <Stack>
+                    <HStack layout="spread">
+                      <Stack spacing="compact" xstyle={styles.saveText}>
+                        <Skeleton xstyle={styles.label} />
+                        <Skeleton xstyle={styles.description} />
+                      </Stack>
+                      <Skeleton xstyle={styles.button} />
+                    </HStack>
                     <Skeleton xstyle={styles.label} />
-                    <Skeleton xstyle={styles.button} />
-                  </HStack>
-                  <Skeleton xstyle={styles.label} />
+                  </Stack>
                 </Stack>
               </Box>
             </Stack>
