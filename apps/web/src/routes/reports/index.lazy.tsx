@@ -109,10 +109,7 @@ export function ReportsRoute() {
     return (
       <Box render={<main id="main" tabIndex={-1} />}>
         <Container variant="workspace">
-          <Stack spacing="page">
-            <Heading render={<h1>Focus reports</h1>} />
-            <ReportsSkeleton />
-          </Stack>
+          <ReportsSkeleton />
         </Container>
       </Box>
     )
