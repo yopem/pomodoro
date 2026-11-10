@@ -4089,3 +4089,85 @@ signed-out UI, not server authentication checks.
 
 Coverage: workspace cwd, root env loading, safe missing configuration, and
 native startup → QA-130. No database schema or production configuration changes.
+
+## Error and offline pages
+
+Setup: local app at `http://127.0.0.1:13001`. Use an isolated browser profile
+and existing guest work; do not clear storage. Service-worker checks need an
+approved production build and installed worker, not only the Vite dev page. Save
+evidence under the existing ignored `qa-artifacts/error-pages/` directory. No
+containers are required by these page changes.
+
+### [ ] QA-131 — P1 — Unknown page recovery
+
+- **Purpose:** provide a useful 404 without losing the workspace.
+- **Prerequisites:** shared setup above; one saved local task.
+- **Inputs:** `/missing-page-qa-131`; widths 1440, 768, 390, and 320.
+- **Steps:** 1. Direct-load the missing URL. 2. Reload it. 3. Tab to Return to
+  timer and activate it. 4. Repeat with dark theme and 200% zoom.
+- **Expected results:** the page states Error 404 and Page not found; the timer
+  link returns to `/`; the saved task remains. Focus is visible and content does
+  not overflow. SSR returns a missing-page response, not a success page.
+- **Evidence:** inspect `qa-artifacts/error-pages/404.png` and sanitized
+  response status in `qa-artifacts/error-pages/results.txt`.
+- **Cleanup:** restore viewport and zoom; keep saved work unchanged.
+- **Status:** pending; browser and HTTP QA have not run.
+
+### [ ] QA-132 — P1 — Global route error recovery
+
+- **Purpose:** offer recovery without exposing internal error details.
+- **Prerequisites:** shared setup; an isolated local route error triggered with
+  browser developer tools. Do not add a committed failing route.
+- **Inputs:** pause a route chunk request and fail it during navigation to
+  `/reports`; if the browser cannot inject this error, record the case blocked.
+- **Steps:** 1. Trigger the isolated route-load failure. 2. Inspect the error
+  page and keyboard controls. 3. Restore the request and select Reload page. 4.
+  Repeat the failure and select Return to timer.
+- **Expected results:** the global error UI offers reload and full-document
+  timer recovery; no stack, token, or provider data is printed. Recovery works
+  after restoring the request. Saved workspace data stays unchanged.
+- **Evidence:** inspect `qa-artifacts/error-pages/global-error.png` and the
+  recovery details in `qa-artifacts/error-pages/results.txt`.
+- **Cleanup:** remove only injected request failures; restore browser settings.
+- **Status:** pending; error injection and recovery have not run.
+
+### [ ] QA-133 — P1 — PWA offline fallback and recovery
+
+- **Purpose:** show a complete offline document without claiming sync success.
+- **Prerequisites:** approved production build, installed worker, and shared
+  setup. Build and service-worker browser checks need QA approval.
+- **Inputs:** `/offline.html`, then an uncached `/reports` navigation offline;
+  widths 390 and 320; keyboard only; reduced motion.
+- **Steps:** 1. Load the installed app online. 2. Go offline with browser
+  developer tools and navigate to the uncached route. 3. Inspect its
+  fallback. 4. Reconnect and select Try opening the timer. 5. Inspect saved
+  local work.
+- **Expected results:** offline title, icon, stylesheet, guidance, and recovery
+  link render from local assets. The link requests `/`; saved work remains. No
+  account check or guest-mode label is shown. The fallback stays noindex.
+- **Evidence:** inspect `qa-artifacts/error-pages/offline.png` and the worker,
+  offline navigation, and recovery results in `results.txt` in that folder.
+- **Cleanup:** reconnect and restore browser settings; keep stored work.
+- **Status:** pending; installed-worker QA has not run.
+
+### [ ] QA-134 — P0 — Preserve private cache exclusions
+
+- **Purpose:** ensure offline recovery does not cache account or auth content.
+- **Prerequisites:** QA-133 installed-worker setup; an isolated signed-in test
+  session; never use production credentials or print token values.
+- **Inputs:** `/api/account`, `/auth/login`, and the existing session endpoint
+  from the generated OpenAPI contract. Discover its exact path before use.
+- **Steps:** 1. Inspect worker cache entries after online account navigation. 2.
+  Go offline and request API and auth paths. 3. Inspect responses and caches.
+- **Expected results:** private JSON and authenticated HTML are not cached;
+  API/auth requests do not return the offline HTML document. No sensitive data
+  is written to the evidence. Existing worker exclusions remain effective.
+- **Evidence:** sanitized cache path list and response content types in
+  `qa-artifacts/error-pages/cache-exclusions.txt`; inspect every entry.
+- **Cleanup:** restore connectivity and log out of the isolated session.
+- **Status:** pending; service-worker security QA has not run.
+
+Coverage: 404 → QA-131; global error recovery → QA-132; offline fallback,
+reconnect, metadata, layout, and accessibility → QA-133; private/API/auth cache
+isolation → QA-134. Service-worker caching policy is unchanged. Payment,
+migration, and new integration checks are not applicable to these changes.

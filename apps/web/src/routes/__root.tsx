@@ -16,12 +16,23 @@ import {
   useRouter,
   useRouterState,
 } from "@tanstack/react-router"
+import { CircleAlertIcon, CompassIcon } from "lucide-react"
 
 import type { Timer } from "@/features/focus/schema"
 
 import { AppShell } from "@/components/app-shell"
 import { Box } from "@/components/ui/box"
+import { Button } from "@/components/ui/button"
+import { Container } from "@/components/ui/container"
+import {
+  Empty,
+  EmptyContent,
+  EmptyHeader,
+  EmptyMedia,
+} from "@/components/ui/empty"
 import { Heading } from "@/components/ui/heading"
+import { HStack } from "@/components/ui/hstack"
+import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { useFocusSnapshot } from "@/features/focus/store"
 import { formatTimerClock, timerPhaseLabels } from "@/features/timer/countdown"
@@ -163,12 +174,42 @@ export function RootDocument({ children }: { children: ReactNode }) {
   )
 }
 
+function reloadPage() {
+  window.location.reload()
+}
+
 export function RouteError() {
   return (
-    <Box render={<main id="main" />}>
-      <Heading render={<h1>This page could not load</h1>} />
-      <Text>Reload this page or return to the timer.</Text>
-      <Link to="/">Return to timer</Link>
+    <Box render={<main id="main" tabIndex={-1} />}>
+      <Container variant="focus">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <CircleAlertIcon size={20} aria-hidden="true" />
+            </EmptyMedia>
+            <Stack spacing="compact" layout="centered">
+              <Text variant="eyebrow">Something went wrong</Text>
+              <Heading render={<h1>This page could not load</h1>} />
+              <Text tone="muted">
+                Try loading the page again, or return to your timer.
+              </Text>
+            </Stack>
+          </EmptyHeader>
+          <EmptyContent>
+            <HStack layout="centered">
+              <Button onClick={reloadPage}>Reload page</Button>
+              <Button
+                variant="outline"
+                render={
+                  <Link to="/" reloadDocument aria-label="Return to timer" />
+                }
+              >
+                Return to timer
+              </Button>
+            </HStack>
+          </EmptyContent>
+        </Empty>
+      </Container>
     </Box>
   )
 }
@@ -188,9 +229,29 @@ const styles = stylex.create({
 
 export function RouteNotFound() {
   return (
-    <Box render={<main id="main" />}>
-      <Heading render={<h1>Page not found</h1>} />
-      <Link to="/">Return to timer</Link>
+    <Box render={<main id="main" tabIndex={-1} />}>
+      <Container variant="focus">
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <CompassIcon size={20} aria-hidden="true" />
+            </EmptyMedia>
+            <Stack spacing="compact" layout="centered">
+              <Text variant="eyebrow">Error 404</Text>
+              <Heading render={<h1>Page not found</h1>} />
+              <Text tone="muted">
+                This page may have moved, or the address may be incorrect. Check
+                the address or return to your timer.
+              </Text>
+            </Stack>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button render={<Link to="/" aria-label="Return to timer" />}>
+              Return to timer
+            </Button>
+          </EmptyContent>
+        </Empty>
+      </Container>
     </Box>
   )
 }
