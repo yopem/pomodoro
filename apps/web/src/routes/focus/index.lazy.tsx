@@ -9,6 +9,7 @@ import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { useFocusSnapshot } from "@/features/focus/store"
 import { FocusTimer } from "@/features/timer/components/focus-timer"
+import { FocusTimerSkeleton } from "@/features/timer/components/timer-loading"
 
 export const Route = createLazyFileRoute("/focus/")({
   component: FocusRoute,
@@ -31,7 +32,10 @@ export function FocusRoute() {
           </HStack>
           {error && <Text role="alert">{error}</Text>}
           {!hydrated ? (
-            <output>Loading your workspace…</output>
+            <Stack aria-busy="true">
+              <output aria-live="polite">Loading your workspace…</output>
+              <FocusTimerSkeleton />
+            </Stack>
           ) : (
             <FocusTimer workspace={workspace} nowMs={nowMs} />
           )}

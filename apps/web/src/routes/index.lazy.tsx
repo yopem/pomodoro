@@ -26,6 +26,7 @@ import { useFocusSnapshot } from "@/features/focus/store"
 import { TaskList } from "@/features/tasks/components/task-list"
 import { FocusBrowserControls } from "@/features/timer/components/browser-focus-controls"
 import { FocusTimer } from "@/features/timer/components/focus-timer"
+import { TimerWorkspaceSkeleton } from "@/features/timer/components/timer-loading"
 import { useBrowserFullscreen } from "@/features/timer/hooks/use-browser-fullscreen"
 import { formatFocusTime } from "@/lib/focus-time"
 
@@ -58,10 +59,18 @@ export function TimerRoute() {
   if (!hydrated) {
     return (
       <Box render={<main id="main" tabIndex={-1} />}>
-        <Container variant="workspace">
+        <Container
+          variant={fullscreen ? "focus" : "workspace"}
+          xstyle={!fullscreen && styles.workspace}
+        >
           <Stack spacing="page">
-            <Heading render={<h1>Focus timer</h1>} />
-            <output>Loading your workspace…</output>
+            <Stack spacing="compact">
+              <Text variant="eyebrow" hidden={fullscreen}>
+                Your focus workspace
+              </Text>
+              <Heading render={<h1>Focus timer</h1>} />
+            </Stack>
+            <TimerWorkspaceSkeleton fullscreen={fullscreen} />
           </Stack>
         </Container>
       </Box>

@@ -3992,3 +3992,42 @@ custom snapshot checker should remain removed. See QA-125.
   hosted CI, dev/build launch, browser, service or data action ran; no new
   partial-staging/signal fixtures or separate pushed-tip isolation are claimed.
   Hosted CI QA-121 P1 stays pending.
+
+## Timer loading layout
+
+Scope: `/` and `/focus`; loading placeholders only. The timer store, hydration,
+settings, task commands, and persistence contracts must not change.
+
+### [ ] QA-128 — P1 — Loading layout and hydration transition
+
+- **Purpose:** replace the blank loading screen without showing false task or
+  timer data or exposing controls before the workspace is ready.
+- **Prerequisites:** local Vite server at `http://localhost:13001`, existing
+  isolated browser profile; no containers are required for guest loading. Use
+  browser network throttling and disable cache. Do not clear stored data.
+- **Inputs:** `/`, `/focus`; widths `1440`, `1024`, `768`, `390`, `320`;
+  light/dark themes; reduced motion; an existing guest workspace.
+- **Steps:** 1. Reload `/` with throttling and capture the initial loading
+  UI. 2. Wait for hydration and capture the ready UI at the same width. 3.
+  Repeat at each width and in both themes. 4. Reload `/focus`. 5. Tab through
+  the loading view; check its screen-reader status announcement. 6. Repeat with
+  reduced motion. 7. Reload without throttling.
+- **Expected results:** loading has a circular timer outline, control
+  placeholders, daily summary, and task placeholders; narrow widths stack in the
+  same order as the real workspace. No invented time, counts, or task text. No
+  placeholder receives focus or exposes a false control name. A concise loading
+  status is available to assistive technology. Hydration removes all
+  placeholders and preserves saved state. No overflow at 320px. Reduced motion
+  stops placeholder animation. Fast loads have no artificial delay.
+- **Evidence:** save and inspect paired screenshots under
+  `qa-artifacts/loading/` and sanitized browser findings in
+  `qa-artifacts/loading/results.txt`; use the existing ignored artifact folder.
+- **Cleanup:** restore network, cache, viewport, and accessibility settings;
+  stop only servers started for this case. Do not remove stored workspace data.
+- **Status:** pending; browser QA has not run.
+
+Coverage: loading hierarchy, responsiveness, theme, motion, accessible status,
+and saved-state transition → QA-128. No HTTP, auth, database, or migration
+contracts change; those categories are not applicable to this task. Native lint,
+format, and owning web typechecks run during implementation. Production build
+and browser checks remain deferred to the QA pass.

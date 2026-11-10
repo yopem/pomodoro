@@ -30,7 +30,8 @@
     "src/components/ui/stat.tsx": "sha256-e10vl3G9nVS2Hp+ilGVShebHid8ukkdQNik5FCH3gvs=",
     "src/hooks/use-event-callback.ts": "sha256-28rZ/AdH+TGs7SjY6wvt6v3bUThJ0Nk8rbLcHaK7Kew=",
     "src/themes/theme.tsx": "sha256-ymLJB+CiXAjIUOmE1W7DJZTfDABNcJ6ijgFNFaxt/gQ=",
-    "src/themes/theme-provider.tsx": "sha256-3zVFwz05V7ZS+hJ1BqanyvToWvGVQhGbp3XmU0vYwe0="
+    "src/themes/theme-provider.tsx": "sha256-3zVFwz05V7ZS+hJ1BqanyvToWvGVQhGbp3XmU0vYwe0=",
+    "src/components/ui/skeleton.tsx": "sha256-vcdJpond3ltD5Vchbp8pay/GbMyy5wuPnGBuYeej0bs="
   },
   "paths": {
     "ui": "src/components/ui",
@@ -251,6 +252,13 @@
         "theme": "0.1.0"
       },
       "target": "@/theme/theme-provider.tsx"
+    },
+    "src/components/ui/skeleton.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "skeleton": "0.1.0"
+      },
+      "target": "@/components/ui/skeleton.tsx"
     }
   },
   "importPrefix": "@"
