@@ -1,3 +1,4 @@
+import "@fontsource-variable/inter"
 import "@/styles/styles.css"
 import type { QueryClient } from "@tanstack/react-query"
 import type { RegisteredRouter } from "@tanstack/react-router"

@@ -22,7 +22,6 @@ const styles = stylex.create({
   success: { color: tokens["--success-foreground"] },
   small: { fontSize: 14 },
   numeric: {
-    fontFamily: tokens["--font-mono"],
     fontVariantNumeric: "tabular-nums",
   },
   eyebrow: {
