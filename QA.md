@@ -4155,8 +4155,9 @@ containers are required by these page changes.
 - **Purpose:** ensure offline recovery does not cache account or auth content.
 - **Prerequisites:** QA-133 installed-worker setup; an isolated signed-in test
   session; never use production credentials or print token values.
-- **Inputs:** `/api/account`, `/auth/login`, and the existing session endpoint
-  from the generated OpenAPI contract. Discover its exact path before use.
+- **Inputs:** `/api/session`, `/api/workspace`, and `/auth/login`. Read
+  workspace data through the existing typed client, which supplies the
+  `X-Pomodoro-User` header for the isolated signed-in account.
 - **Steps:** 1. Inspect worker cache entries after online account navigation. 2.
   Go offline and request API and auth paths. 3. Inspect responses and caches.
 - **Expected results:** private JSON and authenticated HTML are not cached;
