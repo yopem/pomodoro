@@ -5536,3 +5536,199 @@ P2. Keep artifacts in the ignored `qa-artifacts/` directory.
 - **Cleanup:** Restore theme, motion, and network settings; stop only case-owned
   processes.
 - **Status:** pending.
+
+## Local Yopem UI style refresh
+
+Task: apply the unpublished source-owned Yopem UI style across the web app.
+Affected files: web UI components, shared tokens, shell, route presentation,
+feature presentation, and loading placeholders. No HTTP or data contract
+changes. Use the shared setup above. Confirm the current server before
+execution; the web dev script uses port 13001. Do not start a second server. Use
+an isolated guest workspace and approved account only. Use installed Bun and
+locked dependencies. Save evidence under ignored `qa-artifacts/QA-198/` through
+`qa-artifacts/QA-204/`. Run P0, P1, then P2. Browser and build work needs a
+separate QA request. Lint, format, and typecheck run during implementation.
+
+Coverage: shared styles QA-198; navigation and responsive layout QA-199; timer
+and tasks QA-200; collections and reports QA-201; settings and account safety
+QA-202; accessibility and overlays QA-203; loading, SSR, themes and build
+QA-204. API, migrations, payments, and new integrations are not applicable: this
+change does not alter them. Existing behavior cases remain applicable.
+
+### [ ] QA-198 — P1 — Shared component style
+
+- **Purpose:** Check the style refresh and regression behavior for all routes
+  and shared controls.
+- **Prerequisites:** Shared refresh setup; preserve existing local data with an
+  existing backup before using an isolated workspace. Populated reports need a
+  completed isolated focus session. Account checks need an approved test
+  account; otherwise mark that part blocked.
+- **Inputs:** all routes and shared controls; light and dark themes; safe
+  example records stated in the steps.
+- **Steps:** 1. Record the starting route, theme, viewport, and workspace. 2.
+  Open /, /projects, /templates, /reports, and /settings in both themes. Compare
+  buttons, fields, cards, badges, menus, and headings with the local Yopem UI
+  source. 3. Inspect browser errors and save sanitized evidence.
+- **Expected results:** Controls use the new source-owned styles. Labels,
+  disabled states, errors, focus indicators, and selected states remain clear.
+- **Evidence:** Save screenshots and action/result notes in
+  `qa-artifacts/QA-198/`. Inspect each result and record revision, environment,
+  and date before marking passed.
+- **Cleanup:** Remove only isolated records, restore recorded settings and
+  network controls, and stop only processes started for this case. Do not clear
+  existing user storage.
+- **Status:** pending.
+
+### [ ] QA-199 — P1 — Navigation and page layout
+
+- **Purpose:** Check the style refresh and regression behavior for /, /focus,
+  /projects, /templates, /reports, /settings.
+- **Prerequisites:** Shared refresh setup; preserve existing local data with an
+  existing backup before using an isolated workspace. Populated reports need a
+  completed isolated focus session. Account checks need an approved test
+  account; otherwise mark that part blocked.
+- **Inputs:** /, /focus, /projects, /templates, /reports, /settings; light and
+  dark themes; safe example records stated in the steps.
+- **Steps:** 1. Record the starting route, theme, viewport, and workspace. 2.
+  Visit each route at 390, 768, 1024, and 1440 CSS pixels. Use each navigation
+  link, reload, and use Back. Open /focus and enter browser fullscreen from the
+  timer. 3. Inspect browser errors and save sanitized evidence.
+- **Expected results:** Navigation identifies the current route. Page edges
+  align. Content has no horizontal overflow. Focus and fullscreen keep their
+  existing reduced layout.
+- **Evidence:** Save screenshots and action/result notes in
+  `qa-artifacts/QA-199/`. Inspect each result and record revision, environment,
+  and date before marking passed.
+- **Cleanup:** Remove only isolated records, restore recorded settings and
+  network controls, and stop only processes started for this case. Do not clear
+  existing user storage.
+- **Status:** pending.
+
+### [ ] QA-200 — P1 — Timer and task presentation
+
+- **Purpose:** Check the style refresh and regression behavior for / and /focus.
+- **Prerequisites:** Shared refresh setup; preserve existing local data with an
+  existing backup before using an isolated workspace. Populated reports need a
+  completed isolated focus session. Account checks need an approved test
+  account; otherwise mark that part blocked.
+- **Inputs:** / and /focus; light and dark themes; safe example records stated
+  in the steps.
+- **Steps:** 1. Record the starting route, theme, viewport, and workspace. 2.
+  Create task Design review with estimate 2. Select it, start and pause the
+  timer, then reset. Open and cancel interruption confirmation. Change each
+  phase and inspect the daily summary. 3. Inspect browser errors and save
+  sanitized evidence.
+- **Expected results:** Clock, progress, selected phase, actions, and task
+  states are readable. Cancel changes no timer state. Existing session and
+  estimate rules are unchanged.
+- **Evidence:** Save screenshots and action/result notes in
+  `qa-artifacts/QA-200/`. Inspect each result and record revision, environment,
+  and date before marking passed.
+- **Cleanup:** Remove only isolated records, restore recorded settings and
+  network controls, and stop only processes started for this case. Do not clear
+  existing user storage.
+- **Status:** pending.
+
+### [ ] QA-201 — P1 — Collections and report presentation
+
+- **Purpose:** Check the style refresh and regression behavior for /projects,
+  /templates, /reports.
+- **Prerequisites:** Shared refresh setup; preserve existing local data with an
+  existing backup before using an isolated workspace. Populated reports need a
+  completed isolated focus session. Account checks need an approved test
+  account; otherwise mark that part blocked.
+- **Inputs:** /projects, /templates, /reports; light and dark themes; safe
+  example records stated in the steps.
+- **Steps:** 1. Record the starting route, theme, viewport, and workspace. 2.
+  Create project Design review and template Review with one task Read notes,
+  estimate 2. Open their editors and cancel. Open /reports, change the period
+  and project filters, and inspect empty and populated history. 3. Inspect
+  browser errors and save sanitized evidence.
+- **Expected results:** Cards, editors, filters, chart, history, and empty
+  states follow the shared style. Cancel preserves records. Filters and report
+  values keep their existing meaning.
+- **Evidence:** Save screenshots and action/result notes in
+  `qa-artifacts/QA-201/`. Inspect each result and record revision, environment,
+  and date before marking passed.
+- **Cleanup:** Remove only isolated records, restore recorded settings and
+  network controls, and stop only processes started for this case. Do not clear
+  existing user storage.
+- **Status:** pending.
+
+### [ ] QA-202 — P0 — Settings and account controls
+
+- **Purpose:** Check the style refresh and regression behavior for /settings and
+  /auth/login.
+- **Prerequisites:** Shared refresh setup; preserve existing local data with an
+  existing backup before using an isolated workspace. Populated reports need a
+  completed isolated focus session. Account checks need an approved test
+  account; otherwise mark that part blocked.
+- **Inputs:** /settings and /auth/login; light and dark themes; safe example
+  records stated in the steps.
+- **Steps:** 1. Record the starting route, theme, viewport, and workspace. 2.
+  Record current settings. Change the focus color and theme, save, and reload.
+  Open backup import and cancel without choosing a file. Open account controls
+  and sign-in; do not exchange or replace workspace data. 3. Inspect browser
+  errors and save sanitized evidence.
+- **Expected results:** Saved preferences remain after reload. Phase colors
+  remain distinct. Cancel does not change data. Account errors and actions stay
+  readable; no private data enters evidence.
+- **Evidence:** Save screenshots and action/result notes in
+  `qa-artifacts/QA-202/`. Inspect each result and record revision, environment,
+  and date before marking passed.
+- **Cleanup:** Remove only isolated records, restore recorded settings and
+  network controls, and stop only processes started for this case. Do not clear
+  existing user storage.
+- **Status:** pending.
+
+### [ ] QA-203 — P1 — Keyboard and overlay presentation
+
+- **Purpose:** Check the style refresh and regression behavior for all changed
+  routes and dialogs.
+- **Prerequisites:** Shared refresh setup; preserve existing local data with an
+  existing backup before using an isolated workspace. Populated reports need a
+  completed isolated focus session. Account checks need an approved test
+  account; otherwise mark that part blocked.
+- **Inputs:** all changed routes and dialogs; light and dark themes; safe
+  example records stated in the steps.
+- **Steps:** 1. Record the starting route, theme, viewport, and workspace. 2.
+  Navigate using Tab, Shift+Tab, Enter, Space, and Escape. Open task, project,
+  template, confirmation, calendar, select, account, and theme controls. Inspect
+  labels and focus return. Repeat at 200% zoom and 400% reflow. 3. Inspect
+  browser errors and save sanitized evidence.
+- **Expected results:** All controls remain operable and labelled. Focus is
+  visible, returns to the trigger, and stays inside modal dialogs. Content and
+  actions remain reachable.
+- **Evidence:** Save screenshots and action/result notes in
+  `qa-artifacts/QA-203/`. Inspect each result and record revision, environment,
+  and date before marking passed.
+- **Cleanup:** Remove only isolated records, restore recorded settings and
+  network controls, and stop only processes started for this case. Do not clear
+  existing user storage.
+- **Status:** pending.
+
+### [ ] QA-204 — P2 — Loading, theme, and extracted styles
+
+- **Purpose:** Check the style refresh and regression behavior for /, /focus,
+  /reports, /settings.
+- **Prerequisites:** Shared refresh setup; preserve existing local data with an
+  existing backup before using an isolated workspace. Populated reports need a
+  completed isolated focus session. Account checks need an approved test
+  account; otherwise mark that part blocked.
+- **Inputs:** /, /focus, /reports, /settings; light and dark themes; safe
+  example records stated in the steps.
+- **Steps:** 1. Record the starting route, theme, viewport, and workspace. 2.
+  Repeat QA-194 through QA-197 with throttled scripts in both themes and with
+  reduced motion. With build approval, run bun run build from the repository
+  root and inspect the resulting app on the shared origin. 3. Inspect browser
+  errors and save sanitized evidence.
+- **Expected results:** Loading and loaded layouts match. Theme has no light
+  flash in dark mode. Reduced motion remains supported. Extracted styles load
+  without hydration or missing-token errors.
+- **Evidence:** Save screenshots and action/result notes in
+  `qa-artifacts/QA-204/`. Inspect each result and record revision, environment,
+  and date before marking passed.
+- **Cleanup:** Remove only isolated records, restore recorded settings and
+  network controls, and stop only processes started for this case. Do not clear
+  existing user storage.
+- **Status:** pending.
