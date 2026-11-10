@@ -4261,3 +4261,31 @@ contract, cache policy, or account ownership changes are in scope.
 
 Coverage addition: canonical login URL, proxy routing, OpenAPI, OAuth error and
 security regressions → QA-138.
+
+### [ ] QA-139 — P1 — SSR login exception and backend fallback
+
+- **Purpose:** fix Backend route is unavailable on the new login page without
+  allowing other backend paths to reach frontend HTML.
+- **Prerequisites:** existing isolated web origin at `http://127.0.0.1:13001`;
+  use the same cases against Bun SSR in a requested production-build QA pass. No
+  database or issuer is needed to render the page.
+- **Inputs:** `/auth/login`, `/auth/login/`, `/auth/login?example=1`,
+  `/auth/login/extra`, `/auth/authorize`, `/auth/callback`, `/auth/unknown`,
+  `/api/unknown`, and `/`.
+- **Steps:** 1. Direct-load the three login URLs. 2. Confirm Welcome and one
+  sign-in action. 3. Inspect response headers and body. 4. Request all remaining
+  auth and API paths and confirm they do not render frontend HTML. 5. Open `/`
+  and confirm the normal shell still renders.
+- **Expected results:** exact login paths render the login route, not the
+  Backend route is unavailable JSON error. Query strings do not change routing.
+  HTML retains no-store, noindex, CSP, and request ID headers. Only the two
+  exact login path forms bypass the SSR backend guard; unknown nested login
+  paths and all other backend routes retain the existing rejection/proxy rules.
+- **Evidence:** inspect sanitized bodies and headers in
+  `qa-artifacts/polish/login-ssr-boundary.txt` and a login screenshot in
+  `qa-artifacts/polish/login-ssr.png`.
+- **Cleanup:** stop only processes started for this case; no data cleanup.
+- **Status:** pending; source review identifies the cause, runtime QA not run.
+
+Coverage addition: SSR backend-guard regression → QA-139; related routing and
+OAuth cases QA-137 and QA-138 remain pending.

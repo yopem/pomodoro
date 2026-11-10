@@ -13,7 +13,9 @@ export default createServerEntry({
       path === "/api" ||
       path.startsWith("/api/") ||
       path === "/auth" ||
-      path.startsWith("/auth/") ||
+      (path.startsWith("/auth/") &&
+        path !== "/auth/login" &&
+        path !== "/auth/login/") ||
       path === "/openapi.json" ||
       path === "/health" ||
       path === "/ready"
