@@ -1,4 +1,3 @@
-import * as stylex from "@stylexjs/stylex"
 import { createLazyFileRoute } from "@tanstack/react-router"
 import { Clock3Icon, FlagIcon, TargetIcon } from "lucide-react"
 
@@ -30,12 +29,6 @@ import { TimerWorkspaceSkeleton } from "@/features/timer/components/timer-loadin
 import { useBrowserFullscreen } from "@/features/timer/hooks/use-browser-fullscreen"
 import { formatFocusTime } from "@/lib/focus-time"
 
-const styles = stylex.create({
-  workspace: {
-    maxInlineSize: 1280,
-  },
-})
-
 const finishTime12 = new Intl.DateTimeFormat(undefined, {
   hour: "numeric",
   minute: "2-digit",
@@ -59,10 +52,7 @@ export function TimerRoute() {
   if (!hydrated) {
     return (
       <Box render={<main id="main" tabIndex={-1} />}>
-        <Container
-          variant={fullscreen ? "focus" : "workspace"}
-          xstyle={!fullscreen && styles.workspace}
-        >
+        <Container variant={fullscreen ? "focus" : "workspace"}>
           <Stack spacing="page">
             <Stack spacing="compact">
               <Heading render={<h1>Pomodoro timer</h1>} />
@@ -99,10 +89,7 @@ export function TimerRoute() {
 
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
-      <Container
-        variant={fullscreen ? "focus" : "workspace"}
-        xstyle={!fullscreen && styles.workspace}
-      >
+      <Container variant={fullscreen ? "focus" : "workspace"}>
         <Stack spacing="page">
           <HStack layout="pageHeader">
             <Stack spacing="compact">

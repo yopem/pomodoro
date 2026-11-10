@@ -269,7 +269,7 @@ export function FocusTimer({
                 r="160"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="24"
+                strokeWidth="10"
                 pathLength="100"
                 strokeDasharray="100"
                 strokeDashoffset={100 - progress}
@@ -293,7 +293,7 @@ export function FocusTimer({
             </Text>
           </Box>
           <HStack layout="centered">
-            <Button size="xl" value="toggle" disabled={busy} onClick={request}>
+            <Button size="lg" value="toggle" disabled={busy} onClick={request}>
               {timer.deadline_ms === null ? (
                 <PlayIcon size={16} aria-hidden="true" />
               ) : (
@@ -307,7 +307,7 @@ export function FocusTimer({
             </Button>
             <Button
               variant="outline"
-              size="xl"
+              size="lg"
               value="reset"
               disabled={busy}
               onClick={request}
@@ -316,7 +316,7 @@ export function FocusTimer({
             </Button>
             <Button
               variant="outline"
-              size="xl"
+              size="lg"
               value="skip"
               disabled={busy}
               onClick={request}

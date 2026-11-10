@@ -26,7 +26,7 @@ export function FocusRoute() {
         <Stack spacing="page">
           <HStack layout="pageHeader">
             <Heading render={<h1>Focus timer</h1>} />
-            <Button variant="ghost" size="xl" render={<Link to="/" />}>
+            <Button variant="ghost" size="lg" render={<Link to="/" />}>
               Return to workspace
             </Button>
           </HStack>

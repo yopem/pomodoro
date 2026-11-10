@@ -101,7 +101,7 @@ export function TimerSound({
       {canEnable && (
         <Button
           variant="outline"
-          size="xl"
+          size="lg"
           onClick={enable}
           disabled={!workspaceReady}
         >
