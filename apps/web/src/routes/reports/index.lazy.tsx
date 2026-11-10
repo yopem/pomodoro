@@ -29,6 +29,7 @@ import { CsvExport } from "@/features/reports/components/csv-export"
 import { FocusTimeline } from "@/features/reports/components/focus-timeline"
 import { ReportFilters } from "@/features/reports/components/report-filters"
 import { ReportHistory } from "@/features/reports/components/report-history"
+import { ReportsSkeleton } from "@/features/reports/components/reports-loading"
 import { SessionEditor } from "@/features/reports/components/session-editor"
 import { formatFocusTime } from "@/lib/focus-time"
 import { localDateText } from "@/lib/local-date"
@@ -109,8 +110,8 @@ export function ReportsRoute() {
       <Box render={<main id="main" tabIndex={-1} />}>
         <Container variant="workspace">
           <Stack spacing="page">
-            <Heading render={<h1>Reports</h1>} />
-            <output>Loading your focus history…</output>
+            <Heading render={<h1>Focus reports</h1>} />
+            <ReportsSkeleton />
           </Stack>
         </Container>
       </Box>

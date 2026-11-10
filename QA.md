@@ -5109,3 +5109,62 @@ Typecheck covered app, tools, and service worker; route generation also passed.
 `docs/header-redesign-lint.log`, `docs/header-redesign-format.log`, and
 `docs/header-redesign-typecheck.log`. QA-168, QA-169, and QA-170 remain pending:
 these static results do not establish browser or runtime behavior.
+
+## Report loading skeleton
+
+Task: show report skeletons like the home page. Source:
+`apps/web/src/routes/reports/index.lazy.tsx` and
+`apps/web/src/features/reports/components/reports-loading.tsx`. No API or data
+contract changes.
+
+Setup: use the existing isolated web environment at `http://localhost:13001` and
+its project browser group. Do not start replacement servers. Save evidence in
+ignored `qa-artifacts/`. Run QA-171 before QA-172. Lint, format, and typecheck
+are allowed now; browser checks and builds need a separate QA pass. Coverage:
+report loading and hydration map to QA-171; responsive layout and accessibility
+map to QA-172. Authentication, migrations, and external integrations are not
+applicable because these contracts do not change.
+
+### [ ] QA-171 — P1 — Report loading and hydration
+
+- **Purpose:** Replace the report loading text with home-style placeholders
+  without changing report data or controls.
+- **Prerequisites:** Shared setup; isolated guest workspace. Use browser network
+  throttling to observe initial hydration. Do not clear user storage.
+- **Inputs:** `/reports/?period=week&date=2024-02-28&page=1`, then `/`.
+- **Steps:** 1. Open the reports URL with throttling. 2. Inspect the loading
+  heading, announcement, summary, filters, charts, and history placeholders. 3.
+  Remove throttling and wait for hydration. 4. Change period and date. 5. Return
+  home and inspect its existing loading state on reload.
+- **Expected results:** Reports shows skeletons until hydration, not zero totals
+  or an empty history. Real report content replaces them. Filters and URL state
+  still work. The home skeleton and workspace records do not change.
+- **Evidence:** Save and inspect `qa-artifacts/QA-171-reports-loading.png` and
+  `qa-artifacts/QA-171-reports-loaded.png`, plus sanitized browser errors.
+- **Cleanup:** Restore network settings; no data cleanup is needed.
+- **Status:** Pending.
+
+### [ ] QA-172 — P2 — Skeleton layout and accessibility
+
+- **Purpose:** Keep report placeholders responsive and noninteractive.
+- **Prerequisites:** Shared setup and a visible report loading state from
+  QA-171.
+- **Inputs:** 1440, 768, and 320 CSS-pixel widths; light and dark themes;
+  reduced motion enabled; keyboard and screen reader.
+- **Steps:** 1. Inspect loading at each width and theme. 2. Tab through the
+  page. 3. Inspect the accessibility tree and loading announcement. 4. Enable
+  reduced motion. 5. Complete hydration and inspect the report controls.
+- **Expected results:** No horizontal page overflow. Placeholders are hidden
+  from assistive technology and cannot receive focus. One polite loading status
+  is exposed. Reduced motion stops the shimmer. Real controls remain usable.
+- **Evidence:** Save and inspect `qa-artifacts/QA-172-reports-accessibility.txt`
+  and viewport screenshots under `qa-artifacts/QA-172/`.
+- **Cleanup:** Restore viewport, theme, and motion preferences.
+- **Status:** Pending.
+
+Static checks passed from `apps/web`: `bun run lint`, `bun run format:check`
+(107 files), and `bun run typecheck` (app, tools, and service worker, with route
+generation). Root `git diff --check` passed. Logs:
+`docs/reports-errors-lint.log`, `docs/reports-errors-format.log`, and
+`docs/reports-errors-typecheck.log`. Browser QA remains pending; static checks
+do not prove browser behavior.
