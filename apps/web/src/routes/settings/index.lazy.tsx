@@ -71,7 +71,7 @@ export function SettingsRoute() {
                   </Link>
                 ))}
               </Box>
-              <Stack spacing="page">
+              <Stack spacing="relaxed">
                 <SettingsForm
                   key={`settings-${owner.generation}`}
                   settings={workspace.settings}
@@ -96,7 +96,7 @@ const styles = stylex.create({
   sectionLink: {
     display: "flex",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     minBlockSize: 44,
     paddingInline: 12,
     borderRadius: tokens["--radius-md"],

@@ -187,7 +187,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
 
   return (
     <form ref={formRef} noValidate onSubmit={events.submit}>
-      <Stack>
+      <Stack spacing="relaxed">
         {[
           {
             title: "Timer",
@@ -208,7 +208,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
               <section id={group.id} aria-labelledby={`${group.id}-title`} />
             }
           >
-            <CardHeader>
+            <CardHeader separator>
               <Heading
                 id={`${group.id}-title`}
                 render={<h2>{group.title}</h2>}
@@ -271,7 +271,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
             />
           }
         >
-          <CardHeader>
+          <CardHeader separator>
             <Heading
               id="settings-appearance-title"
               render={<h2>Appearance &amp; display</h2>}
@@ -339,7 +339,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
             />
           }
         >
-          <CardHeader>
+          <CardHeader separator>
             <Heading
               id="settings-behavior-title"
               render={<h2>Automation &amp; reminders</h2>}
@@ -425,7 +425,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
                           <Button
                             type="button"
                             variant="outline"
-                            size="xl"
+                            size="lg"
                             onClick={reloadSettings}
                             disabled={state.isSubmitting}
                           >
@@ -434,7 +434,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
                         )}
                         <Button
                           type="submit"
-                          size="xl"
+                          size="lg"
                           loading={state.isSubmitting}
                           disabled={changedElsewhere}
                         >

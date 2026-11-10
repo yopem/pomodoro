@@ -297,7 +297,7 @@ export function WorkspaceBackup({
           />
         }
       >
-        <CardHeader>
+        <CardHeader separator>
           <Heading
             id="settings-backup-title"
             render={<h2>Workspace backup</h2>}
@@ -318,7 +318,7 @@ export function WorkspaceBackup({
               <Button
                 type="button"
                 variant="outline"
-                size="xl"
+                size="lg"
                 disabled={pending}
                 onClick={events.download}
               >

@@ -51,10 +51,10 @@ export function SettingsSkeleton() {
           <Skeleton key={item} xstyle={styles.navigation} />
         ))}
       </Box>
-      <Stack spacing="page">
+      <Stack spacing="relaxed">
         {sections.map((section) => (
           <Card key={section.name}>
-            <CardHeader>
+            <CardHeader separator>
               <Skeleton xstyle={styles.title} />
               <Skeleton xstyle={styles.description} />
             </CardHeader>
@@ -68,7 +68,7 @@ export function SettingsSkeleton() {
           </Card>
         ))}
         <Card>
-          <CardHeader>
+          <CardHeader separator>
             <Skeleton xstyle={styles.title} />
             <Skeleton xstyle={styles.description} />
           </CardHeader>
@@ -96,7 +96,7 @@ export function SettingsSkeleton() {
           </HStack>
         </Box>
         <Card>
-          <CardHeader>
+          <CardHeader separator>
             <Skeleton xstyle={styles.title} />
             <Skeleton xstyle={styles.description} />
           </CardHeader>
