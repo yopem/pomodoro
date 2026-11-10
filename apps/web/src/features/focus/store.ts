@@ -563,7 +563,7 @@ export async function importBackup(
   if (ownership.owner === activeOwner) void finishElapsedTimer()
 }
 
-function phaseSeconds(workspace: Workspace, phase: Timer["phase"]) {
+export function phaseSeconds(workspace: Workspace, phase: Timer["phase"]) {
   const settings = workspace.settings
 
   if (phase === "focus") return 60 * settings.focus_minutes

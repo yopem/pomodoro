@@ -22,6 +22,7 @@ import { colorStyles } from "@/features/focus/color-indicator"
 import {
   enableTimerSound,
   pauseTimer,
+  phaseSeconds,
   resetTimer,
   selectPhase,
   skipTimer,
@@ -44,6 +45,14 @@ const styles = stylex.create({
     margin: 0,
     padding: 0,
     minInlineSize: 0,
+  },
+  ring: {
+    position: "absolute",
+    inset: -12,
+    inlineSize: "calc(100% + 24px)",
+    blockSize: "calc(100% + 24px)",
+    pointerEvents: "none",
+    transform: "rotate(-90deg)",
   },
   countdown: {
     fontFamily: tokens["--font-sans"],
@@ -202,6 +211,20 @@ export function FocusTimer({
   })
 
   const clock = formatTimerClock(timer, nowMs)
+
+  const remainingSeconds =
+    timer.deadline_ms === null
+      ? timer.remaining_seconds
+      : (timer.deadline_ms - nowMs) / 1000
+
+  const progress = Math.min(
+    100,
+    Math.max(
+      0,
+      (1 - remainingSeconds / phaseSeconds(workspace, timer.phase)) * 100,
+    ),
+  )
+
   const selected = tasks.find((task) => task.id === timer.selected_task_id)
 
   const phaseColor = {
@@ -235,6 +258,23 @@ export function FocusTimer({
             </HStack>
           </fieldset>
           <Box variant="focusDial" render={<section aria-label="Countdown" />}>
+            <svg
+              viewBox="0 0 344 344"
+              aria-hidden="true"
+              {...stylex.props(styles.ring, colorStyles[phaseColor])}
+            >
+              <circle
+                cx="172"
+                cy="172"
+                r="160"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="24"
+                pathLength="100"
+                strokeDasharray="100"
+                strokeDashoffset={100 - progress}
+              />
+            </svg>
             <Text variant="note" tone="muted">
               {timerPhaseLabels[timer.phase]}
             </Text>

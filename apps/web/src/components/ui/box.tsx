@@ -48,6 +48,7 @@ const styles = stylex.create({
     textAlign: "center",
   },
   focusDial: {
+    position: "relative",
     alignItems: "center",
     aspectRatio: "1",
     borderColor: tokens["--border"],

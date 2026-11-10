@@ -5209,3 +5209,78 @@ generation). Root `git diff --check` passed. Logs:
 `docs/reports-errors-lint.log`, `docs/reports-errors-format.log`, and
 `docs/reports-errors-typecheck.log`. Browser QA remains pending; static checks
 do not prove browser behavior.
+
+## Timer progress ring
+
+Task: make the existing circular timer face show elapsed interval progress.
+Affected files: `apps/web/src/features/timer/components/focus-timer.tsx`,
+`apps/web/src/features/focus/store.ts`, and
+`apps/web/src/components/ui/box.tsx`. Routes: `/` and `/focus`. Reuse the
+existing phase duration calculation and phase color. No timer mutation, storage,
+API, or authentication contract changes.
+
+Setup: use the existing isolated guest workspace at `http://localhost:13001`. Do
+not replace an active server. Record original settings and timer state. Use an
+idle workspace with no active real task. Set each interval to 1 minute and turn
+off automatic starts for repeatable checks. Run QA-174 before QA-175. Save
+evidence in ignored `qa-artifacts/`. Browser runs and production builds need a
+separate QA request. Lint, format, and typecheck can run now. Coverage: running,
+paused, reset, completion, and phase changes map to QA-174. Home/focus reuse,
+mobile sizing, theme, and accessibility map to QA-175. API, auth, and migrations
+are not applicable because no such contracts change.
+
+### [ ] QA-174 — P1 — Progress follows the interval clock
+
+- **Purpose:** Keep ring progress consistent with elapsed time, including pause,
+  resume, phase selection, reset, and completion.
+- **Prerequisites:** Shared setup; idle isolated guest; all interval lengths set
+  to 1 minute; automatic starts disabled.
+- **Inputs:** Focus, Short break, and Long break; 01:00, about 00:30, and 00:00.
+- **Steps:** 1. Open `/` and start Focus. 2. Inspect the ring near 00:30. 3.
+  Pause, wait 5 seconds, and inspect again. 4. Resume and reload the page before
+  completion. 5. Wait for completion. 6. Start a new interval, then reset and
+  confirm interruption if asked. 7. Select each break and repeat start, pause,
+  and reset. 8. Change phase during Focus and confirm.
+- **Expected results:** The ring starts empty and fills clockwise from the top.
+  Near 00:30 it is half full. Pausing holds its position; resuming continues
+  from that position. Reload recovers progress from the stored deadline.
+  Progress never falls below 0% or exceeds 100%, even after the deadline.
+  Completion and reset show the new interval's empty ring. Each selected phase
+  uses its own duration and color. Existing confirmation and recording rules
+  remain unchanged; no extra sessions are created by drawing the ring.
+- **Evidence:** Save and inspect `qa-artifacts/QA-174-timer-ring.txt` with
+  displayed clocks, ring offsets, phase changes, and session counts, plus
+  screenshots at half progress and after reset.
+- **Cleanup:** Restore settings; reset only the isolated timer and remove only
+  sessions created by this case through existing history controls.
+- **Status:** Pending.
+
+### [ ] QA-175 — P2 — Ring layout, themes, and accessibility
+
+- **Purpose:** Preserve timer usability while the ring changes.
+- **Prerequisites:** Shared setup; running interval from QA-174 or a new
+  isolated 1-minute interval.
+- **Inputs:** `/`, `/focus`, fullscreen; 1440 and 320 CSS-pixel widths; light
+  and dark themes; reduced motion; keyboard and screen reader.
+- **Steps:** 1. Inspect both routes at each width. 2. Enter and leave timer
+  fullscreen. 3. Inspect each theme and enable reduced motion. 4. Use keyboard
+  Start, Pause, Resume, Reset, and phase controls. 5. Inspect the accessibility
+  tree while the clock updates.
+- **Expected results:** Ring stays circular and fits its existing track without
+  covering clock text, controls, or causing page overflow. Both routes show the
+  same progress. Drawing does not block clicks or add a keyboard stop. Existing
+  timer name and remaining time stay available; decorative SVG is hidden from
+  assistive technology and does not announce every tick. No independent
+  animation runs, including under reduced motion.
+- **Evidence:** Save and inspect screenshots in `qa-artifacts/QA-175/` and
+  `qa-artifacts/QA-175-accessibility.txt` with keyboard and browser errors.
+- **Cleanup:** Restore viewport, theme, motion settings, and fullscreen; reset
+  only the isolated timer created for this case.
+- **Status:** Pending.
+
+Timer ring static validation passed from `apps/web`: `bun run lint`,
+`bun run format:check`, and `bun run typecheck`, including route generation and
+app, tools, and service-worker configs. Root `git diff --check` passed. Logs:
+`docs/timer-ring-lint.log`, `docs/timer-ring-format.log`, and
+`docs/timer-ring-typecheck.log`. QA-174 and QA-175 remain pending. No browser,
+automated tests, builds, or endpoint checks ran.
