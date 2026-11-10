@@ -68,31 +68,30 @@ export function ReportFilters({
 
   async function updateReportFilter(action: FilterAction) {
     if (action.kind === "move") {
-      const range = localDateRange({
-        date: new Date(`${search.date ?? dateText}T12:00:00`),
-        period: search.period,
-        weekStart,
-      })
-
-      const next = new Date(range.startMs)
-
-      if (search.period === "day")
-        next.setDate(next.getDate() + action.direction)
-
-      if (search.period === "week")
-        next.setDate(next.getDate() + 7 * action.direction)
-
-      if (search.period === "month")
-        next.setMonth(next.getMonth() + action.direction)
-
-      if (search.period === "year")
-        next.setFullYear(next.getFullYear() + action.direction)
       await navigate({
-        search: (previous) => ({
-          ...previous,
-          date: localDateText(next),
-          page: 1,
-        }),
+        search: (previous) => {
+          const range = localDateRange({
+            date: new Date(`${previous.date ?? dateText}T12:00:00`),
+            period: previous.period,
+            weekStart,
+          })
+
+          const next = new Date(range.startMs)
+
+          if (previous.period === "day")
+            next.setDate(next.getDate() + action.direction)
+
+          if (previous.period === "week")
+            next.setDate(next.getDate() + 7 * action.direction)
+
+          if (previous.period === "month")
+            next.setMonth(next.getMonth() + action.direction)
+
+          if (previous.period === "year")
+            next.setFullYear(next.getFullYear() + action.direction)
+
+          return { ...previous, date: localDateText(next), page: 1 }
+        },
       })
     } else if (action.kind === "period") {
       const result = periodSchema.safeParse(action.value)

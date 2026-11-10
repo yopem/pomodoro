@@ -4872,8 +4872,8 @@ by this task.
 
 Coverage: backup data and identity safety: QA-161 and QA-162; backup picker,
 validation and confirmation: QA-162 and QA-163; URL state, periods and
-navigation: QA-164 and QA-165; accessibility, pending and errors: QA-163 and
-QA-165; static tooling: QA-166.
+navigation: QA-164, QA-165, and QA-167; accessibility, pending and errors:
+QA-163 and QA-165; static tooling: QA-166.
 
 ### [ ] QA-161 — P0 — Restore remains bound to the reviewed workspace
 
@@ -4970,8 +4970,8 @@ QA-165; static tooling: QA-166.
 - **Expected results:** labels and focus remain usable; invalid values do not
   become accepted filter state; pending controls block conflicting actions;
   accepted consecutive Next actions advance two periods. Errors are announced
-  and a later valid action recovers without stale values. Source review found a
-  pre-existing risk that queued Next actions use the same starting date.
+  and a later valid action recovers without stale values. See QA-167 for the
+  queued navigation regression.
 - **Evidence:** `qa-artifacts/QA-165-filter-errors.txt` and
   `qa-artifacts/QA-165-filter-focus.png`; inspect URL, alert and focus.
 - **Cleanup:** restore normal navigation and close only owned tabs.
@@ -4992,4 +4992,27 @@ QA-165; static tooling: QA-166.
 - **Evidence:** `qa-artifacts/QA-166-static-checks.txt`; inspect exit status and
   diagnostics. If execution is not requested, record command results separately.
 - **Cleanup:** none; keep sanitized evidence.
+- **Status:** pending.
+
+### [ ] QA-167 — P1 — Queued report moves use the current URL
+
+- **Purpose:** prevent two accepted period actions from using the same starting
+  date and verify navigation across a month boundary.
+- **Prerequisites:** shared isolated setup; an owned Playwriter tab in the
+  project tab group; web app at `http://localhost:13001`; no production data.
+- **Inputs:** `/reports/?period=day&date=2024-02-28&page=2`; two rapid Next
+  actions and two rapid Previous actions.
+- **Steps:** 1. Open the input URL. 2. Use Playwriter to click Next twice as
+  quickly as possible. Record how many activations the control accepts before it
+  disables, and the final URL. 3. Repeat with Previous from the final date. 4.
+  Use Back and Forward and inspect the selected date and report heading.
+- **Expected results:** each accepted Next or Previous action changes the day
+  once, including leap day; two accepted Next actions end on `2024-03-01`, and
+  two accepted Previous actions return to `2024-02-28`. Page is reset to 1.
+  Disabled controls do not dispatch another action. Back and Forward keep the
+  selected date and heading consistent with the URL. If two activations cannot
+  be accepted before the control disables, mark the two-action subcase blocked.
+- **Evidence:** `qa-artifacts/QA-167-report-moves.txt`; save sanitized action
+  counts, URLs, headings, and browser errors. Inspect each result.
+- **Cleanup:** close only tabs opened for this case. No data cleanup is needed.
 - **Status:** pending.
