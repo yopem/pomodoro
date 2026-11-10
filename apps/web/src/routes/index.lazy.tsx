@@ -1,4 +1,6 @@
+import * as stylex from "@stylexjs/stylex"
 import { createLazyFileRoute } from "@tanstack/react-router"
+import { Clock3Icon, FlagIcon, TargetIcon } from "lucide-react"
 
 import { Box } from "@/components/ui/box"
 import { Card, CardPanel } from "@/components/ui/card"
@@ -26,6 +28,12 @@ import { FocusBrowserControls } from "@/features/timer/components/browser-focus-
 import { FocusTimer } from "@/features/timer/components/focus-timer"
 import { useBrowserFullscreen } from "@/features/timer/hooks/use-browser-fullscreen"
 import { formatFocusTime } from "@/lib/focus-time"
+
+const styles = stylex.create({
+  workspace: {
+    maxInlineSize: 1280,
+  },
+})
 
 const finishTime12 = new Intl.DateTimeFormat(undefined, {
   hour: "numeric",
@@ -81,13 +89,20 @@ export function TimerRoute() {
 
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
-      <Container variant={fullscreen ? "focus" : "workspace"}>
+      <Container
+        variant={fullscreen ? "focus" : "workspace"}
+        xstyle={!fullscreen && styles.workspace}
+      >
         <Stack spacing="page">
           <HStack layout="pageHeader">
             <Stack spacing="compact">
+              <Text variant="eyebrow" hidden={fullscreen}>
+                YOUR FOCUS WORKSPACE
+              </Text>
               <Heading render={<h1>Focus timer</h1>} />
               <Text tone="muted" hidden={fullscreen}>
-                Work in {workspace.settings.focus_minutes}-minute intervals.
+                One task. One {workspace.settings.focus_minutes}-minute
+                interval.
               </Text>
             </Stack>
             <FocusBrowserControls />
@@ -95,39 +110,54 @@ export function TimerRoute() {
           <Grid variant={fullscreen ? "default" : "focus"}>
             <Stack spacing="page">
               <FocusTimer workspace={workspace} nowMs={nowMs} />
-              <Box hidden={fullscreen}>
-                <Card render={<section aria-label="Today's focus summary" />}>
-                  <CardPanel>
-                    <Grid variant="metrics">
-                      <Stat>
-                        <StatLabel>Focus today</StatLabel>
-                        <StatValue size="compact">
-                          {formatFocusTime(today)}
-                        </StatValue>
-                      </Stat>
-                      <Stat>
-                        <StatLabel>Sessions left</StatLabel>
-                        <StatValue size="compact">{remaining}</StatValue>
-                      </Stat>
-                      <Stat>
-                        <StatLabel>Estimated finish</StatLabel>
-                        <StatValue size="compact">
-                          {finish === null
-                            ? "—"
-                            : (workspace.settings.hour_format === "12h"
-                                ? finishTime12
-                                : finishTime24
-                              ).format(finish)}
-                        </StatValue>
-                        <StatDescription>
-                          {finish === null
-                            ? "No remaining estimates"
-                            : "Includes planned breaks"}
-                        </StatDescription>
-                      </Stat>
-                    </Grid>
-                  </CardPanel>
-                </Card>
+              <Box
+                hidden={fullscreen}
+                variant="dailyOverview"
+                render={<section aria-label="Daily overview" />}
+              >
+                <Stack>
+                  <HStack layout="spread">
+                    <Text variant="label">Today at a glance</Text>
+                    <Text size="small" tone="muted">
+                      Your session plan
+                    </Text>
+                  </HStack>
+                  <Card render={<section aria-label="Today's focus summary" />}>
+                    <CardPanel>
+                      <Grid variant="metrics">
+                        <Stat>
+                          <TargetIcon size={18} aria-hidden="true" />
+                          <StatLabel>Focus today</StatLabel>
+                          <StatValue size="compact">
+                            {formatFocusTime(today)}
+                          </StatValue>
+                        </Stat>
+                        <Stat>
+                          <FlagIcon size={18} aria-hidden="true" />
+                          <StatLabel>Sessions left</StatLabel>
+                          <StatValue size="compact">{remaining}</StatValue>
+                        </Stat>
+                        <Stat>
+                          <Clock3Icon size={18} aria-hidden="true" />
+                          <StatLabel>Estimated finish</StatLabel>
+                          <StatValue size="compact">
+                            {finish === null
+                              ? "—"
+                              : (workspace.settings.hour_format === "12h"
+                                  ? finishTime12
+                                  : finishTime24
+                                ).format(finish)}
+                          </StatValue>
+                          <StatDescription>
+                            {finish === null
+                              ? "No remaining estimates"
+                              : "Includes planned breaks"}
+                          </StatDescription>
+                        </Stat>
+                      </Grid>
+                    </CardPanel>
+                  </Card>
+                </Stack>
               </Box>
             </Stack>
             <Box hidden={fullscreen}>

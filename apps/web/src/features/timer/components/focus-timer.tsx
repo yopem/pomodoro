@@ -1,11 +1,18 @@
 import type { MouseEvent } from "react"
 
 import * as stylex from "@stylexjs/stylex"
+import {
+  PauseIcon,
+  PlayIcon,
+  RotateCcwIcon,
+  SkipForwardIcon,
+} from "lucide-react"
 import { startTransition, useActionState, useState } from "react"
 
 import type { Timer, Workspace } from "@/features/focus/schema"
 import type { WorkspaceOwner } from "@/features/focus/store"
 
+import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
 import { Card, CardPanel } from "@/components/ui/card"
 import { HStack } from "@/components/ui/hstack"
@@ -30,7 +37,7 @@ import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
   timer: {
-    marginBlock: { default: 24, "@media (max-width: 640px)": 16 },
+    marginBlock: { default: 24, "@media (max-width: 640px)": 8 },
   },
   phases: {
     border: 0,
@@ -42,8 +49,8 @@ const styles = stylex.create({
     fontFamily: tokens["--font-sans"],
     fontVariantNumeric: "tabular-nums",
     fontSize: {
-      default: "clamp(4rem, 10vw, 7rem)",
-      "@media (max-width: 640px)": "min(3.25rem, 16vw)",
+      default: "clamp(3.5rem, 6vw, 5.5rem)",
+      "@media (max-width: 640px)": "clamp(2.75rem, 17vw, 5rem)",
     },
     fontWeight: 600,
     letterSpacing: "-0.06em",
@@ -227,19 +234,31 @@ export function FocusTimer({
               ))}
             </HStack>
           </fieldset>
-          <output
-            role="timer"
-            aria-live="off"
-            aria-label={`${clock} remaining`}
-            {...stylex.props(styles.countdown, colorStyles[phaseColor])}
-          >
-            {clock}
-          </output>
-          <Text tone="muted">
-            {selected ? `Focusing on ${selected.title}` : "No task selected"}
-          </Text>
+          <Box variant="focusDial" render={<section aria-label="Countdown" />}>
+            <Text variant="note" tone="muted">
+              {timerPhaseLabels[timer.phase]}
+            </Text>
+            <output
+              role="timer"
+              aria-live="off"
+              aria-label={`${clock} remaining`}
+              {...stylex.props(styles.countdown, colorStyles[phaseColor])}
+            >
+              {clock}
+            </output>
+            <Text variant="note" tone="muted">
+              {timer.deadline_ms !== null
+                ? "In progress"
+                : "Ready when you are"}
+            </Text>
+          </Box>
           <HStack layout="centered">
             <Button size="xl" value="toggle" disabled={busy} onClick={request}>
+              {timer.deadline_ms === null ? (
+                <PlayIcon size={16} aria-hidden="true" />
+              ) : (
+                <PauseIcon size={16} aria-hidden="true" />
+              )}
               {timer.deadline_ms === null
                 ? timer.run_id
                   ? "Resume"
@@ -253,7 +272,7 @@ export function FocusTimer({
               disabled={busy}
               onClick={request}
             >
-              Reset
+              <RotateCcwIcon size={16} aria-hidden="true" /> Reset
             </Button>
             <Button
               variant="outline"
@@ -262,14 +281,21 @@ export function FocusTimer({
               disabled={busy}
               onClick={request}
             >
-              Skip
+              <SkipForwardIcon size={16} aria-hidden="true" /> Skip
             </Button>
           </HStack>
-          <Text tone="muted">
-            Focus sessions in this cycle: {currentCycle} /{" "}
-            {settings.long_break_interval} · {timer.completed_focus_count}{" "}
-            completed
+          <Text size="small" tone="muted">
+            Cycle {currentCycle} / {settings.long_break_interval} ·{" "}
+            {timer.completed_focus_count} completed
           </Text>
+          <Box variant="focusTask" render={<header />}>
+            <Text variant="note" tone="muted">
+              CURRENT TASK
+            </Text>
+            <Text variant="label">
+              {selected ? selected.title : "Choose a task to focus on"}
+            </Text>
+          </Box>
           {error && (
             <Text role="alert" tone="destructive">
               {error}

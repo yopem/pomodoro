@@ -11,6 +11,50 @@ import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
+  focusDial: {
+    alignItems: "center",
+    aspectRatio: "1",
+    borderColor: tokens["--border"],
+    borderRadius: "50%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    boxShadow: `0 0 0 12px ${tokens["--muted"]}, inset 0 0 0 12px ${tokens["--muted"]}`,
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
+    inlineSize: "min(100%, 320px)",
+    justifyContent: "center",
+    marginBlock: 12,
+  },
+  focusTask: {
+    borderBlockStartColor: tokens["--border"],
+    borderBlockStartStyle: "solid",
+    borderBlockStartWidth: 1,
+    paddingBlockStart: 20,
+    inlineSize: "100%",
+    textAlign: "center",
+    overflowWrap: "anywhere",
+  },
+  phases: {
+    border: 0,
+    margin: 0,
+    padding: 0,
+    minInlineSize: 0,
+  },
+  taskQueue: {
+    borderColor: tokens["--border"],
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderRadius: tokens["--radius-xl"],
+    padding: { default: 24, "@media (max-width: 640px)": 16 },
+    backgroundColor: tokens["--card"],
+  },
+  dailyOverview: {
+    borderBlockStartColor: tokens["--border"],
+    borderBlockStartStyle: "solid",
+    borderBlockStartWidth: 1,
+    paddingBlockStart: 24,
+  },
   appHeader: {
     borderBlockEndStyle: "solid",
     borderBlockEndWidth: 1,
@@ -35,7 +79,14 @@ const styles = stylex.create({
 export type BoxElement = keyof JSX.IntrinsicElements
 
 export type BoxProps = StyleXComponentProps<useRender.ComponentProps<"div">> & {
-  variant?: "default" | "appHeader" | "appNavigation"
+  variant?:
+    | "default"
+    | "appHeader"
+    | "appNavigation"
+    | "focusDial"
+    | "focusTask"
+    | "taskQueue"
+    | "dailyOverview"
 }
 
 export function Box({
@@ -52,6 +103,10 @@ export function Box({
       {
         ...stylexProps(
           className,
+          variant === "focusDial" && styles.focusDial,
+          variant === "focusTask" && styles.focusTask,
+          variant === "taskQueue" && styles.taskQueue,
+          variant === "dailyOverview" && styles.dailyOverview,
           variant === "appHeader" && styles.appHeader,
           variant === "appNavigation" && styles.appNavigation,
           xstyle,
