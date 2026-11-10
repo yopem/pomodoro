@@ -2,6 +2,7 @@ import * as stylex from "@stylexjs/stylex"
 import { Link } from "@tanstack/react-router"
 import {
   ChevronDownIcon,
+  CloudIcon,
   LogOutIcon,
   SettingsIcon,
   UserRoundIcon,
@@ -21,6 +22,7 @@ import type { WorkspaceOwner } from "@/features/focus/store"
 import { ConfirmAction } from "@/components/confirm-action"
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
+import { Card, CardFooter, CardPanel } from "@/components/ui/card"
 import {
   Dialog,
   DialogClose,
@@ -215,18 +217,16 @@ export function SignedInAccountControls({
         <DialogHeader>
           <DialogTitle>Your workspace</DialogTitle>
           <DialogDescription>
-            Changes sync automatically. Manage saved data and account access.
+            Manage your account and the work saved on this device.
           </DialogDescription>
         </DialogHeader>
-        <DialogPanel>
-          <AccountActions
-            key={owner.generation}
-            controller={controller}
-            state={state}
-            workspace={workspace}
-            accountCloseRef={accountCloseRef}
-          />
-        </DialogPanel>
+        <AccountActions
+          key={owner.generation}
+          controller={controller}
+          state={state}
+          workspace={workspace}
+          accountCloseRef={accountCloseRef}
+        />
       </DialogPopup>
     </Dialog>
   )
@@ -299,25 +299,47 @@ export function AccountActions({
   const currentAccount = state.user?.id === owner.identity
 
   return (
-    <Stack spacing="compact">
-      <AccountFeedback state={state} pending={pending} error={error} />
-      <HStack wrap>
-        {state.user && (
-          <>
-            {(state.status === "error" || state.status === "offline") && (
-              <Button
-                variant="outline"
-                loading={pending}
-                onClick={commands.sync}
-              >
-                Retry sync
-              </Button>
+    <>
+      <DialogPanel>
+        <Stack spacing="relaxed">
+          <AccountFeedback state={state} pending={pending} error={error} />
+          {state.user && (
+            <>
+              {(state.status === "error" || state.status === "offline") && (
+                <Button
+                  variant="outline"
+                  loading={pending}
+                  onClick={commands.sync}
+                >
+                  Retry sync
+                </Button>
+              )}
+              <AccountImportAction
+                bound={bound}
+                state={state}
+                accountCloseRef={accountCloseRef}
+              />
+            </>
+          )}
+          {state.user &&
+            currentAccount &&
+            state.status === "conflict" &&
+            state.remoteRevision !== null && (
+              <AccountConflict
+                revision={state.remoteRevision}
+                workspace={workspace}
+                request={state.pendingOperation}
+                bound={bound}
+              />
             )}
-            <AccountImportAction
-              bound={bound}
-              state={state}
-              accountCloseRef={accountCloseRef}
-            />
+        </Stack>
+      </DialogPanel>
+      {state.user && (
+        <DialogFooter>
+          <HStack layout="spread" xstyle={styles.accountAccess}>
+            <Text size="small" tone="muted">
+              Log out of this device
+            </Text>
             <ConfirmAction
               title="Log out"
               description="Unsynced account work stays on this device. Export a backup in Settings if needed."
@@ -325,24 +347,15 @@ export function AccountActions({
               data={null}
               owner={bound}
               onConfirm={logout}
+              trigger={<Button variant="destructive-outline" />}
             >
+              <LogOutIcon size={16} aria-hidden="true" />
               Log out
             </ConfirmAction>
-          </>
-        )}
-      </HStack>
-      {state.user &&
-        currentAccount &&
-        state.status === "conflict" &&
-        state.remoteRevision !== null && (
-          <AccountConflict
-            revision={state.remoteRevision}
-            workspace={workspace}
-            request={state.pendingOperation}
-            bound={bound}
-          />
-        )}
-    </Stack>
+          </HStack>
+        </DialogFooter>
+      )}
+    </>
   )
 }
 
@@ -385,23 +398,43 @@ export function AccountFeedback({
   error: string | null
 }) {
   return (
-    <>
-      {state.user && (
-        <Text variant="label">
-          {state.user.name?.trim() ? state.user.name : "Account"}
-        </Text>
-      )}
-      <Box
-        render={
-          <output>{pending ? "Retrying sync." : accountStatus(state)}</output>
-        }
-      />
+    <Stack spacing="compact">
+      <Card>
+        {state.user && (
+          <CardPanel>
+            <HStack>
+              <UserRoundIcon size={32} aria-hidden="true" />
+              <Stack spacing="compact">
+                <Text variant="eyebrow">Signed in as</Text>
+                <Text variant="label">
+                  {state.user.name?.trim() ? state.user.name : "Your account"}
+                </Text>
+              </Stack>
+            </HStack>
+          </CardPanel>
+        )}
+        <CardFooter separator>
+          <Stack spacing="compact">
+            <HStack layout="row">
+              <CloudIcon size={18} aria-hidden="true" />
+              <Text variant="label" size="small">
+                Automatic sync
+              </Text>
+            </HStack>
+            <Text size="small" tone="muted">
+              <output aria-live="polite" aria-atomic="true">
+                {pending ? "Retrying sync." : accountStatus(state)}
+              </output>
+            </Text>
+          </Stack>
+        </CardFooter>
+      </Card>
       {(error ?? state.error) && (
-        <Text role="alert" tone="destructive">
+        <Text role="alert" tone="destructive" size="small">
           {error ?? state.error}
         </Text>
       )}
-    </>
+    </Stack>
   )
 }
 
@@ -538,9 +571,19 @@ export function GuestImport({
   return (
     <Dialog open={dialog?.open ?? false} onOpenChange={changeOpen}>
       {(available || dialog?.open) && (
-        <DialogTrigger render={<Button variant="outline" />}>
-          {request ? "Review pending import" : "Import guest work"}
-        </DialogTrigger>
+        <Stack spacing="compact">
+          <Text variant="label" size="small">
+            Work on this device
+          </Text>
+          <Text size="small" tone="muted">
+            {request
+              ? "Review the saved guest snapshot before retrying the original import."
+              : "Import guest projects, tasks, templates, and focus history into your account. The guest copy stays on this device."}
+          </Text>
+          <DialogTrigger render={<Button variant="outline" size="lg" />}>
+            {request ? "Review pending import" : "Import guest work"}
+          </DialogTrigger>
+        </Stack>
       )}
       {dialog && (
         <ImportContent
@@ -656,4 +699,5 @@ const styles = stylex.create({
   accountMenu: {
     inlineSize: "min(280px, calc(100vw - 32px))",
   },
+  accountAccess: { inlineSize: "100%" },
 })
