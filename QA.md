@@ -3948,7 +3948,7 @@ custom snapshot checker should remain removed. See QA-125.
   an overly broad change and is restored under QA-125. No dev/build launch is
   needed to accept removal of exact Bun pins.
 
-### [ ] QA-125 — P1 — Retain Turbo and Lefthook without Bun pins
+### [x] QA-125 — P1 — Retain Turbo and Lefthook without Bun pins
 
 - **Purpose:** Apply the user's correction: keep Turbo monorepo dispatch,
   Lefthook staged/push checks and their AGENTS instructions. Remove only fixed
@@ -3979,5 +3979,16 @@ custom snapshot checker should remain removed. See QA-125.
   logs with tested revision and global-tool preservation.
 - **Cleanup:** Preserve installed requested hooks. No app/data cleanup or
   service changes. Do not reset the user's manual records or push to a remote.
-- **Status:** Pending. Earlier removal of Lefthook/Turbo was too broad and is
-  superseded by this clarification, not an accepted architecture change.
+- **Status:** Passed for scoped static restoration at source `170765b` on
+  2026-11-10 UTC. True Turbo monorepo dry graph selected all four workspace
+  typechecks. Installed pre-commit all-files checks and all five pre-push jobs
+  passed with zero warnings; actual commit hook passed workspace typechecks and
+  staged formatting. Exact committed blobs matched the worktree. Full formatting
+  checked 123 files. Original global Bun SHA256 stayed unchanged. Evidence:
+  `qa-artifacts/QA-125/implementation-commit.txt`, `full-pre-push.txt`,
+  `turbo-dry-graph.json` and `global-tool-preservation.json`. Initial diagnostic
+  pre-push runs skipped argument-free jobs; final all-files activation fixed
+  that and all five ran. Earlier broad removal is superseded. No real push,
+  hosted CI, dev/build launch, browser, service or data action ran; no new
+  partial-staging/signal fixtures or separate pushed-tip isolation are claimed.
+  Hosted CI QA-121 P1 stays pending.
