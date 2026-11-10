@@ -24,8 +24,18 @@ function getRouteId(state: RegisteredRouter["state"]) {
   return state.matches.at(-1)?.routeId
 }
 
+function isErrorPage(state: RegisteredRouter["state"]) {
+  return state.matches.some(
+    (match) =>
+      match.status === "error" ||
+      match.status === "notFound" ||
+      match._notFound,
+  )
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const routeId = useRouterState({ select: getRouteId })
+  const errorPage = useRouterState({ select: isErrorPage })
   const fullscreen = useBrowserFullscreen()
   const compact = routeId === "/focus/" || (routeId === "/" && fullscreen)
   const snapshot = useFocusSnapshot((value) => value)
@@ -35,7 +45,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <Stack>
-      <Box render={<header hidden={compact} />} variant="appHeader">
+      <Box
+        render={<header hidden={compact || errorPage} />}
+        variant="appHeader"
+      >
         <Container variant="navigation">
           <HStack layout="spread">
             <Link

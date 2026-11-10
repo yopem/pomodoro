@@ -5168,3 +5168,44 @@ generation). Root `git diff --check` passed. Logs:
 `docs/reports-errors-lint.log`, `docs/reports-errors-format.log`, and
 `docs/reports-errors-typecheck.log`. Browser QA remains pending; static checks
 do not prove browser behavior.
+
+## Error-page header visibility
+
+Task: hide header navigation on 404 and 500 pages. Source:
+`apps/web/src/components/app-shell.tsx`. No API or data contract changes.
+
+Setup: use the existing isolated web environment at `http://localhost:13001` and
+its project browser group. Do not start replacement servers. Save evidence in
+ignored `qa-artifacts/`. QA-173 covers error navigation and recovery. Lint,
+format, and typecheck are allowed now; browser checks and builds need a separate
+QA pass. Authentication, migrations, and external integrations are not
+applicable because these contracts do not change.
+
+### [ ] QA-173 — P1 — Error header visibility and recovery
+
+- **Purpose:** Hide the app header on both missing and failed routes without
+  losing recovery controls or normal navigation.
+- **Prerequisites:** Shared setup; an isolated route error fixture. Discover a
+  reversible development-only loader or render failure before the 500 subcase;
+  no error trigger endpoint is added by this task.
+- **Inputs:** `/missing-report-qa-173`, `/reports`, `/`, and the isolated
+  failure.
+- **Steps:** 1. Open the missing URL directly and through client navigation. 2.
+  Inspect the 404 page. 3. Use Return to timer. 4. Trigger the isolated route
+  failure and inspect the 500 fallback. 5. Remove the failure and use Reload
+  page, then visit reports.
+- **Expected results:** Neither error page shows the app header, brand, Account,
+  theme toggle, or main navigation. Error headings and recovery buttons remain.
+  Recovery restores the normal header. Reports and home retain navigation; focus
+  and login keep their existing header rules. No workspace data changes.
+- **Evidence:** Save and inspect `qa-artifacts/QA-173-errors.txt` and sanitized
+  screenshots of 404, 500, and recovered routes.
+- **Cleanup:** Remove the isolated failure and close only owned temporary tabs.
+- **Status:** Pending; the 500 fixture needs discovery before execution.
+
+Static checks passed from `apps/web`: `bun run lint`, `bun run format:check`
+(107 files), and `bun run typecheck` (app, tools, and service worker, with route
+generation). Root `git diff --check` passed. Logs:
+`docs/reports-errors-lint.log`, `docs/reports-errors-format.log`, and
+`docs/reports-errors-typecheck.log`. Browser QA remains pending; static checks
+do not prove browser behavior.
