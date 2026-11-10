@@ -97,7 +97,6 @@ export function TimerWorkspaceSkeleton({
         <Box variant="taskQueue" hidden={fullscreen} aria-hidden="true">
           <Stack spacing="relaxed">
             <Stack spacing="compact">
-              <Text variant="eyebrow">Your task queue</Text>
               <Text variant="label">Tasks</Text>
               <Skeleton xstyle={styles.shortLine} />
             </Stack>

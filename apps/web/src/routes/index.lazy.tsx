@@ -65,9 +65,6 @@ export function TimerRoute() {
         >
           <Stack spacing="page">
             <Stack spacing="compact">
-              <Text variant="eyebrow" hidden={fullscreen}>
-                Your focus workspace
-              </Text>
               <Heading render={<h1>Focus timer</h1>} />
             </Stack>
             <TimerWorkspaceSkeleton fullscreen={fullscreen} />
@@ -105,14 +102,7 @@ export function TimerRoute() {
         <Stack spacing="page">
           <HStack layout="pageHeader">
             <Stack spacing="compact">
-              <Text variant="eyebrow" hidden={fullscreen}>
-                YOUR FOCUS WORKSPACE
-              </Text>
               <Heading render={<h1>Focus timer</h1>} />
-              <Text tone="muted" hidden={fullscreen}>
-                One task. One {workspace.settings.focus_minutes}-minute
-                interval.
-              </Text>
             </Stack>
             <FocusBrowserControls />
           </HStack>

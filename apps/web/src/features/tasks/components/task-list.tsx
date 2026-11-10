@@ -411,9 +411,7 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
       <Stack>
         <HStack layout="spread">
           <Box>
-            <Text variant="eyebrow">YOUR TASK QUEUE</Text>
             <Heading id="tasks-heading">Tasks</Heading>
-            <Text tone="muted">One task at a time.</Text>
           </Box>
           <HStack layout="row">
             <Button variant="ghost" size="xl" onClick={events.toggleHidden}>

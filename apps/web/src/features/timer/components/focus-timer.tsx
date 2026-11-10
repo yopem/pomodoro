@@ -289,9 +289,6 @@ export function FocusTimer({
             {timer.completed_focus_count} completed
           </Text>
           <Box variant="focusTask" render={<header />}>
-            <Text variant="note" tone="muted">
-              CURRENT TASK
-            </Text>
             <Text variant="label">
               {selected ? selected.title : "Choose a task to focus on"}
             </Text>
