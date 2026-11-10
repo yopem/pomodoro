@@ -70,13 +70,12 @@ const styles = stylex.create({
   },
   root: {
     backgroundClip: "padding-box",
-    backgroundColor:
-      "color-mix(in srgb, var(--popover), #000 calc(1% * max(0, var(--toast-index, 0))))",
+    backgroundColor: tokens["--popover"],
     borderColor: tokens["--border"],
-    borderRadius: tokens["--radius-md"],
+    borderRadius: tokens["--radius"],
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: "0 10px 15px -3px color-mix(in oklab, #000 5%, transparent)",
+    boxShadow: tokens["--shadow-md"],
     color: tokens["--popover-foreground"],
     blockSize: "var(--toast-calc-height)",
     inlineSize: "100%",
@@ -265,13 +264,13 @@ const styles = stylex.create({
     "[data-starting-style]": { opacity: 0, scale: 0.98 },
   },
   anchoredTooltip: {
-    borderRadius: tokens["--radius-md"],
-    boxShadow: "0 4px 6px -1px color-mix(in oklab, #000 5%, transparent)",
+    borderRadius: tokens["--radius"],
+    boxShadow: tokens["--shadow-sm"],
     "::before": { borderRadius: "calc(var(--radius-md) - 1px)" },
   },
   anchoredDefault: {
-    borderRadius: tokens["--radius-md"],
-    boxShadow: "0 10px 15px -3px color-mix(in oklab, #000 5%, transparent)",
+    borderRadius: tokens["--radius"],
+    boxShadow: tokens["--shadow-md"],
     "::before": { borderRadius: "calc(var(--radius-md) - 1px)" },
   },
   tooltipContent: {

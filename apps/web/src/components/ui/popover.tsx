@@ -18,17 +18,14 @@ const styles = stylex.create({
     "[data-instant]": { transitionProperty: "none" },
   },
   popup: {
-    borderRadius: {
-      default: tokens["--radius-md"],
-      ':has([data-slot="calendar"])': "0.875rem",
-    },
+    borderRadius: tokens["--radius"],
     backgroundClip: "padding-box",
     backgroundColor: tokens["--popover"],
     blockSize: "var(--popup-height, auto)",
     borderColor: tokens["--border"],
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: "0 10px 15px -3px color-mix(in oklab, #000 5%, transparent)",
+    boxShadow: tokens["--shadow-md"],
     color: tokens["--popover-foreground"],
     display: "flex",
     inlineSize: "var(--popup-width, auto)",
@@ -64,11 +61,8 @@ const styles = stylex.create({
     },
   },
   tooltipPopup: {
-    borderRadius: {
-      default: tokens["--radius-md"],
-      ':has([data-slot="calendar"])': "0.875rem",
-    },
-    boxShadow: "0 4px 6px -1px color-mix(in oklab, #000 5%, transparent)",
+    borderRadius: tokens["--radius"],
+    boxShadow: tokens["--shadow-sm"],
     fontSize: "0.75rem",
     inlineSize: "fit-content",
     textWrap: "balance",

@@ -27,10 +27,10 @@ const styles = stylex.create({
     backgroundClip: "padding-box",
     backgroundColor: tokens["--popover"],
     borderColor: tokens["--border"],
-    borderRadius: tokens["--radius-md"],
+    borderRadius: tokens["--radius"],
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: "0 10px 15px -3px color-mix(in oklab, #000 5%, transparent)",
+    boxShadow: tokens["--shadow-md"],
     display: "flex",
     minInlineSize: "8rem",
     outline: "none",
@@ -58,11 +58,11 @@ const styles = stylex.create({
   },
   item: {
     alignItems: "center",
-    borderRadius: tokens["--radius-md"],
-    color: tokens["--foreground"],
+    borderRadius: tokens["--radius-sm"],
+    color: tokens["--popover-foreground"],
     cursor: "default",
     display: "flex",
-    fontSize: { default: "1rem", "@media (min-width: 640px)": "0.875rem" },
+    fontSize: "0.875rem",
     gap: "0.5rem",
     minBlockSize: 44,
     outline: "none",
@@ -79,11 +79,11 @@ const styles = stylex.create({
   },
   choiceItem: {
     alignItems: "center",
-    borderRadius: tokens["--radius-md"],
-    color: tokens["--foreground"],
+    borderRadius: tokens["--radius-sm"],
+    color: tokens["--popover-foreground"],
     cursor: "default",
     display: "grid",
-    fontSize: { default: "1rem", "@media (min-width: 640px)": "0.875rem" },
+    fontSize: "0.875rem",
     gap: "0.5rem",
     minBlockSize: { default: "2rem", "@media (min-width: 640px)": "1.75rem" },
     outline: "none",
@@ -110,7 +110,7 @@ const styles = stylex.create({
   indicator: { gridColumnStart: 1, marginInlineStart: "-0.125rem" },
   switch: {
     alignItems: "center",
-    backgroundColor: tokens["--input"],
+    backgroundColor: tokens["--accent"],
     blockSize: "calc(var(--thumb-size) + 2px)",
     borderRadius: "9999px",
     boxShadow: "inset 0 1px rgb(0 0 0 / 0.04)",
@@ -125,15 +125,11 @@ const styles = stylex.create({
     ":focus-visible": {
       boxShadow: `0 0 0 2px ${tokens["--ring"]}, 0 0 0 3px ${tokens["--background"]}`,
     },
-    "[data-checked]": { backgroundColor: tokens["--primary"] },
+    "[data-checked]": { backgroundColor: tokens["--accent-solid"] },
     "[data-disabled]": { opacity: 0.64 },
   },
   switchThumb: {
-    borderRadius: {
-      default: "var(--thumb-size)",
-      ':is([data-slot="menu-checkbox-item"]:active [data-slot="menu-switch-thumb"])':
-        "calc(var(--thumb-size) / (var(--thumb-size) * 1.1))",
-    },
+    borderRadius: "9999px",
     scale: {
       default: null,
       ':is([data-slot="menu-checkbox-item"]:active [data-slot="menu-switch-thumb"])':
@@ -150,9 +146,13 @@ const styles = stylex.create({
         "calc(var(--thumb-size) - 4px) 0",
     },
     aspectRatio: "1",
-    backgroundColor: tokens["--background"],
+    backgroundColor: {
+      default: tokens["--muted-foreground"],
+      ':is([data-slot="menu-checkbox-item"][data-checked] [data-slot="menu-switch-thumb"])':
+        tokens["--accent-solid-foreground"],
+    },
     blockSize: "100%",
-    boxShadow: "0 1px 2px color-mix(in oklab, #000 5%, transparent)",
+    boxShadow: tokens["--shadow-sm"],
     display: "block",
     pointerEvents: "none",
     transition:
@@ -173,7 +173,7 @@ const styles = stylex.create({
     },
   },
   separator: {
-    backgroundColor: tokens["--border"],
+    backgroundColor: tokens["--card-border"],
     blockSize: 1,
     marginBlock: "0.25rem",
     marginInline: "0.5rem",
@@ -188,10 +188,10 @@ const styles = stylex.create({
   },
   subTrigger: {
     alignItems: "center",
-    borderRadius: tokens["--radius-md"],
-    color: tokens["--foreground"],
+    borderRadius: tokens["--radius-sm"],
+    color: tokens["--popover-foreground"],
     display: "flex",
-    fontSize: { default: "1rem", "@media (min-width: 640px)": "0.875rem" },
+    fontSize: "0.875rem",
     gap: "0.5rem",
     minBlockSize: { default: "2rem", "@media (min-width: 640px)": "1.75rem" },
     outline: "none",
