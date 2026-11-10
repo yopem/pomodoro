@@ -61,7 +61,7 @@ export function FocusTimeline({
   const max = Math.max(1, ...bins.map((bin) => bin.seconds))
 
   return (
-    <Stack>
+    <Stack spacing="compact">
       {bins.map((bin) => (
         <Stack key={bin.start} spacing="compact">
           <HStack layout="spread">

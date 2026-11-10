@@ -160,7 +160,7 @@ export function ReportsRoute() {
   return (
     <Box render={<main id="main" tabIndex={-1} />}>
       <Container variant="workspace">
-        <Stack spacing="page">
+        <Stack spacing="relaxed">
           <HStack layout="pageHeader">
             <Stack spacing="compact">
               <Heading render={<h1>Focus reports</h1>} />
@@ -180,8 +180,8 @@ export function ReportsRoute() {
             weekStart={workspace.settings.week_start}
           />
           <Card render={<section aria-label="Focus summary" />}>
-            <CardPanel>
-              <HStack layout="spread">
+            <CardPanel density="compact">
+              <Grid variant="summary">
                 <ReportMetric
                   label="Time focused"
                   value={formatFocusTime(summary.totalSeconds)}
@@ -194,11 +194,11 @@ export function ReportsRoute() {
                   label="Current daily streak"
                   value={`${streak} ${streak === 1 ? "day" : "days"}`}
                 />
-              </HStack>
+              </Grid>
             </CardPanel>
           </Card>
           <Box render={<section aria-label="Focus charts" />}>
-            <Grid variant="workspace">
+            <Grid variant="focus">
               <Card>
                 <CardPanel>
                   <Stack>
@@ -231,8 +231,10 @@ export function ReportsRoute() {
                           spacing="compact"
                         >
                           <HStack layout="spread">
-                            <Text>{project.projectName || "No project"}</Text>
-                            <Text format="numeric">
+                            <Text size="small">
+                              {project.projectName || "No project"}
+                            </Text>
+                            <Text size="small" format="numeric">
                               {formatFocusTime(project.seconds)}
                             </Text>
                           </HStack>
@@ -284,9 +286,9 @@ export function ReportMetric({
   value: string
 }) {
   return (
-    <Stat>
+    <Stat variant="divided">
       <StatLabel>{label}</StatLabel>
-      <StatValue>{value}</StatValue>
+      <StatValue size="compact">{value}</StatValue>
     </Stat>
   )
 }

@@ -202,7 +202,7 @@ export function ReportFilters({
     <form.Subscribe selector={selectIsSubmitting}>
       {(submitting) => (
         <Card render={<section aria-label="Report filters" />}>
-          <CardPanel>
+          <CardPanel density="compact">
             <Stack>
               <HStack layout="row">
                 <Button
@@ -214,7 +214,7 @@ export function ReportFilters({
                 >
                   <ArrowLeftIcon size={18} aria-hidden="true" />
                 </Button>
-                <Text>{rangeLabel}</Text>
+                <Text variant="label">{rangeLabel}</Text>
                 <Button
                   variant="outline"
                   size="icon"

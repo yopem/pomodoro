@@ -29,7 +29,7 @@ export function ReportsSkeleton() {
           </HStack>
         </HStack>
         <Card>
-          <CardPanel>
+          <CardPanel density="compact">
             <Stack>
               <HStack layout="spread">
                 <Skeleton xstyle={styles.title} />
@@ -44,22 +44,22 @@ export function ReportsSkeleton() {
           </CardPanel>
         </Card>
         <Card>
-          <CardPanel>
-            <HStack layout="spread">
+          <CardPanel density="compact">
+            <Grid variant="summary">
               {[0, 1, 2].map((metric) => (
-                <Stat key={metric}>
+                <Stat key={metric} variant="divided">
                   <StatLabel>
                     <Skeleton xstyle={styles.label} />
                   </StatLabel>
-                  <StatValue>
+                  <StatValue size="compact">
                     <Skeleton xstyle={styles.value} />
                   </StatValue>
                 </Stat>
               ))}
-            </HStack>
+            </Grid>
           </CardPanel>
         </Card>
-        <Grid variant="workspace">
+        <Grid variant="focus">
           {[0, 1].map((chart) => (
             <Card key={chart}>
               <CardPanel>
