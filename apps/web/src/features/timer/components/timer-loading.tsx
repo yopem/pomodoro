@@ -6,6 +6,12 @@ import { Grid } from "@/components/ui/grid"
 import { HStack } from "@/components/ui/hstack"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Stack } from "@/components/ui/stack"
+import {
+  Stat,
+  StatDescription,
+  StatLabel,
+  StatValue,
+} from "@/components/ui/stat"
 import { Text } from "@/components/ui/text"
 
 const styles = stylex.create({
@@ -68,13 +74,19 @@ export function TimerWorkspaceSkeleton({
               <Text variant="label">Today at a glance</Text>
               <Card>
                 <CardPanel>
-                  <Grid variant="metrics">
+                  <Grid variant="summary">
                     {[0, 1, 2].map((column) => (
-                      <Stack spacing="compact" key={column}>
-                        <Skeleton xstyle={styles.shortLine} />
-                        <Skeleton xstyle={styles.title} />
-                        <Skeleton xstyle={styles.line} />
-                      </Stack>
+                      <Stat variant="divided" key={column}>
+                        <StatLabel>
+                          <Skeleton xstyle={styles.line} />
+                        </StatLabel>
+                        <StatValue>
+                          <Skeleton xstyle={styles.title} />
+                        </StatValue>
+                        <StatDescription>
+                          <Skeleton xstyle={styles.line} />
+                        </StatDescription>
+                      </Stat>
                     ))}
                   </Grid>
                 </CardPanel>

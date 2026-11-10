@@ -24,6 +24,12 @@ const styles = stylex.create({
     gap: 16,
     gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
   },
+  summary: {
+    gridTemplateColumns: {
+      default: "repeat(3, minmax(0, 1fr))",
+      "@media (max-width: 480px)": "minmax(0, 1fr)",
+    },
+  },
   workspace: {
     gap: 24,
     gridTemplateColumns: {
@@ -38,7 +44,7 @@ type GridElementProps = ComponentPropsWithoutRef<"div"> &
 
 export type GridProps = StyleXComponentProps<
   GridElementProps,
-  { variant?: "default" | "workspace" | "focus" | "metrics" }
+  { variant?: "default" | "workspace" | "focus" | "metrics" | "summary" }
 >
 
 export function Grid({
@@ -61,6 +67,7 @@ export function Grid({
           variant === "workspace" && styles.workspace,
           variant === "focus" && styles.focus,
           variant === "metrics" && styles.metrics,
+          variant === "summary" && styles.summary,
           xstyle,
         ),
         props,

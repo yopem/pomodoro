@@ -127,29 +127,34 @@ export function TimerRoute() {
                 <Stack>
                   <HStack layout="spread">
                     <Text variant="label">Today at a glance</Text>
-                    <Text size="small" tone="muted">
-                      Your session plan
-                    </Text>
                   </HStack>
                   <Card render={<section aria-label="Today's focus summary" />}>
                     <CardPanel>
-                      <Grid variant="metrics">
-                        <Stat>
-                          <TargetIcon size={18} aria-hidden="true" />
-                          <StatLabel>Focus today</StatLabel>
-                          <StatValue size="compact">
-                            {formatFocusTime(today)}
-                          </StatValue>
+                      <Grid variant="summary">
+                        <Stat variant="divided">
+                          <StatLabel>
+                            <TargetIcon size={16} aria-hidden="true" />
+                            Focus today
+                          </StatLabel>
+                          <StatValue>{formatFocusTime(today)}</StatValue>
+                          <StatDescription>
+                            Completed focus time
+                          </StatDescription>
                         </Stat>
-                        <Stat>
-                          <FlagIcon size={18} aria-hidden="true" />
-                          <StatLabel>Sessions left</StatLabel>
-                          <StatValue size="compact">{remaining}</StatValue>
+                        <Stat variant="divided">
+                          <StatLabel>
+                            <FlagIcon size={16} aria-hidden="true" />
+                            Sessions left
+                          </StatLabel>
+                          <StatValue>{remaining}</StatValue>
+                          <StatDescription>Planned intervals</StatDescription>
                         </Stat>
-                        <Stat>
-                          <Clock3Icon size={18} aria-hidden="true" />
-                          <StatLabel>Estimated finish</StatLabel>
-                          <StatValue size="compact">
+                        <Stat variant="divided">
+                          <StatLabel>
+                            <Clock3Icon size={16} aria-hidden="true" />
+                            Estimated finish
+                          </StatLabel>
+                          <StatValue>
                             {finish === null
                               ? "—"
                               : (workspace.settings.hour_format === "12h"

@@ -14,7 +14,28 @@ const styles = stylex.create({
     gap: "0.25rem",
     margin: 0,
   },
+  divided: {
+    gap: 8,
+    paddingInline: { default: 20, "@media (max-width: 480px)": 0 },
+    paddingBlock: { default: 4, "@media (max-width: 480px)": 16 },
+    borderInlineStartColor: tokens["--border"],
+    borderInlineStartStyle: "solid",
+    borderInlineStartWidth: {
+      default: 1,
+      ":first-child": 0,
+      "@media (max-width: 480px)": 0,
+    },
+    borderBlockStartColor: tokens["--border"],
+    borderBlockStartStyle: "solid",
+    borderBlockStartWidth: {
+      default: 0,
+      "@media (max-width: 480px)": { default: 1, ":first-child": 0 },
+    },
+  },
   label: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
     color: tokens["--muted-foreground"],
     fontSize: "0.875rem",
     fontWeight: 500,
@@ -47,13 +68,21 @@ const styles = stylex.create({
 export function Stat({
   xstyle: consumerXstyle,
   className,
+  variant = "default",
   ...props
-}: StyleXComponentProps<ComponentPropsWithRef<"dl">>) {
+}: StyleXComponentProps<ComponentPropsWithRef<"dl">> & {
+  variant?: "default" | "divided"
+}) {
   return (
     <dl
       data-slot="stat"
       {...mergeStylexProps(
-        stylexProps(className, styles.root, consumerXstyle),
+        stylexProps(
+          className,
+          styles.root,
+          variant === "divided" && styles.divided,
+          consumerXstyle,
+        ),
         props,
       )}
     />
