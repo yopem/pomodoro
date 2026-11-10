@@ -1,17 +1,23 @@
-import type { ChangeEvent, MouseEvent } from "react"
+import type { MouseEvent } from "react"
 
 import { useNavigate, useSearch } from "@tanstack/react-router"
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react"
 import { startTransition, useActionState, useState } from "react"
 import { z } from "zod"
 
+import { DatePicker } from "@/components/date-picker"
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
 import { Card, CardPanel } from "@/components/ui/card"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { HStack } from "@/components/ui/hstack"
-import { Input } from "@/components/ui/input"
-import { NativeSelect } from "@/components/ui/native-select"
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { localDateRange } from "@/features/focus/reports"
@@ -23,6 +29,14 @@ type FilterAction =
   | { kind: "date"; value: string }
   | { kind: "project"; value: string }
   | { kind: "move"; direction: number }
+
+function reportProjectItems(projectNames: Map<string, string>) {
+  return [
+    { value: "", label: "All projects" },
+    { value: "none", label: "No project" },
+    ...Array.from(projectNames, ([value, label]) => ({ value, label })),
+  ]
+}
 
 export function ReportFilters({
   dateText,
@@ -37,6 +51,7 @@ export function ReportFilters({
 }) {
   const search = useSearch({ from: "/reports/" })
   const navigate = useNavigate({ from: "/reports/" })
+  const projectItems = reportProjectItems(projectNames)
 
   const [error, dispatch, pending] = useActionState(
     async (_previous: string | null, action: FilterAction) => {
@@ -119,14 +134,13 @@ export function ReportFilters({
       startTransition(() => dispatch({ kind: "period", value }))
     }
 
-    function date(event: ChangeEvent<HTMLInputElement>) {
-      const value = event.currentTarget.value
+    function date(value: string) {
       startTransition(() => dispatch({ kind: "date", value }))
     }
 
-    function project(event: ChangeEvent<HTMLSelectElement>) {
-      const value = event.currentTarget.value
-      startTransition(() => dispatch({ kind: "project", value }))
+    function project(value: string | null) {
+      if (value !== null)
+        startTransition(() => dispatch({ kind: "project", value }))
     }
 
     function previous() {
@@ -186,9 +200,8 @@ export function ReportFilters({
             <HStack layout="row">
               <Field>
                 <FieldLabel htmlFor="report-date">Date</FieldLabel>
-                <Input
+                <DatePicker
                   id="report-date"
-                  type="date"
                   value={dateText}
                   onChange={events.date}
                   disabled={pending}
@@ -196,20 +209,25 @@ export function ReportFilters({
               </Field>
               <Field>
                 <FieldLabel htmlFor="report-project">Project</FieldLabel>
-                <NativeSelect
-                  id="report-project"
+                <Select
                   value={search.project ?? ""}
-                  onChange={events.project}
+                  onValueChange={events.project}
                   disabled={pending}
+                  items={projectItems}
                 >
-                  <option value="">All projects</option>
-                  <option value="none">No project</option>
-                  {Array.from(projectNames, ([id, name]) => (
-                    <option key={id} value={id}>
-                      {name}
-                    </option>
-                  ))}
-                </NativeSelect>
+                  <SelectTrigger id="report-project">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectPopup>
+                    <SelectItem value="">All projects</SelectItem>
+                    <SelectItem value="none">No project</SelectItem>
+                    {Array.from(projectNames, ([id, name]) => (
+                      <SelectItem key={id} value={id}>
+                        {name}
+                      </SelectItem>
+                    ))}
+                  </SelectPopup>
+                </Select>
               </Field>
             </HStack>
           </HStack>

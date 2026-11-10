@@ -1,4 +1,4 @@
-import type { ChangeEvent, FormEvent } from "react"
+import type { FormEvent } from "react"
 
 import { useForm } from "@tanstack/react-form"
 import { DownloadIcon } from "lucide-react"
@@ -8,6 +8,7 @@ import { z } from "zod"
 import type { DateRange } from "@/features/focus/reports"
 import type { Session } from "@/features/focus/schema"
 
+import { DatePicker } from "@/components/date-picker"
 import { FieldMessages } from "@/components/field-messages"
 import { Button } from "@/components/ui/button"
 import {
@@ -21,14 +22,29 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Form } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { NativeSelect } from "@/components/ui/native-select"
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Stack } from "@/components/ui/stack"
 import { Switch } from "@/components/ui/switch"
 import { Text } from "@/components/ui/text"
 import { exportSessionsCsv } from "@/features/focus/reports"
 import { downloadText } from "@/lib/download"
 import { localDateText } from "@/lib/local-date"
+
+const unitItems = [
+  { value: "minutes", label: "Minutes" },
+  { value: "hours", label: "Hours" },
+]
+
+const delimiterItems = [
+  { value: "comma", label: "Comma" },
+  { value: "tab", label: "Tab" },
+]
 
 const exportSchema = z
   .object({
@@ -130,26 +146,22 @@ export function CsvExportForm({
       element.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
     }
 
-    function changeFrom(event: ChangeEvent<HTMLInputElement>) {
-      form.setFieldValue("from", event.currentTarget.value)
+    function changeFrom(value: string) {
+      form.setFieldValue("from", value)
     }
 
-    function changeTo(event: ChangeEvent<HTMLInputElement>) {
-      form.setFieldValue("to", event.currentTarget.value)
+    function changeTo(value: string) {
+      form.setFieldValue("to", value)
     }
 
-    function changeUnit(event: ChangeEvent<HTMLSelectElement>) {
-      form.setFieldValue(
-        "unit",
-        event.currentTarget.value === "hours" ? "hours" : "minutes",
-      )
+    function changeUnit(value: string | null) {
+      if (value === null) return
+      form.setFieldValue("unit", value === "hours" ? "hours" : "minutes")
     }
 
-    function changeDelimiter(event: ChangeEvent<HTMLSelectElement>) {
-      form.setFieldValue(
-        "delimiter",
-        event.currentTarget.value === "tab" ? "tab" : "comma",
-      )
+    function changeDelimiter(value: string | null) {
+      if (value === null) return
+      form.setFieldValue("delimiter", value === "tab" ? "tab" : "comma")
     }
 
     function cancel() {
@@ -170,14 +182,14 @@ export function CsvExportForm({
             {(field) => (
               <Field invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel htmlFor="export-from">From</FieldLabel>
-                <Input
+                <DatePicker
                   id="export-from"
-                  type="date"
+                  clearable
                   value={field.state.value}
                   onChange={events.changeFrom}
                   onBlur={field.handleBlur}
-                  aria-invalid={field.state.meta.errors.length > 0}
-                  aria-describedby="export-from-error"
+                  invalid={field.state.meta.errors.length > 0}
+                  describedBy="export-from-error"
                 />
                 <FieldMessages
                   id="export-from-error"
@@ -190,14 +202,14 @@ export function CsvExportForm({
             {(field) => (
               <Field invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel htmlFor="export-to">Through</FieldLabel>
-                <Input
+                <DatePicker
                   id="export-to"
-                  type="date"
+                  clearable
                   value={field.state.value}
                   onChange={events.changeTo}
                   onBlur={field.handleBlur}
-                  aria-invalid={field.state.meta.errors.length > 0}
-                  aria-describedby="export-to-error"
+                  invalid={field.state.meta.errors.length > 0}
+                  describedBy="export-to-error"
                 />
                 <FieldMessages
                   id="export-to-error"
@@ -224,14 +236,19 @@ export function CsvExportForm({
             {(field) => (
               <Field>
                 <FieldLabel htmlFor="export-unit">Focus time unit</FieldLabel>
-                <NativeSelect
-                  id="export-unit"
+                <Select
                   value={field.state.value}
-                  onChange={events.changeUnit}
+                  onValueChange={events.changeUnit}
+                  items={unitItems}
                 >
-                  <option value="minutes">Minutes</option>
-                  <option value="hours">Hours</option>
-                </NativeSelect>
+                  <SelectTrigger id="export-unit" onBlur={field.handleBlur}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectPopup>
+                    <SelectItem value="minutes">Minutes</SelectItem>
+                    <SelectItem value="hours">Hours</SelectItem>
+                  </SelectPopup>
+                </Select>
               </Field>
             )}
           </form.Field>
@@ -239,14 +256,22 @@ export function CsvExportForm({
             {(field) => (
               <Field>
                 <FieldLabel htmlFor="export-delimiter">Delimiter</FieldLabel>
-                <NativeSelect
-                  id="export-delimiter"
+                <Select
                   value={field.state.value}
-                  onChange={events.changeDelimiter}
+                  onValueChange={events.changeDelimiter}
+                  items={delimiterItems}
                 >
-                  <option value="comma">Comma</option>
-                  <option value="tab">Tab</option>
-                </NativeSelect>
+                  <SelectTrigger
+                    id="export-delimiter"
+                    onBlur={field.handleBlur}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectPopup>
+                    <SelectItem value="comma">Comma</SelectItem>
+                    <SelectItem value="tab">Tab</SelectItem>
+                  </SelectPopup>
+                </Select>
               </Field>
             )}
           </form.Field>

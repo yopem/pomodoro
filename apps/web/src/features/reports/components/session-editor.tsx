@@ -6,6 +6,7 @@ import { z } from "zod"
 
 import type { Project, Session } from "@/features/focus/schema"
 
+import { DatePicker } from "@/components/date-picker"
 import { FieldMessages } from "@/components/field-messages"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,7 +20,13 @@ import { Field, FieldLabel } from "@/components/ui/field"
 import { Form } from "@/components/ui/form"
 import { HStack } from "@/components/ui/hstack"
 import { Input } from "@/components/ui/input"
-import { NativeSelect } from "@/components/ui/native-select"
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { saveSession, useWorkspaceMutationOwner } from "@/features/focus/store"
@@ -54,6 +61,22 @@ const entrySchema = z
     }
   })
 
+function sessionProjectItems(
+  projects: readonly Project[],
+  session: Session | null,
+) {
+  return [
+    { value: "", label: "No project" },
+    ...projects
+      .values()
+      .filter(
+        (project) => !project.archived || project.id === session?.project_id,
+      )
+      .map((project) => ({ value: project.id, label: project.name }))
+      .toArray(),
+  ]
+}
+
 export function SessionEditor({
   openingId,
   session,
@@ -67,6 +90,8 @@ export function SessionEditor({
   date: string
   onClose: (id: string) => void
 }) {
+  const projectItems = sessionProjectItems(projects, session)
+
   const owner = useWorkspaceMutationOwner()
   const [error, setError] = useState<string | null>(null)
   const initialDate = session ? new Date(session.started_at_ms) : null
@@ -147,16 +172,16 @@ export function SessionEditor({
       element.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
     }
 
-    function changeDate(event: ChangeEvent<HTMLInputElement>) {
-      form.setFieldValue("date", event.currentTarget.value)
+    function changeDate(value: string) {
+      form.setFieldValue("date", value)
     }
 
     function changeTitle(event: ChangeEvent<HTMLInputElement>) {
       form.setFieldValue("title", event.currentTarget.value)
     }
 
-    function changeProject(event: ChangeEvent<HTMLSelectElement>) {
-      form.setFieldValue("project", event.currentTarget.value)
+    function changeProject(value: string | null) {
+      if (value !== null) form.setFieldValue("project", value)
     }
 
     function changeStart(event: ChangeEvent<HTMLInputElement>) {
@@ -200,14 +225,14 @@ export function SessionEditor({
             {(field) => (
               <Field invalid={field.state.meta.errors.length > 0}>
                 <FieldLabel htmlFor="session-date">Date</FieldLabel>
-                <Input
+                <DatePicker
                   id="session-date"
-                  type="date"
+                  clearable
                   value={field.state.value}
                   onChange={events.changeDate}
                   onBlur={field.handleBlur}
-                  aria-invalid={field.state.meta.errors.length > 0}
-                  aria-describedby="session-date-error"
+                  invalid={field.state.meta.errors.length > 0}
+                  describedBy="session-date-error"
                 />
                 <FieldMessages
                   id="session-date-error"
@@ -240,24 +265,22 @@ export function SessionEditor({
             {(field) => (
               <Field>
                 <FieldLabel htmlFor="session-project">Project</FieldLabel>
-                <NativeSelect
-                  id="session-project"
+                <Select
                   value={field.state.value}
-                  onChange={events.changeProject}
-                  onBlur={field.handleBlur}
+                  onValueChange={events.changeProject}
+                  items={projectItems}
                 >
-                  <option value="">No project</option>
-                  {projects
-                    .filter(
-                      (project) =>
-                        !project.archived || project.id === session?.project_id,
-                    )
-                    .map((project) => (
-                      <option key={project.id} value={project.id}>
-                        {project.name}
-                      </option>
+                  <SelectTrigger id="session-project" onBlur={field.handleBlur}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectPopup>
+                    {projectItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
                     ))}
-                </NativeSelect>
+                  </SelectPopup>
+                </Select>
               </Field>
             )}
           </form.Field>
