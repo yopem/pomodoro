@@ -11,6 +11,15 @@ import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
+  backupUpload: {
+    minInlineSize: 0,
+    padding: { default: 24, "@media (max-width: 640px)": 16 },
+    borderColor: tokens["--border"],
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderRadius: tokens["--radius-lg"],
+    backgroundColor: tokens["--muted"],
+  },
   settingsNavigation: {
     position: { default: "sticky", "@media (max-width: 768px)": "static" },
     insetBlockStart: 24,
@@ -117,6 +126,7 @@ export type BoxProps = StyleXComponentProps<useRender.ComponentProps<"div">> & {
     | "loginPage"
     | "settingsNavigation"
     | "settingsSave"
+    | "backupUpload"
 }
 
 export function Box({
@@ -136,6 +146,7 @@ export function Box({
           variant === "loginPage" && styles.loginPage,
           variant === "settingsNavigation" && styles.settingsNavigation,
           variant === "settingsSave" && styles.settingsSave,
+          variant === "backupUpload" && styles.backupUpload,
           variant === "focusDial" && styles.focusDial,
           variant === "focusTask" && styles.focusTask,
           variant === "taskQueue" && styles.taskQueue,

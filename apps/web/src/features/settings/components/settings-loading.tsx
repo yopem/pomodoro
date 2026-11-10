@@ -101,15 +101,24 @@ export function SettingsSkeleton() {
             <Skeleton xstyle={styles.description} />
           </CardHeader>
           <CardPanel>
-            <Grid variant="workspace">
-              {[0, 1].map((item) => (
-                <Stack key={item} spacing="compact">
+            <Stack>
+              <HStack layout="spread">
+                <Skeleton xstyle={styles.title} />
+                <Skeleton xstyle={styles.button} />
+              </HStack>
+              <Skeleton xstyle={styles.description} />
+              <Box variant="backupUpload">
+                <Stack spacing="relaxed">
                   <Skeleton xstyle={styles.title} />
                   <Skeleton xstyle={styles.description} />
-                  <Skeleton xstyle={styles.control} />
+                  <HStack layout="spread">
+                    <Skeleton xstyle={styles.label} />
+                    <Skeleton xstyle={styles.button} />
+                  </HStack>
+                  <Skeleton xstyle={styles.label} />
                 </Stack>
-              ))}
-            </Grid>
+              </Box>
+            </Stack>
           </CardPanel>
         </Card>
       </Stack>

@@ -1,10 +1,9 @@
-import type { ChangeEvent } from "react"
-
 import { DownloadIcon, UploadIcon } from "lucide-react"
 import { startTransition, useActionState, useState } from "react"
 
 import type { Workspace } from "@/features/focus/schema"
 
+import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -22,15 +21,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Field, FieldLabel } from "@/components/ui/field"
-import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
-import { Input } from "@/components/ui/input"
+import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { exportBackup } from "@/features/focus/reports"
 import { workspaceSchema } from "@/features/focus/schema"
 import { importBackup, useWorkspaceMutationOwner } from "@/features/focus/store"
+import { BackupFilePicker } from "@/features/settings/components/backup-file-picker"
 import { downloadText } from "@/lib/download"
 
 const maxBackupBytes = 10 * 1024 * 1024
@@ -94,7 +92,14 @@ export function WorkspaceBackup({
           if (state.file.size > maxBackupBytes)
             throw new Error("Backup must be 10 MB or smaller")
           const bytes = await state.file.arrayBuffer()
-          const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes)
+          let text: string
+
+          try {
+            text = new TextDecoder("utf-8", { fatal: true }).decode(bytes)
+          } catch {
+            throw new Error("Backup must be a UTF-8 JSON file")
+          }
+
           let parsed: unknown
 
           try {
@@ -194,8 +199,7 @@ export function WorkspaceBackup({
   }, null)
 
   const [events] = useState(function createBackupEvents() {
-    function select(event: ChangeEvent<HTMLInputElement>) {
-      const file = event.currentTarget.files?.[0] ?? null
+    function select(file: File | null) {
       startTransition(() => dispatch({ type: "select", file }))
     }
 
@@ -242,48 +246,47 @@ export function WorkspaceBackup({
             render={<h2>Workspace backup</h2>}
           />
           <CardDescription>
-            Keep a copy before clearing browser data or replacing your
-            workspace.
+            Download a copy or restore a saved JSON backup.
           </CardDescription>
         </CardHeader>
         <CardPanel>
           <Stack>
-            <Grid variant="workspace">
-              <Stack>
-                <Heading render={<h3>Save a copy</h3>} />
+            <HStack layout="spread">
+              <Stack spacing="compact">
+                <Heading render={<h3>Download a backup</h3>} />
                 <Text size="small" tone="muted">
-                  Download your current workspace as a JSON file.
+                  Save your full workspace as a JSON file.
                 </Text>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={events.download}
-                >
-                  <DownloadIcon size={16} aria-hidden="true" /> Export backup
-                </Button>
               </Stack>
-              <Stack>
-                <Heading render={<h3>Restore a copy</h3>} />
-                <Text size="small" tone="muted">
-                  Import replaces all tasks, projects, templates, sessions,
-                  settings, and timer data.
-                </Text>
-                <Field>
-                  <FieldLabel htmlFor="backup-file">
-                    Backup JSON file (maximum 10 MB)
-                  </FieldLabel>
-                  <Input
-                    id="backup-file"
-                    type="file"
-                    accept="application/json,.json"
-                    onChange={events.select}
-                  />
-                </Field>
+              <Button
+                type="button"
+                variant="outline"
+                size="xl"
+                disabled={pending}
+                onClick={events.download}
+              >
+                <DownloadIcon size={16} aria-hidden="true" /> Export backup
+              </Button>
+            </HStack>
+            <Box variant="backupUpload">
+              <Stack spacing="relaxed">
+                <Stack spacing="compact">
+                  <Heading render={<h3>Restore a backup</h3>} />
+                  <Text size="small" tone="muted">
+                    Restoring replaces tasks, projects, templates, sessions,
+                    settings, and timer data. Download a copy first if needed.
+                  </Text>
+                </Stack>
+                <BackupFilePicker
+                  file={file}
+                  disabled={pending}
+                  onSelect={events.select}
+                />
                 {file && (
-                  <>
+                  <HStack layout="row">
                     <DialogTrigger
                       render={
-                        <Button variant="destructive-outline" size="sm" />
+                        <Button variant="destructive-outline" size="xl" />
                       }
                       disabled={pending}
                       onClick={events.prepare}
@@ -291,16 +294,16 @@ export function WorkspaceBackup({
                       <UploadIcon size={16} aria-hidden="true" /> Import backup
                     </DialogTrigger>
                     <DialogTrigger
-                      render={<Button variant="outline" size="sm" />}
+                      render={<Button variant="ghost" size="xl" />}
                       disabled={pending}
                       onClick={events.recover}
                     >
                       Recover corrupt workspace
                     </DialogTrigger>
-                  </>
+                  </HStack>
                 )}
               </Stack>
-            </Grid>
+            </Box>
             <DialogPopup>
               <DialogHeader>
                 <DialogTitle>

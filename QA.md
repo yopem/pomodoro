@@ -4668,7 +4668,7 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   Account in 8s. Do not claim peer cloud-write verification. Evidence:
   settings-external-results.json. Original values retained; owned peer closed.
 
-### [x] QA-153 — P1 — Settings loading skeleton
+### [ ] QA-153 — P1 — Settings loading skeleton
 
 - **Purpose:** replace plain loading text with layout-matched Yopem skeletons.
 - **Prerequisites:** existing project tab and services. Preserve session and
@@ -4691,7 +4691,10 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   hydration outcomes in `qa-artifacts/account-settings/loading-results.json`.
 - **Cleanup:** release held script requests, unregister only the owned handler,
   restore emulation and keep the original tab and user session.
-- **Status:** passed, 2026-11-10, native dev browser. All four widths, hidden
+- **Status:** partial after the backup layout change. The full loading pass at
+  697acd7 remains recorded in loading-results.json. The backup placeholder now
+  matches the stacked export/restore layout; repeat its visual and hydration
+  checks with QA-155 before treating that changed region as passed.
   placeholders, single announcement, both themes, reduced motion and replacement
   on hydration pass. Loading screenshots and loading-results.json inspected.
   Existing inline-style CSP warning remains a separate open issue.
@@ -4748,5 +4751,7 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   `qa-artifacts/account-settings/upload-results.json`.
 - **Cleanup:** remove the selected file, close only the owned confirmation,
   restore emulation and keep the original session and workspace unchanged.
-- **Status:** pending. Native picker cancellation needs user observation if
-  Chrome automation cannot inspect the operating-system picker.
+- **Status:** pending. Final production build passes with no warnings or errors.
+  Source review, scoped lint, format and all web typechecks pass. Native picker
+  cancellation needs user observation if Chrome automation cannot inspect the
+  operating-system picker.
