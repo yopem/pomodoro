@@ -33,6 +33,14 @@ const styles = stylex.create({
     textTransform: "uppercase",
   },
   label: { fontWeight: 600 },
+  statement: {
+    fontFamily: tokens["--font-heading"],
+    fontSize: { default: "3.5rem", "@media (max-width: 960px)": "2.5rem" },
+    fontWeight: 600,
+    letterSpacing: "-0.045em",
+    lineHeight: 1.08,
+    whiteSpace: "pre-line",
+  },
   note: { whiteSpace: "pre-wrap" },
   strike: { textDecorationLine: "line-through" },
 })
@@ -49,6 +57,7 @@ const variantStyles = {
   eyebrow: styles.eyebrow,
   label: styles.label,
   note: styles.note,
+  statement: styles.statement,
 }
 
 export type TextProps = StyleXComponentProps<
@@ -57,7 +66,7 @@ export type TextProps = StyleXComponentProps<
     tone?: "default" | "muted" | "destructive" | "success"
     size?: "default" | "small"
     format?: "default" | "numeric"
-    variant?: "default" | "eyebrow" | "label" | "note"
+    variant?: "default" | "eyebrow" | "label" | "note" | "statement"
     decoration?: "none" | "strike"
   }
 >

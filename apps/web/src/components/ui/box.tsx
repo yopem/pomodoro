@@ -11,6 +11,61 @@ import { mergeStylexProps, stylexProps } from "@/lib/stylex"
 import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
+  loginLayout: {
+    display: "grid",
+    gridTemplateColumns: {
+      default: "minmax(0, 1fr) minmax(0, 1fr)",
+      "@media (max-width: 768px)": "minmax(0, 1fr)",
+    },
+    minBlockSize: {
+      default: "min(720px, 82svh)",
+      "@media (max-width: 768px)": "auto",
+    },
+    borderColor: tokens["--border"],
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderRadius: tokens["--radius-xl"],
+    overflow: "hidden",
+    backgroundColor: tokens["--card"],
+  },
+  loginStory: {
+    backgroundColor: tokens["--accent"],
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    gap: 48,
+    padding: {
+      default: 56,
+      "@media (max-width: 1024px)": 32,
+      "@media (max-width: 640px)": 24,
+    },
+    borderInlineEndColor: tokens["--border"],
+    borderInlineEndStyle: "solid",
+    borderInlineEndWidth: { default: 1, "@media (max-width: 768px)": 0 },
+    borderBlockEndColor: tokens["--border"],
+    borderBlockEndStyle: "solid",
+    borderBlockEndWidth: { default: 0, "@media (max-width: 768px)": 1 },
+  },
+  loginPanel: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    gap: 32,
+    padding: {
+      default: 56,
+      "@media (max-width: 1024px)": 32,
+      "@media (max-width: 640px)": 24,
+    },
+  },
+  loginMark: {
+    display: "grid",
+    placeItems: "center",
+    inlineSize: 56,
+    blockSize: 56,
+    borderRadius: tokens["--radius-lg"],
+    backgroundColor: tokens["--primary"],
+    color: tokens["--primary-foreground"],
+  },
   focusDial: {
     alignItems: "center",
     aspectRatio: "1",
@@ -87,6 +142,10 @@ export type BoxProps = StyleXComponentProps<useRender.ComponentProps<"div">> & {
     | "focusTask"
     | "taskQueue"
     | "dailyOverview"
+    | "loginLayout"
+    | "loginStory"
+    | "loginPanel"
+    | "loginMark"
 }
 
 export function Box({
@@ -103,6 +162,10 @@ export function Box({
       {
         ...stylexProps(
           className,
+          variant === "loginLayout" && styles.loginLayout,
+          variant === "loginStory" && styles.loginStory,
+          variant === "loginPanel" && styles.loginPanel,
+          variant === "loginMark" && styles.loginMark,
           variant === "focusDial" && styles.focusDial,
           variant === "focusTask" && styles.focusTask,
           variant === "taskQueue" && styles.taskQueue,
