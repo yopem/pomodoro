@@ -105,7 +105,7 @@ export function AccountControls({
 
   if (state.user === null || focus.owner.identity === null) {
     return (
-      <Button variant="outline" size="xl" render={<Link to="/login" />}>
+      <Button variant="outline" size="xl" render={<Link to="/auth/login" />}>
         Log in
       </Button>
     )

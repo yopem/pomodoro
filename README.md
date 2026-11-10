@@ -250,11 +250,12 @@ Do not edit generated types or `routeTree.gen.ts` by hand.
 `compose.production.yaml` defines separate Linux amd64 API and Bun SSR images.
 It does not create a database or a public edge. Prepare an approved external
 HTTPS edge and an isolated existing container network before deployment. Do not
-publish the API or web ports. Give the edge access to the network and route
-`/api`, `/auth`, `/openapi.json`, `/health`, and `/ready`, including applicable
-subpaths, to `api:18001` before routing other paths to `web:13001`. Preserve
-methods, paths, cookies, and response headers. Unknown backend paths must reach
-the API, not SSR.
+publish the API or web ports. Give the edge access to the network. Route
+`/auth/login` and `/auth/login/` to `web:13001` first. Then route `/api`,
+`/auth`, `/openapi.json`, `/health`, and `/ready`, including applicable
+subpaths, to `api:18001` before routing other paths to `web:13001`. The login
+button starts OAuth at `/auth/authorize`. Preserve methods, paths, cookies, and
+response headers. Unknown backend paths must reach the API, not SSR.
 
 The edge must overwrite `X-Forwarded-For` with exactly one verified client IP.
 Set `TRUSTED_PROXY_IPS` to the exact private socket IP addresses used by that
@@ -336,7 +337,8 @@ both and do not publish `docker compose config` output from real settings.
 
 ## Release constraints
 
-Use HTTPS and a clean `PUBLIC_ORIGIN` in production. Route `/api`, `/auth`,
+Use HTTPS and a clean `PUBLIC_ORIGIN` in production. Route `/auth/login` and
+`/auth/login/` to web SSR first. Route other `/auth` paths, `/api`,
 `/openapi.json`, `/health`, and `/ready` to Axum before the SSR fallback. Keep
 web SSR and the API as separate processes behind one browser origin.
 

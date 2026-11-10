@@ -81,7 +81,8 @@ export default defineConfig(({ command }) => {
       strictPort: true,
       proxy: {
         "/api": "http://127.0.0.1:18001",
-        "/auth": "http://127.0.0.1:18001",
+        // Start serves the login page. Axum owns the other auth routes.
+        "^/auth(?!/login/?(?:\\?|$))": "http://127.0.0.1:18001",
         "/openapi.json": "http://127.0.0.1:18001",
         "/health": "http://127.0.0.1:18001",
         "/ready": "http://127.0.0.1:18001",

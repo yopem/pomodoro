@@ -47,14 +47,14 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  "/auth/callback": {
+  "/auth/authorize": {
     parameters: {
       query?: never
       header?: never
       path?: never
       cookie?: never
     }
-    get: operations["callback"]
+    get: operations["login"]
     put?: never
     post?: never
     delete?: never
@@ -63,14 +63,14 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  "/auth/login": {
+  "/auth/callback": {
     parameters: {
       query?: never
       header?: never
       path?: never
       cookie?: never
     }
-    get: operations["login"]
+    get: operations["callback"]
     put?: never
     post?: never
     delete?: never
@@ -616,9 +616,11 @@ export interface operations {
       }
     }
   }
-  callback: {
+  login: {
     parameters: {
-      query?: never
+      query?: {
+        return_to?: string
+      }
       header?: never
       path?: never
       cookie?: never
@@ -666,11 +668,9 @@ export interface operations {
       }
     }
   }
-  login: {
+  callback: {
     parameters: {
-      query?: {
-        return_to?: string
-      }
+      query?: never
       header?: never
       path?: never
       cookie?: never

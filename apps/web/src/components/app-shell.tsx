@@ -27,9 +27,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const routeId = useRouterState({ select: getRouteId })
   const fullscreen = useBrowserFullscreen()
   const compact = routeId === "/focus/" || (routeId === "/" && fullscreen)
-  const login = routeId === "/login/"
   const snapshot = useFocusSnapshot((value) => value)
   const { controller, state } = useAccountController()
+
+  if (routeId === "/auth/login/") return children
 
   return (
     <Stack>
@@ -44,39 +45,31 @@ export function AppShell({ children }: { children: ReactNode }) {
               <TimerIcon size={24} aria-hidden="true" />
               <Box render={<span>pomodoro</span>} />
             </Link>
-            {login ? (
-              <Link to="/" {...stylex.props(styles.navLink)}>
-                Back to timer
+            <Box
+              render={<nav aria-label="Main navigation" />}
+              variant="appNavigation"
+            >
+              <Link
+                to="/"
+                activeOptions={exactMatch}
+                {...stylex.props(styles.navLink)}
+              >
+                Timer
               </Link>
-            ) : (
-              <>
-                <Box
-                  render={<nav aria-label="Main navigation" />}
-                  variant="appNavigation"
-                >
-                  <Link
-                    to="/"
-                    activeOptions={exactMatch}
-                    {...stylex.props(styles.navLink)}
-                  >
-                    Timer
-                  </Link>
-                  <Link to="/projects" {...stylex.props(styles.navLink)}>
-                    Projects
-                  </Link>
-                  <Link to="/templates" {...stylex.props(styles.navLink)}>
-                    Templates
-                  </Link>
-                  <Link to="/reports" {...stylex.props(styles.navLink)}>
-                    Reports
-                  </Link>
-                  <Link to="/settings" {...stylex.props(styles.navLink)}>
-                    Settings
-                  </Link>
-                </Box>
-                <AccountControls controller={controller} state={state} />
-              </>
-            )}
+              <Link to="/projects" {...stylex.props(styles.navLink)}>
+                Projects
+              </Link>
+              <Link to="/templates" {...stylex.props(styles.navLink)}>
+                Templates
+              </Link>
+              <Link to="/reports" {...stylex.props(styles.navLink)}>
+                Reports
+              </Link>
+              <Link to="/settings" {...stylex.props(styles.navLink)}>
+                Settings
+              </Link>
+            </Box>
+            <AccountControls controller={controller} state={state} />
           </HStack>
         </Container>
       </Box>
@@ -85,7 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Box render={<output>{snapshot.storageWarning}</output>} />
       )}
       {children}
-      <Box render={<footer hidden={compact || login} />}>
+      <Box render={<footer hidden={compact} />}>
         <Container variant="navigation">
           <Stack>
             <PwaUpdates />

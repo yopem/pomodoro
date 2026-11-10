@@ -4208,27 +4208,56 @@ migration, and new integration checks are not applicable to these changes.
 - **Cleanup:** remove only the isolated task and manual entry; restore settings.
 - **Status:** pending; responsive and runtime checks have not run.
 
-### [ ] QA-137 — P1 — Redesigned login screen and OAuth entry
+### [ ] QA-137 — P1 — Simple centered login and OAuth entry
 
-- **Purpose:** provide a focused login layout without changing authentication.
-- **Prerequisites:** same app; isolated signed-out browser; configured issuer
-  only for the actual sign-in step. No production accounts.
-- **Inputs:** `/login`; widths 1440, 1024, 768, 390, 320; light/dark themes;
-  reduced motion; keyboard only and 200% zoom.
-- **Steps:** 1. Direct-load and reload `/login`. 2. Inspect the page and
-  header. 3. Use Tab to reach return navigation and the sign-in action. 4.
-  Activate sign-in and inspect the existing `/auth/login` redirect. 5. Repeat at
-  each size and theme. 6. Return to `/` and inspect normal app navigation.
-- **Expected results:** dedicated, responsive login screen; one clear sign-in
-  action; no redundant account button or workspace navigation on this route.
-  Header navigation returns on other routes. Labels and focus remain visible; no
-  clipping or overflow. OAuth uses the existing same-origin endpoint with no new
-  credentials, session handling, or invented provider options.
+- **Purpose:** match the simple structure at
+  `https://read.yopem.com/auth/login`.
+- **Prerequisites:** local app at `http://127.0.0.1:13001`; isolated signed-out
+  browser; configured issuer only for sign-in. Do not use production accounts.
+- **Inputs:** `/auth/login`; widths 1440, 768, 390, 320; both themes; 200% zoom.
+- **Steps:** 1. Direct-load and reload `/auth/login`. 2. Inspect the centered
+  content. 3. Tab to the single sign-in button. 4. Activate it and inspect the
+  existing `/auth/authorize` redirect. 5. Repeat at each width and theme. 6.
+  Open `/` and confirm normal app navigation remains available.
+- **Expected results:** plain full-height page with Welcome, one short sentence,
+  and one login button. No split panel, decorative mark, header, or footer. No
+  clipping; visible keyboard focus. Same-origin OAuth entry is unchanged; do not
+  label the button Google without confirming this project's provider.
 - **Evidence:** inspect `qa-artifacts/polish/login-{width}-{theme}.png` and
   sanitized redirect results in `qa-artifacts/polish/results.txt`.
 - **Cleanup:** log out of the isolated session and restore browser settings.
-- **Status:** pending; browser and OAuth QA have not run.
+- **Status:** pending; reference inspected, local browser and OAuth QA not run.
 
 Coverage: footer request → QA-135; summary hierarchy and calculations → QA-136;
 login redesign and existing issuer entry → QA-137. No database, migrations, API
 contract, cache policy, or account ownership changes are in scope.
+
+### [ ] QA-138 — P0 — Login page and OAuth route separation
+
+- **Purpose:** serve the login page at `/auth/login` without losing OAuth
+  protections, backend errors, or private-response cache exclusions.
+- **Prerequisites:** isolated local web and API, configured issuer for
+  successful redirects; no production data. Deployment proxy must route the
+  login page to web SSR before forwarding the other `/auth/*` paths to Axum.
+- **Inputs:** `/auth/login`, `/auth/login/`, `/auth/login?example=1`,
+  `/auth/authorize`, `/auth/callback`, `/auth/logout`, `/auth/unknown`.
+- **Steps:** 1. Direct-load each login URL through the web origin and inspect
+  HTML. 2. Use the header Log in link from `/`. 3. Submit the login button and
+  inspect the redirect to the configured issuer through `/auth/authorize`. 4.
+  Repeat with authentication unconfigured and inspect the API error. 5. Request
+  callback without a valid challenge; confirm rejection. 6. Inspect rate
+  limiting and private/no-store response headers for the OAuth paths. 7. Repeat
+  through the deployment proxy and installed service worker.
+- **Expected results:** login URLs render noindex HTML with one sign-in button;
+  no automatic issuer redirect. OAuth starts only through `/auth/authorize`;
+  invalid callbacks fail safely; unavailable auth returns 503 JSON. Existing
+  rate limits, PKCE, state, cookies, return-path validation, and API errors
+  remain enforced. Unknown auth endpoints return backend 404, not HTML. The
+  service worker does not cache login HTML or OAuth responses.
+- **Evidence:** inspect sanitized responses and redirects in
+  `qa-artifacts/polish/auth-routing.txt`; exclude cookies and OAuth codes.
+- **Cleanup:** remove the isolated session and stop only owned QA processes.
+- **Status:** pending; local routing, issuer, and cache checks have not run.
+
+Coverage addition: canonical login URL, proxy routing, OpenAPI, OAuth error and
+security regressions → QA-138.

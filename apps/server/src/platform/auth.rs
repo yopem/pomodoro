@@ -634,13 +634,13 @@ fn failure(error: AuthError, id: Uuid) -> Response {
 
 pub fn router(service: Arc<AuthService>) -> Router<()> {
     Router::new()
-        .route("/auth/login", get(login))
+        .route("/auth/authorize", get(login))
         .route("/auth/callback", get(callback))
         .route("/auth/logout", post(logout))
         .with_state(service)
 }
 
-#[utoipa::path(get, path = "/auth/login", params(("return_to" = Option<String>, Query)), responses((status = 303), (status = 400, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
+#[utoipa::path(get, path = "/auth/authorize", params(("return_to" = Option<String>, Query)), responses((status = 303), (status = 400, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 pub async fn login(
     State(service): State<Arc<AuthService>>,
     Extension(id): Extension<Uuid>,

@@ -804,10 +804,20 @@
         ]
       }
     },
-    "/auth/callback": {
+    "/auth/authorize": {
       "get": {
         "tags": ["platform::auth"],
-        "operationId": "callback",
+        "operationId": "login",
+        "parameters": [
+          {
+            "name": "return_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "303": {
             "description": "",
@@ -908,20 +918,10 @@
         }
       }
     },
-    "/auth/login": {
+    "/auth/callback": {
       "get": {
         "tags": ["platform::auth"],
-        "operationId": "login",
-        "parameters": [
-          {
-            "name": "return_to",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "operationId": "callback",
         "responses": {
           "303": {
             "description": "",

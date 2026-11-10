@@ -94,7 +94,7 @@ pub fn router(
     let routes = match auth {
         Some(auth) => routes.merge(crate::platform::auth::router(auth)),
         None => routes
-            .route("/auth/login", get(auth_unavailable))
+            .route("/auth/authorize", get(auth_unavailable))
             .route("/auth/callback", get(auth_unavailable))
             .route("/auth/logout", post(auth_unavailable)),
     };
@@ -272,7 +272,7 @@ async fn authorized_request(
             id,
         );
     }
-    let authentication = matches!(path, "/auth/login" | "/auth/callback");
+    let authentication = matches!(path, "/auth/authorize" | "/auth/callback");
     if limited(
         state,
         RateKey::Address(ip, authentication),
