@@ -14,11 +14,8 @@ import { themeMarker, tokens } from "@/styles/tokens.stylex"
 const styles = stylex.create({
   control: {
     backgroundClip: "padding-box",
-    backgroundColor: {
-      default: "var(--input-control-background, var(--background))",
-      [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-        "var(--input-control-background, color-mix(in oklab, var(--input, currentColor) 32%, transparent))",
-    },
+    backgroundColor:
+      "var(--input-control-background, var(--control-background))",
     borderColor: {
       default: "var(--input-control-border, var(--input))",
       ":has(:focus-visible)": tokens["--ring"],
@@ -27,7 +24,7 @@ const styles = stylex.create({
       ':has([aria-invalid="true"]):has(:focus-visible)':
         "color-mix(in oklab, var(--destructive, currentColor) 36%, transparent)",
     },
-    borderRadius: "var(--radius-md)",
+    borderRadius: "var(--radius)",
     borderStyle: "solid",
     borderWidth: 1,
     boxShadow: {
@@ -79,15 +76,15 @@ const styles = stylex.create({
   },
   input: {
     blockSize: {
-      default: "2.125rem",
-      "@media (min-width: 640px)": "1.875rem",
+      default: "2.375rem",
+      "@media (min-width: 640px)": "2.375rem",
     },
     borderRadius: "inherit",
     color: tokens["--foreground"],
     inlineSize: "100%",
     lineHeight: {
-      default: "2.125rem",
-      "@media (min-width: 640px)": "1.875rem",
+      default: "2.375rem",
+      "@media (min-width: 640px)": "2.375rem",
     },
 
     outline: "none",
@@ -110,11 +107,11 @@ const styles = stylex.create({
   small: {
     blockSize: {
       default: "1.875rem",
-      "@media (min-width: 640px)": "1.625rem",
+      "@media (min-width: 640px)": "1.875rem",
     },
     lineHeight: {
       default: "1.875rem",
-      "@media (min-width: 640px)": "1.625rem",
+      "@media (min-width: 640px)": "1.875rem",
     },
     paddingInlineStart: "calc(0.625rem - 1px)",
     paddingInlineEnd: {
@@ -125,12 +122,12 @@ const styles = stylex.create({
   },
   large: {
     blockSize: {
-      default: "2.375rem",
-      "@media (min-width: 640px)": "2.125rem",
+      default: "2.875rem",
+      "@media (min-width: 640px)": "2.875rem",
     },
     lineHeight: {
-      default: "2.375rem",
-      "@media (min-width: 640px)": "2.125rem",
+      default: "2.875rem",
+      "@media (min-width: 640px)": "2.875rem",
     },
   },
   search: {

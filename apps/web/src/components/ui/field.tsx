@@ -31,7 +31,7 @@ const styles = stylex.create({
     alignItems: "center",
     color: tokens["--foreground"],
     display: "inline-flex",
-    fontSize: { default: "1rem", "@media (min-width: 640px)": "0.875rem" },
+    fontSize: { default: "0.875rem", "@media (min-width: 640px)": "0.75rem" },
     fontWeight: 500,
     gap: "0.5rem",
     lineHeight: { default: "1.125rem", "@media (min-width: 640px)": "1rem" },

@@ -34,31 +34,21 @@ export const selectSlotStyles = stylex.create({
 
 const styles = stylex.create({
   trigger: {
-    lineHeight: {
-      default: null,
-      ':is([data-slot="group"] [data-slot="select-trigger"])': {
-        default: "1.5rem",
-        "@media (min-width: 640px)": "1.25rem",
-      },
-    },
+    lineHeight: "1.25rem",
     alignItems: "center",
     backgroundClip: "padding-box",
-    backgroundColor: {
-      default: tokens["--background"],
-      [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-        "color-mix(in oklab, var(--input, transparent) 32%, transparent)",
-    },
+    backgroundColor: tokens["--control-background"],
     borderColor: {
       default: tokens["--input"],
       ":focus-visible": tokens["--ring"],
       "[aria-invalid]":
         "color-mix(in oklab, var(--destructive, currentColor) 36%, transparent)",
     },
-    borderRadius: tokens["--radius-md"],
+    borderRadius: tokens["--radius"],
     borderStyle: "solid",
     borderWidth: 1,
     boxShadow: {
-      default: "0 1px 2px color-mix(in oklab, #000 5%, transparent)",
+      default: tokens["--shadow-sm"],
       ":focus-visible": `0 0 0 3px color-mix(in oklab, var(--ring, currentColor) 24%, transparent)`,
       "[data-pressed]": "none",
     },
@@ -173,10 +163,10 @@ const styles = stylex.create({
     backgroundColor: tokens["--popover"],
     blockSize: "100%",
     borderColor: tokens["--border"],
-    borderRadius: tokens["--radius-md"],
+    borderRadius: tokens["--radius"],
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: "0 10px 15px -3px color-mix(in oklab, #000 5%, transparent)",
+    boxShadow: tokens["--shadow-md"],
     minInlineSize: "var(--anchor-width)",
     position: "relative",
     "::before": {
@@ -204,13 +194,10 @@ const styles = stylex.create({
         "calc(var(--anchor-width) + 1.25rem)",
     },
     alignItems: "center",
-    borderRadius: tokens["--radius-md"],
+    borderRadius: tokens["--radius-sm"],
     cursor: "default",
     display: "grid",
-    fontSize: {
-      default: "1rem",
-      "@media (min-width: 640px)": "0.875rem",
-    },
+    fontSize: "0.875rem",
     gap: "0.5rem",
     gridTemplateColumns: "1rem 1fr",
     minBlockSize: {
@@ -224,10 +211,14 @@ const styles = stylex.create({
     backgroundColor: {
       default: null,
       "[data-highlighted]": tokens["--accent"],
+      "[data-selected]": tokens["--accent-solid"],
+      "[data-selected][data-highlighted]": tokens["--accent-solid"],
     },
     color: {
       default: null,
       "[data-highlighted]": tokens["--accent-foreground"],
+      "[data-selected]": tokens["--accent-solid-foreground"],
+      "[data-selected][data-highlighted]": tokens["--accent-solid-foreground"],
     },
     opacity: {
       default: null,

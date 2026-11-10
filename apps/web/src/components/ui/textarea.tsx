@@ -9,21 +9,17 @@ import * as stylex from "@stylexjs/stylex"
 import type { StyleXComponentProps, StyleXProps } from "@/lib/stylex"
 
 import { isString, stylexProps } from "@/lib/stylex"
-import { themeMarker, tokens } from "@/styles/tokens.stylex"
+import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
   control: {
     backgroundClip: "padding-box",
-    backgroundColor: {
-      default: tokens["--background"],
-      [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-        "color-mix(in oklab, var(--input, currentColor) 32%, transparent)",
-    },
+    backgroundColor: tokens["--control-background"],
     borderColor: tokens["--input"],
-    borderRadius: tokens["--radius-md"],
+    borderRadius: tokens["--radius"],
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: "0 1px 2px color-mix(in oklab, #000 5%, transparent)",
+    boxShadow: tokens["--shadow-sm"],
     display: "inline-flex",
     fontSize: { default: "1rem", "@media (min-width: 640px)": "0.875rem" },
     inlineSize: "100%",
