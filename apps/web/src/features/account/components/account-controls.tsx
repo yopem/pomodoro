@@ -122,7 +122,7 @@ export function AccountControls({
 
   if (state.user === null || focus.owner.identity === null) {
     return (
-      <Button variant="outline" size="xl" render={<Link to="/auth/login" />}>
+      <Button variant="outline" size="lg" render={<Link to="/auth/login" />}>
         Log in
       </Button>
     )
@@ -163,7 +163,7 @@ export function SignedInAccountControls({
       <Menu>
         <MenuTrigger
           ref={accountTriggerRef}
-          render={<Button variant="ghost" size="xl" />}
+          render={<Button variant="ghost" size="lg" />}
         >
           <UserRoundIcon size={18} aria-hidden="true" />
           Account
@@ -571,19 +571,23 @@ export function GuestImport({
   return (
     <Dialog open={dialog?.open ?? false} onOpenChange={changeOpen}>
       {(available || dialog?.open) && (
-        <Stack spacing="compact">
-          <Text variant="label" size="small">
-            Work on this device
-          </Text>
-          <Text size="small" tone="muted">
-            {request
-              ? "Review the saved guest snapshot before retrying the original import."
-              : "Import guest projects, tasks, templates, and focus history into your account. The guest copy stays on this device."}
-          </Text>
-          <DialogTrigger render={<Button variant="outline" size="lg" />}>
-            {request ? "Review pending import" : "Import guest work"}
-          </DialogTrigger>
-        </Stack>
+        <Card>
+          <CardPanel>
+            <Stack spacing="compact">
+              <Text variant="label" size="small">
+                Work on this device
+              </Text>
+              <Text size="small" tone="muted">
+                {request
+                  ? "Review the saved guest snapshot before retrying the original import."
+                  : "Import guest projects, tasks, templates, and focus history into your account. The guest copy stays on this device."}
+              </Text>
+              <DialogTrigger render={<Button variant="outline" size="lg" />}>
+                {request ? "Review pending import" : "Import guest work"}
+              </DialogTrigger>
+            </Stack>
+          </CardPanel>
+        </Card>
       )}
       {dialog && (
         <ImportContent
