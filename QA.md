@@ -5448,3 +5448,79 @@ affected.
   inspect the values and route removal after navigation.
 - **Cleanup:** No stored data changes. Close only case-owned tabs.
 - **Status:** pending; rendered structured data has not been checked.
+
+## Loading skeleton alignment
+
+Task: align existing timer, focus, reports, and settings skeletons with their
+loaded layouts. Use the shared isolated guest setup and the web origin above. No
+data changes are required. Capture loading states by using browser developer
+tools to throttle script delivery, then allow hydration to finish. Run P1 before
+P2. Keep artifacts in the ignored `qa-artifacts/` directory.
+
+### [ ] QA-194 — P1 — Timer and focus loading placeholders
+
+- **Purpose:** Check the timer, phase controls, action buttons, task list, and
+  daily summary against their loaded layouts.
+- **Prerequisites:** Shared setup; a fresh page load and throttled scripts.
+- **Inputs:** `/` and `/focus`; viewport widths 390 and 1440 CSS pixels.
+- **Steps:** 1. Open each route with scripts throttled and capture its
+  skeleton. 2. Let hydration finish and capture the same view. 3. Compare button
+  heights, spacing, dial, task and summary placement at each width.
+- **Expected results:** Placeholders follow the same responsive layout and
+  button scale as the loaded interface. The focus route does not show the task
+  list or daily summary. The loading announcement is available to assistive
+  technology; decorative placeholders are hidden.
+- **Evidence:** Save sanitized before-and-after screenshots in
+  `qa-artifacts/QA-194/`; inspect both routes and widths.
+- **Cleanup:** Restore normal network settings; stop only case-owned processes.
+- **Status:** pending.
+
+### [ ] QA-195 — P1 — Reports loading placeholders
+
+- **Purpose:** Check report header, filter, summary, chart, and history
+  skeletons.
+- **Prerequisites:** Shared setup; throttled scripts; isolated report data.
+- **Inputs:** `/reports`; viewport widths 390 and 1440 CSS pixels.
+- **Steps:** 1. Open the report route with scripts throttled and capture it. 2.
+  Allow hydration and compare header, filter controls, metrics, and panels.
+- **Expected results:** Placeholder shapes and spacing follow the loaded report
+  layout at both widths. The loading announcement remains available and no
+  report data is changed.
+- **Evidence:** Save sanitized before-and-after screenshots in
+  `qa-artifacts/QA-195/`; inspect both widths.
+- **Cleanup:** Restore normal network settings; stop only case-owned processes.
+- **Status:** pending.
+
+### [ ] QA-196 — P1 — Settings loading placeholders
+
+- **Purpose:** Check section, field, action, navigation, and backup
+  placeholders.
+- **Prerequisites:** Shared setup; throttled scripts; isolated guest workspace.
+- **Inputs:** `/settings`; viewport widths 390 and 1440 CSS pixels.
+- **Steps:** 1. Open settings with scripts throttled and capture the
+  skeleton. 2. Allow hydration and compare each section, field grid, and action
+  row.
+- **Expected results:** Skeleton sections and control heights follow the loaded
+  settings layout. The loading message remains available and no setting changes.
+- **Evidence:** Save sanitized before-and-after screenshots in
+  `qa-artifacts/QA-196/`; inspect both widths.
+- **Cleanup:** Restore normal network settings; stop only case-owned processes.
+- **Status:** pending.
+
+### [ ] QA-197 — P2 — Skeleton theme and motion
+
+- **Purpose:** Check visibility and reduced-motion behavior for changed loading
+  placeholders across the existing routes.
+- **Prerequisites:** Shared setup; browser theme and reduced-motion controls;
+  throttled scripts.
+- **Inputs:** `/`, `/focus`, `/reports`, and `/settings`; light and dark themes.
+- **Steps:** 1. Load each route in both themes with scripts throttled. 2. Repeat
+  with reduced motion enabled and inspect the accessibility tree.
+- **Expected results:** Placeholders remain visible in both themes and stop
+  animating with reduced motion. Decorative content is hidden from assistive
+  technology and the loading status remains available.
+- **Evidence:** Save sanitized screenshots and accessibility-tree notes in
+  `qa-artifacts/QA-197/`.
+- **Cleanup:** Restore theme, motion, and network settings; stop only case-owned
+  processes.
+- **Status:** pending.
