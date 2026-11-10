@@ -121,12 +121,15 @@ export function DocumentTitle({
 
   if (mode === "route") return null
 
-  let title = "Pomodoro — Focus timer"
+  let title =
+    mode === "timer"
+      ? "Pomodoro Timer - Focus, Tasks & Breaks"
+      : "Pomodoro - Focus timer"
 
   if (mode === "timer" && hydrated) {
     const paused = timer.run_id !== null && timer.deadline_ms === null
 
-    title = `${paused ? "Paused · " : ""}${formatTimerClock(timer, nowMs)} · ${timerPhaseLabels[timer.phase]} — Pomodoro`
+    title = `${paused ? "Paused · " : ""}${formatTimerClock(timer, nowMs)} · ${timerPhaseLabels[timer.phase]} - Pomodoro`
   }
 
   return <title>{title}</title>

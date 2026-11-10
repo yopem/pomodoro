@@ -5383,3 +5383,68 @@ payments, API contracts, and migrations are not changed by this task.
   accessible names, fullscreen state, popup URL, and error recovery.
 - **Cleanup:** close only the QA popup and restore browser popup settings.
 - **Status:** pending.
+
+## Public homepage SEO update
+
+Task: improve the public timer page without indexing personal workspace data.
+Affected files: `apps/web/src/routes/index.tsx`, `index.lazy.tsx`, and
+`__root.tsx`. Existing discovery controls in `apps/web/src/server.ts` stay in
+place. Use the shared isolated setup above. Production-like QA needs an approved
+build with HTTPS `PUBLIC_ORIGIN`; local source changes do not update old builds.
+Coverage: public content and metadata use QA-181; structured data uses QA-182;
+crawl controls and personal-page privacy use QA-061; timer titles use QA-048.
+Payments, backend writes, new routes, and external integrations are not
+affected.
+
+### [ ] QA-181 - P1 - Public timer content and metadata
+
+- **Purpose:** Make the public page clear before hydration and preserve timer
+  titles, personal route metadata, and usable layout.
+- **Prerequisites:** Shared setup; approved current production-like build and
+  browser/HTTP QA; JavaScript-disabled browser inspection or saved SSR HTML.
+- **Inputs:** `/`, `/?source=seo-check`, `/focus`, `/projects`, `/reports`,
+  `/settings`; one isolated guest timer with no personal task names.
+- **Steps:**
+  1. Request `/` and `/?source=seo-check` at the approved web origin. Save the
+     HTML and response headers before browser hydration.
+  2. Inspect the title, description, canonical, Open Graph and Twitter tags.
+     Confirm one visible `h1` says `Pomodoro timer` and the introduction
+     explains focus intervals and breaks before and after hydration.
+  3. Open `/` at 375 and 1280 CSS pixels. Use keyboard controls to start and
+     pause the timer. Navigate to each input route, then return to `/`.
+  4. Repeat metadata inspection in non-production and run QA-061 crawl controls.
+- **Expected results:** SSR title is `Pomodoro Timer - Focus, Tasks & Breaks`.
+  The description matches the visible app. Social images use the absolute
+  configured origin and `/icon-512.png`, with descriptive alternative text.
+  Canonical and social URLs omit query strings. There is one title and one
+  canonical. The live clock and paused title still update. Personal pages remain
+  noindex and retain their route titles. Non-production stays noindex. Text
+  remains readable without horizontal overflow or lost controls.
+- **Evidence:** Save sanitized HTML, headers, title observations, and
+  screenshots under ignored `qa-artifacts/QA-181/`; inspect tags and both
+  viewport captures.
+- **Cleanup:** Reset the isolated timer and restore browser settings. Stop only
+  processes started for this case. Do not clear user storage.
+- **Status:** pending; no browser, HTTP, or build execution for this update.
+
+### [ ] QA-182 - P2 - Accurate public application structured data
+
+- **Purpose:** Describe the actual browser app without invented ratings or
+  offers.
+- **Prerequisites:** QA-181 setup and production-like build; approved browser
+  QA.
+- **Inputs:** `/`, `/?source=seo-check`, `/reports`, and non-production `/`.
+- **Steps:**
+  1. Save the homepage SSR HTML and parse its `application/ld+json` block.
+  2. Compare the name, description, URL, category, and operating system with
+     visible content. Inspect the hydrated head and navigate to `/reports`.
+  3. Repeat with the query string and non-production inputs.
+- **Expected results:** Production homepage has one valid Schema.org
+  `WebApplication` with its canonical URL, productivity category, and browser
+  platform. No user data, query strings, ratings, prices, or fabricated claims
+  appear. Personal routes and non-production do not receive this block. Rich
+  results or ranking changes are not guaranteed by valid markup.
+- **Evidence:** Save sanitized HTML and parsed JSON in `qa-artifacts/QA-182/`;
+  inspect the values and route removal after navigation.
+- **Cleanup:** No stored data changes. Close only case-owned tabs.
+- **Status:** pending; rendered structured data has not been checked.

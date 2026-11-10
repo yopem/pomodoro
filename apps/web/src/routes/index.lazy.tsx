@@ -65,7 +65,11 @@ export function TimerRoute() {
         >
           <Stack spacing="page">
             <Stack spacing="compact">
-              <Heading render={<h1>Focus timer</h1>} />
+              <Heading render={<h1>Pomodoro timer</h1>} />
+              <Text tone="muted">
+                Plan your tasks, work in focus intervals, and take regular
+                breaks. Track completed sessions and review your focus time.
+              </Text>
             </Stack>
             <TimerWorkspaceSkeleton fullscreen={fullscreen} />
           </Stack>
@@ -102,7 +106,11 @@ export function TimerRoute() {
         <Stack spacing="page">
           <HStack layout="pageHeader">
             <Stack spacing="compact">
-              <Heading render={<h1>Focus timer</h1>} />
+              <Heading render={<h1>Pomodoro timer</h1>} />
+              <Text tone="muted">
+                Plan your tasks, work in focus intervals, and take regular
+                breaks. Track completed sessions and review your focus time.
+              </Text>
             </Stack>
             <FocusBrowserControls />
           </HStack>
