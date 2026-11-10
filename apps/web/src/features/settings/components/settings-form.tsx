@@ -28,6 +28,7 @@ import {
 import { Stack } from "@/components/ui/stack"
 import { Switch } from "@/components/ui/switch"
 import { Text } from "@/components/ui/text"
+import { toastManager } from "@/components/ui/toast"
 import { requestFocusNotificationPermission } from "@/features/focus/notifications"
 import { projectColorSchema, settingsSchema } from "@/features/focus/schema"
 import {
@@ -119,7 +120,6 @@ export function useSettingsForm({ settings }: { settings: Settings }) {
   const owner = useWorkspaceMutationOwner()
   const formRef = useRef<HTMLFormElement>(null)
   const [baseline, setBaseline] = useState(settings)
-  const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const form = useForm({
@@ -134,12 +134,11 @@ export function useSettingsForm({ settings }: { settings: Settings }) {
     },
     onSubmit: async ({ value }) => {
       setError(null)
-      setSaved(false)
 
       try {
         await updateSettings({ settings: value, expected: baseline }, { owner })
         setBaseline(value)
-        setSaved(true)
+        toastManager.add({ title: "Settings saved", type: "success" })
       } catch (cause) {
         setError(
           cause instanceof Error ? cause.message : "Could not save settings",
@@ -151,7 +150,6 @@ export function useSettingsForm({ settings }: { settings: Settings }) {
   const reloadSettings = useEventCallback(function reloadSettings() {
     form.reset(settings)
     setBaseline(settings)
-    setSaved(false)
     setError(null)
   })
 
@@ -178,11 +176,11 @@ export function useSettingsForm({ settings }: { settings: Settings }) {
     return { submit, changeNumber, changeSelect }
   })
 
-  return { form, formRef, events, error, baseline, saved, reloadSettings }
+  return { form, formRef, events, error, baseline, reloadSettings }
 }
 
 export function SettingsForm({ settings }: { settings: Settings }) {
-  const { form, formRef, events, error, baseline, saved, reloadSettings } =
+  const { form, formRef, events, error, baseline, reloadSettings } =
     useSettingsForm({ settings })
 
   const changedElsewhere = JSON.stringify(settings) !== JSON.stringify(baseline)
@@ -404,8 +402,6 @@ export function SettingsForm({ settings }: { settings: Settings }) {
                   JSON.stringify(state.values) !== JSON.stringify(baseline)
 
                 let message = "Changes apply when you save."
-
-                if (saved) message = "Settings saved."
 
                 if (hasUnsavedChanges) message = "Unsaved changes."
 

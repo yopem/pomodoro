@@ -29,6 +29,7 @@ import {
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { Textarea } from "@/components/ui/textarea"
+import { toastManager } from "@/components/ui/toast"
 import { saveTask, useWorkspaceMutationOwner } from "@/features/focus/store"
 
 const titleSchema = z
@@ -112,6 +113,10 @@ export function TaskForm({
           { owner },
         )
         onClose(openingId)
+        toastManager.add({
+          title: task ? "Task updated" : "Task added",
+          type: "success",
+        })
       } catch (cause) {
         setError(
           cause instanceof Error ? cause.message : "Could not save the task",

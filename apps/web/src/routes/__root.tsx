@@ -34,6 +34,7 @@ import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
+import { ToastProvider } from "@/components/ui/toast"
 import { useFocusSnapshot } from "@/features/focus/store"
 import { formatTimerClock, timerPhaseLabels } from "@/features/timer/countdown"
 import { stylexProps } from "@/lib/stylex"
@@ -78,12 +79,14 @@ export function RootContent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <a href="#main" {...stylex.props(styles.skipLink)}>
-        Skip to content
-      </a>
-      <AppShell>
-        <Outlet key={workspaceGeneration} />
-      </AppShell>
+      <ToastProvider>
+        <a href="#main" {...stylex.props(styles.skipLink)}>
+          Skip to content
+        </a>
+        <AppShell>
+          <Outlet key={workspaceGeneration} />
+        </AppShell>
+      </ToastProvider>
     </QueryClientProvider>
   )
 }

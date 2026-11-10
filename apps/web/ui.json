@@ -35,7 +35,8 @@
     "src/components/ui/menu.tsx": "sha256-FqqMECjvVFmCmTscEWCxQlq9KXBeDkD4ssZVWt04OCk=",
     "src/components/ui/select.tsx": "sha256-DBuSTyjat8T6LkNebXsiG9ztcz4uY/IE0o+urFz6VPg=",
     "src/components/ui/calendar.tsx": "sha256-rdhqaNlGT5aZOHz5LynN9KLAmqSPIMJtmj+hnvxbi8I=",
-    "src/components/ui/popover.tsx": "sha256-ucbq+hph9HWw+4yC9z/Ejb3h8PwQhaTTopGJwGUs3rg="
+    "src/components/ui/popover.tsx": "sha256-ucbq+hph9HWw+4yC9z/Ejb3h8PwQhaTTopGJwGUs3rg=",
+    "src/components/ui/toast.tsx": "sha256-cYZbbXNYW/3uAj/p/VojsV0Wx2Z7X2IRbj9UPlYtqyA="
   },
   "paths": {
     "ui": "src/components/ui",
@@ -291,6 +292,13 @@
         "popover": "0.1.0"
       },
       "target": "@/components/ui/popover.tsx"
+    },
+    "src/components/ui/toast.tsx": {
+      "registryUrl": "https://ui.yopem.com/r",
+      "items": {
+        "toast": "0.1.0"
+      },
+      "target": "@/components/ui/toast.tsx"
     }
   },
   "importPrefix": "@"

@@ -29,6 +29,7 @@ import {
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { Textarea } from "@/components/ui/textarea"
+import { toastManager } from "@/components/ui/toast"
 import { saveTemplate, useWorkspaceMutationOwner } from "@/features/focus/store"
 import { useEventCallback } from "@/hooks/use-event-callback"
 
@@ -79,6 +80,10 @@ export function useTemplateForm({
       try {
         await saveTemplate({ template: value, expected }, { owner })
         onOpenChange(false)
+        toastManager.add({
+          title: expected ? "Template updated" : "Template added",
+          type: "success",
+        })
       } catch (cause) {
         setError(
           cause instanceof Error

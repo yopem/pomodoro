@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
+import { toastManager } from "@/components/ui/toast"
 import { saveSession, useWorkspaceMutationOwner } from "@/features/focus/store"
 import { localDateText } from "@/lib/local-date"
 
@@ -154,6 +155,10 @@ export function SessionEditor({
           { owner },
         )
         onClose(openingId)
+        toastManager.add({
+          title: session ? "Focus record updated" : "Focus record added",
+          type: "success",
+        })
       } catch (cause) {
         setError(
           cause instanceof Error

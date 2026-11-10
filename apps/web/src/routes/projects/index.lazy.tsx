@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/select"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
+import { toastManager } from "@/components/ui/toast"
 import { ColorIndicator } from "@/features/focus/color-indicator"
 import { projectColorSchema } from "@/features/focus/schema"
 import {
@@ -333,6 +334,10 @@ export function ProjectForm({
           { owner },
         )
         onSaved()
+        toastManager.add({
+          title: project ? "Project updated" : "Project added",
+          type: "success",
+        })
       } catch (cause) {
         setError(
           cause instanceof Error
