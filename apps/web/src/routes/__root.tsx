@@ -1,4 +1,5 @@
-import "@fontsource-variable/inter"
+import "@fontsource-variable/geist"
+import "@fontsource-variable/geist-mono"
 import "@/styles/styles.css"
 import type { QueryClient } from "@tanstack/react-query"
 import type { RegisteredRouter } from "@tanstack/react-router"
