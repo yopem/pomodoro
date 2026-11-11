@@ -1,9 +1,11 @@
-import * as stylex from "@stylexjs/stylex"
 import { Link } from "@tanstack/react-router"
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  MoreHorizontalIcon,
   PencilIcon,
   PlusIcon,
   TrashIcon,
@@ -19,6 +21,13 @@ import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
 import { List } from "@/components/ui/list"
+import {
+  Menu,
+  MenuItem,
+  MenuPopup,
+  MenuSeparator,
+  MenuTrigger,
+} from "@/components/ui/menu"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import {
@@ -31,26 +40,6 @@ import {
 } from "@/features/focus/store"
 import { TaskForm } from "@/features/tasks/components/task-form"
 import { ConfirmAction } from "@/features/timer/components/confirm-action"
-import { tokens } from "@/styles/tokens.stylex"
-
-const styles = stylex.create({
-  disclosure: { marginInlineStart: "auto" },
-  summary: {
-    alignItems: "center",
-    borderRadius: tokens["--radius-sm"],
-    color: tokens["--muted-foreground"],
-    cursor: "pointer",
-    display: "flex",
-    fontSize: "0.875rem",
-    minBlockSize: 44,
-    paddingInline: 12,
-    backgroundColor: { default: "transparent", ":hover": tokens["--muted"] },
-    outlineColor: tokens["--ring"],
-    outlineOffset: 2,
-    outlineStyle: { default: "none", ":focus-visible": "solid" },
-    outlineWidth: 2,
-  },
-})
 
 type Confirmation =
   { kind: "delete"; task: Task } | { kind: "completed" | "actual" | "all" }
@@ -158,7 +147,7 @@ export function TaskRow({
     <Card render={<li />} selected={task.id === selectedTaskId}>
       <CardPanel density="compact">
         <Stack spacing="compact">
-          <HStack layout="spread">
+          <HStack layout="spread" wrap={false}>
             <Box>
               <Text
                 variant="label"
@@ -167,13 +156,60 @@ export function TaskRow({
               >
                 {task.title}
               </Text>
-              {task.id === selectedTaskId && <Text>Selected</Text>}
+              <Text size="small" tone="muted">
+                {task.actual} / {task.estimate} sessions
+              </Text>
+              {task.id === selectedTaskId && <Text size="small">Selected</Text>}
             </Box>
-            <Text size="small">
-              {task.actual} / {task.estimate} sessions
-            </Text>
+            <Menu>
+              <MenuTrigger
+                disabled={disabled}
+                aria-label={`Actions for ${task.title}`}
+                render={
+                  <Button variant="ghost" size="icon" title="Task actions" />
+                }
+              >
+                <MoreHorizontalIcon size={16} aria-hidden="true" />
+              </MenuTrigger>
+              <MenuPopup align="end">
+                <MenuItem
+                  disabled={disabled}
+                  aria-label={`Edit ${task.title}`}
+                  onClick={events.edit}
+                >
+                  <PencilIcon size={16} aria-hidden="true" /> Edit task
+                </MenuItem>
+                <MenuItem
+                  disabled={disabled || index === 0}
+                  aria-label={`Move ${task.title} up`}
+                  onClick={events.moveUp}
+                >
+                  <ArrowUpIcon size={16} aria-hidden="true" /> Move up
+                </MenuItem>
+                <MenuItem
+                  disabled={disabled || index === taskCount - 1}
+                  aria-label={`Move ${task.title} down`}
+                  onClick={events.moveDown}
+                >
+                  <ArrowDownIcon size={16} aria-hidden="true" /> Move down
+                </MenuItem>
+                <MenuSeparator />
+                <MenuItem
+                  variant="destructive"
+                  disabled={disabled}
+                  aria-label={`Delete ${task.title}`}
+                  onClick={events.remove}
+                >
+                  <TrashIcon size={16} aria-hidden="true" /> Delete task
+                </MenuItem>
+              </MenuPopup>
+            </Menu>
           </HStack>
-          {task.note && <Text variant="note">{task.note}</Text>}
+          {task.note && (
+            <Text variant="note" size="small" tone="muted">
+              {task.note}
+            </Text>
+          )}
           <HStack layout="row">
             <Button
               variant={task.completed ? "secondary" : "outline"}
@@ -188,59 +224,12 @@ export function TaskRow({
             {(!task.completed || task.id === selectedTaskId) && (
               <Button
                 variant={task.id === selectedTaskId ? "secondary" : "ghost"}
-
                 disabled={disabled}
                 onClick={events.toggleSelected}
               >
                 {task.id === selectedTaskId ? "Deselect" : "Select"}
               </Button>
             )}
-            <details {...stylex.props(styles.disclosure)}>
-              <summary
-                {...stylex.props(styles.summary)}
-                aria-label={`Actions for ${task.title}`}
-              >
-                Actions
-              </summary>
-              <HStack layout="row">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={disabled}
-                  aria-label={`Edit ${task.title}`}
-                  onClick={events.edit}
-                >
-                  <PencilIcon size={16} aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={disabled || index === 0}
-                  aria-label={`Move ${task.title} up`}
-                  onClick={events.moveUp}
-                >
-                  <ArrowUpIcon size={16} aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={disabled || index === taskCount - 1}
-                  aria-label={`Move ${task.title} down`}
-                  onClick={events.moveDown}
-                >
-                  <ArrowDownIcon size={16} aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  disabled={disabled}
-                  aria-label={`Delete ${task.title}`}
-                  onClick={events.remove}
-                >
-                  <TrashIcon size={16} aria-hidden="true" />
-                </Button>
-              </HStack>
-            </details>
           </HStack>
           {error && (
             <Text role="alert" tone="destructive">
@@ -250,6 +239,50 @@ export function TaskRow({
         </Stack>
       </CardPanel>
     </Card>
+  )
+}
+
+export function TaskListHeader({
+  hidden,
+  busy,
+  onToggleHidden,
+  onAddTask,
+}: {
+  hidden: boolean
+  busy: boolean
+  onToggleHidden: () => void
+  onAddTask: () => void
+}) {
+  const visibilityLabel = hidden ? "Show tasks" : "Hide tasks"
+
+  return (
+    <HStack layout="spread" wrap={false}>
+      <Heading id="tasks-heading">Tasks</Heading>
+      <HStack layout="actions" wrap={false}>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={visibilityLabel}
+          aria-expanded={!hidden}
+          title={visibilityLabel}
+          onClick={onToggleHidden}
+        >
+          {hidden ? (
+            <ChevronDownIcon size={16} aria-hidden="true" />
+          ) : (
+            <ChevronUpIcon size={16} aria-hidden="true" />
+          )}
+        </Button>
+        <Button
+          variant="outline"
+
+          disabled={busy}
+          onClick={onAddTask}
+        >
+          <PlusIcon size={16} aria-hidden="true" /> Add task
+        </Button>
+      </HStack>
+    </HStack>
   )
 }
 
@@ -409,24 +442,12 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
       render={<section aria-labelledby="tasks-heading" />}
     >
       <Stack>
-        <HStack layout="spread">
-          <Box>
-            <Heading id="tasks-heading">Tasks</Heading>
-          </Box>
-          <HStack layout="row">
-            <Button variant="ghost" onClick={events.toggleHidden}>
-              {hidden ? "Show tasks" : "Hide tasks"}
-            </Button>
-            <Button
-              variant="outline"
-
-              disabled={busy}
-              onClick={events.addTask}
-            >
-              <PlusIcon size={16} aria-hidden="true" /> Add task
-            </Button>
-          </HStack>
-        </HStack>
+        <TaskListHeader
+          hidden={hidden}
+          busy={busy}
+          onToggleHidden={events.toggleHidden}
+          onAddTask={events.addTask}
+        />
         {error && (
           <Text role="alert" tone="destructive">
             {error}
@@ -462,32 +483,49 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
                     />
                   ))}
                 </List>
-                <HStack layout="row">
-                  <Link to="/templates">Apply a template</Link>
-                  <Button
-                    variant="ghost"
-
-                    disabled={busy || !tasks.some((task) => task.completed)}
-                    onClick={events.clearCompleted}
-                  >
-                    Clear completed
+                <HStack layout="spread" wrap={false}>
+                  <Button variant="ghost" render={<Link to="/templates" />}>
+                    Apply a template
                   </Button>
-                  <Button
-                    variant="ghost"
-
-                    disabled={busy || !tasks.some((task) => task.actual > 0)}
-                    onClick={events.clearActual}
-                  >
-                    Clear actual counts
-                  </Button>
-                  <Button
-                    variant="ghost"
-
-                    disabled={busy || !tasks.length}
-                    onClick={events.clearAll}
-                  >
-                    Clear all tasks
-                  </Button>
+                  <Menu>
+                    <MenuTrigger
+                      disabled={busy}
+                      aria-label="Task list actions"
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Task list actions"
+                        />
+                      }
+                    >
+                      <MoreHorizontalIcon size={16} aria-hidden="true" />
+                    </MenuTrigger>
+                    <MenuPopup align="end">
+                      <MenuItem
+                        disabled={busy || !tasks.some((task) => task.completed)}
+                        onClick={events.clearCompleted}
+                      >
+                        Clear completed
+                      </MenuItem>
+                      <MenuItem
+                        disabled={
+                          busy || !tasks.some((task) => task.actual > 0)
+                        }
+                        onClick={events.clearActual}
+                      >
+                        Clear actual counts
+                      </MenuItem>
+                      <MenuSeparator />
+                      <MenuItem
+                        variant="destructive"
+                        disabled={busy || !tasks.length}
+                        onClick={events.clearAll}
+                      >
+                        Clear all tasks
+                      </MenuItem>
+                    </MenuPopup>
+                  </Menu>
                 </HStack>
               </>
             )}
