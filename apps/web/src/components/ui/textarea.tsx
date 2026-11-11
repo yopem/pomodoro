@@ -43,12 +43,12 @@ const styles = stylex.create({
     fieldSizing: "content",
     inlineSize: "100%",
     minBlockSize: {
-      default: "5.125rem",
-      "@media (min-width: 640px)": "4.375rem",
+      default: "7.5rem",
+      "@media (min-width: 640px)": "7.5rem",
     },
     outline: "none",
-    paddingBlock: "calc(0.375rem - 1px)",
-    paddingInline: "calc(0.75rem - 1px)",
+    paddingBlock: "calc(1rem - 1px)",
+    paddingInline: "calc(1rem - 1px)",
     "::placeholder": {
       color:
         "color-mix(in oklab, var(--muted-foreground, currentColor) 72%, transparent)",
@@ -56,16 +56,16 @@ const styles = stylex.create({
   },
   small: {
     minBlockSize: {
-      default: "4.875rem",
-      "@media (min-width: 640px)": "4.125rem",
+      default: "6rem",
+      "@media (min-width: 640px)": "6rem",
     },
     paddingBlock: "calc(0.25rem - 1px)",
     paddingInline: "calc(0.625rem - 1px)",
   },
   large: {
     minBlockSize: {
-      default: "5.375rem",
-      "@media (min-width: 640px)": "4.625rem",
+      default: "9rem",
+      "@media (min-width: 640px)": "9rem",
     },
     paddingBlock: "calc(0.5rem - 1px)",
   },

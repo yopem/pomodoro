@@ -9,7 +9,7 @@ import { clsx } from "clsx"
 import type { StyleXComponentProps, StyleXProps } from "@/lib/stylex"
 
 import { isCallback, isNumber, isString, stylexProps } from "@/lib/stylex"
-import { themeMarker, tokens } from "@/styles/tokens.stylex"
+import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
   control: {
@@ -57,12 +57,9 @@ const styles = stylex.create({
     position: "relative",
     transitionProperty: "box-shadow",
     "::before": {
-      borderRadius: "calc(var(--radius-md) - 1px)",
+      borderRadius: "calc(var(--radius) - 1px)",
       boxShadow: {
-        default:
-          "var(--input-control-inset-shadow, var(--button-outline-inset-shadow))",
-        [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-          "var(--input-control-inset-shadow, var(--button-outline-inset-shadow-dark))",
+        default: "var(--input-control-inset-shadow, none)",
         ":has(:disabled)": "none",
         ":has(:focus-visible)": "none",
         ':has([aria-invalid="true"])': "none",
@@ -91,8 +88,7 @@ const styles = stylex.create({
     paddingInline: "calc(0.75rem - 1px)",
     transition: "background-color 5000000s ease-in-out 0s",
     "::placeholder": {
-      color:
-        "color-mix(in oklab, var(--muted-foreground, currentColor) 72%, transparent)",
+      color: tokens["--muted-foreground"],
     },
     WebkitTextFillColor: {
       default: null,
