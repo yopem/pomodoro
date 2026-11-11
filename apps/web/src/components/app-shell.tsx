@@ -7,6 +7,7 @@ import { TimerIcon } from "lucide-react"
 
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Box } from "@/components/ui/box"
+import { Button } from "@/components/ui/button"
 import { Container } from "@/components/ui/container"
 import { HStack } from "@/components/ui/hstack"
 import { Stack } from "@/components/ui/stack"
@@ -67,25 +68,41 @@ export function AppShell({ children }: { children: ReactNode }) {
               render={<nav aria-label="Main navigation" />}
               variant="appNavigation"
             >
-              <Link
-                to="/"
-                activeOptions={exactMatch}
-                {...stylex.props(styles.navLink)}
+              <Button
+                variant={routeId === "/" ? "secondary" : "ghost"}
+                size="sm"
+                render={<Link to="/" activeOptions={exactMatch} />}
               >
                 Timer
-              </Link>
-              <Link to="/projects" {...stylex.props(styles.navLink)}>
+              </Button>
+              <Button
+                variant={routeId === "/projects/" ? "secondary" : "ghost"}
+                size="sm"
+                render={<Link to="/projects" />}
+              >
                 Projects
-              </Link>
-              <Link to="/templates" {...stylex.props(styles.navLink)}>
+              </Button>
+              <Button
+                variant={routeId === "/templates/" ? "secondary" : "ghost"}
+                size="sm"
+                render={<Link to="/templates" />}
+              >
                 Templates
-              </Link>
-              <Link to="/reports" {...stylex.props(styles.navLink)}>
+              </Button>
+              <Button
+                variant={routeId === "/reports/" ? "secondary" : "ghost"}
+                size="sm"
+                render={<Link to="/reports" />}
+              >
                 Reports
-              </Link>
-              <Link to="/settings" {...stylex.props(styles.navLink)}>
+              </Button>
+              <Button
+                variant={routeId === "/settings/" ? "secondary" : "ghost"}
+                size="sm"
+                render={<Link to="/settings" />}
+              >
                 Settings
-              </Link>
+              </Button>
             </Box>
             <HStack layout="actions">
               <ThemeSwitcher key={snapshot.owner.generation} />
@@ -128,41 +145,5 @@ const styles = stylex.create({
     borderRadius: tokens["--radius"],
     backgroundColor: tokens["--secondary"],
     color: tokens["--foreground"],
-  },
-  navLink: {
-    display: "inline-flex",
-    alignItems: "center",
-    minBlockSize: 44,
-    justifyContent: "center",
-    flexGrow: { default: 0, "@media (max-width: 900px)": 1 },
-    fontSize: { default: 14, "@media (max-width: 390px)": 12 },
-    fontWeight: 500,
-    paddingInline: {
-      default: `calc(${tokens["--spacing"]} * 4)`,
-      "@media (max-width: 1024px)": `calc(${tokens["--spacing"]} * 2)`,
-      "@media (max-width: 390px)": tokens["--spacing"],
-    },
-    whiteSpace: "nowrap",
-    borderRadius: tokens["--radius-md"],
-    backgroundColor: {
-      default: "transparent",
-      ":hover": tokens["--accent"],
-      ":is([data-status=active])": tokens["--accent"],
-    },
-    color: {
-      default: tokens["--muted-foreground"],
-      ":hover": tokens["--foreground"],
-      ":is([data-status=active])": tokens["--info-foreground"],
-    },
-    textDecoration: "none",
-    outlineOffset: -3,
-    outlineColor: tokens["--ring"],
-    outlineStyle: { default: "none", ":focus-visible": "solid" },
-    outlineWidth: 2,
-    transitionProperty: "color, background-color",
-    transitionDuration: {
-      default: "150ms",
-      "@media (prefers-reduced-motion: reduce)": "0ms",
-    },
   },
 })

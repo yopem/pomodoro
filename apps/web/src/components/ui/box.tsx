@@ -21,6 +21,7 @@ const styles = stylex.create({
     backgroundColor: tokens["--muted"],
   },
   settingsNavigation: {
+    alignItems: "flex-start",
     position: { default: "sticky", "@media (max-width: 768px)": "static" },
     insetBlockStart: 24,
     display: "flex",
@@ -104,7 +105,8 @@ const styles = stylex.create({
     minInlineSize: 0,
     flexBasis: { default: "auto", "@media (max-width: 900px)": "100%" },
     order: { default: 0, "@media (max-width: 900px)": 1 },
-    overflowX: "auto",
+    flexWrap: "wrap",
+    rowGap: 12,
   },
 })
 

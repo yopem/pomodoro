@@ -15,13 +15,7 @@ const sections = [
 ]
 
 const styles = stylex.create({
-  navigation: {
-    blockSize: 44,
-    inlineSize: {
-      default: "100%",
-      "@media (max-width: 768px)": 120,
-    },
-  },
+  navigation: { blockSize: 40, inlineSize: 120 },
   title: {
     blockSize: { default: 30, "@media (max-width: 640px)": 25 },
     inlineSize: "45%",

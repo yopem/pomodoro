@@ -1,4 +1,3 @@
-import * as stylex from "@stylexjs/stylex"
 import { createLazyFileRoute, Link } from "@tanstack/react-router"
 import {
   DatabaseBackupIcon,
@@ -9,6 +8,7 @@ import {
 } from "lucide-react"
 
 import { Box } from "@/components/ui/box"
+import { Button } from "@/components/ui/button"
 import { Container } from "@/components/ui/container"
 import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
@@ -18,7 +18,6 @@ import { useFocusSnapshot } from "@/features/focus/store"
 import { SettingsForm } from "@/features/settings/components/settings-form"
 import { SettingsSkeleton } from "@/features/settings/components/settings-loading"
 import { WorkspaceBackup } from "@/features/settings/components/workspace-backup"
-import { tokens } from "@/styles/tokens.stylex"
 
 export const Route = createLazyFileRoute("/settings/")({
   component: SettingsRoute,
@@ -60,15 +59,14 @@ export function SettingsRoute() {
                 render={<nav aria-label="Settings sections" />}
               >
                 {sections.map((section) => (
-                  <Link
+                  <Button
                     key={section.id}
-                    to="/settings"
-                    hash={section.id}
-                    {...stylex.props(styles.sectionLink)}
+                    variant="ghost"
+                    render={<Link to="/settings" hash={section.id} />}
                   >
                     <section.icon size={18} aria-hidden="true" />
                     {section.label}
-                  </Link>
+                  </Button>
                 ))}
               </Box>
               <Stack spacing="relaxed">
@@ -91,22 +89,3 @@ export function SettingsRoute() {
     </Box>
   )
 }
-
-const styles = stylex.create({
-  sectionLink: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    minBlockSize: 44,
-    paddingInline: 12,
-    borderRadius: tokens["--radius-md"],
-    color: {
-      default: tokens["--muted-foreground"],
-      ":hover": tokens["--foreground"],
-    },
-    backgroundColor: { default: "transparent", ":hover": tokens["--accent"] },
-    textDecoration: "none",
-    fontSize: 14,
-    fontWeight: 500,
-  },
-})
