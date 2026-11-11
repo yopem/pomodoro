@@ -5891,3 +5891,81 @@ No browser, API, test, build, deployment, or extra scanner ran. QA-206 and
 QA-207 remain pending at P1. QA-199 remains pending for neutral navigation and
 wrapping; QA-195 and QA-204 need the updated loading states. Existing QA-198,
 QA-203, and QA-205 also cover the changed controls and offline link.
+
+## Default button size and Geist fonts
+
+User requirements supersede the mixed-size policy in QA-207: use Yopem UI
+default button sizes throughout the app, and use Geist Variable and Geist Mono
+Variable instead of Inter and IBM Plex Mono. QA-207 remains pending for
+non-button source styles; use QA-208 for button sizes and QA-209 for fonts.
+Reopen QA-195, QA-196, QA-199, QA-200, and QA-204 for these changes.
+
+### [ ] QA-208 — P1 — Default action sizes throughout the app
+
+- **Purpose:** Check that app actions use the default Yopem UI Button size,
+  including text and icon-only actions, without mixed 32px and 48px heights.
+- **Prerequisites:** Shared refresh setup; approved browser QA; isolated guest
+  workspace with one task and one project; current local Button source.
+- **Inputs:** `/`, `/focus`, `/projects`, `/templates`, `/reports`, `/settings`,
+  `/auth/login`, `/offline.html`; light/dark themes; 390 and 1440 CSS pixels.
+- **Steps:**
+  1. Visit each input route. Open task, template, project, and focus editors,
+     delete confirmations, backup controls, and account controls as permitted.
+  2. Measure the visible buttons and header links: text actions use the default
+     size; icon actions use `icon`. Compare with the source 40px default height.
+     Inspect timer phase and start/pause/reset controls too.
+  3. Exercise keyboard navigation and touch emulation. Inspect task and timer
+     loading placeholders, then inspect settings placeholders.
+- **Expected results:** App Button actions have 40px visible height without old
+  sm/lg/xl size overrides. Source-owned calendar cells and other native controls
+  retain their component contract. Touch targets remain at least 44px where
+  provided by Button. Navigation wraps without clipping. Loading placeholders
+  use 40px control heights. Labels, confirmation, handlers, and active neutral
+  colors remain unchanged.
+- **Evidence:** Save sanitized measurements and screenshots in
+  `qa-artifacts/QA-208/`; inspect each route and opened form before passing.
+- **Cleanup:** Cancel forms and remove only isolated records. Restore theme,
+  viewport, and emulation. Do not clear existing storage.
+- **Status:** pending; no runtime QA is approved for this pass.
+
+### [ ] QA-209 — P1 — Geist font loading and layout
+
+- **Purpose:** Check the requested source font families, local font assets, and
+  layout after the font replacement.
+- **Prerequisites:** Shared refresh setup; approved browser and production build
+  QA; installed web dependencies; isolated guest workspace.
+- **Inputs:** `/`, `/reports`, `/settings`, `/auth/login`, `/offline.html`;
+  light/dark themes; 390 and 1440 CSS pixels; title `Design review — café`.
+- **Steps:**
+  1. Build with the existing root `bun run build` only in the approved QA pass.
+     Inspect the emitted font assets and CSS references.
+  2. Open each input route, inspect computed body/heading and timer/code font
+     families, and inspect font requests and browser errors.
+  3. Reload with a cold cache and a slow connection. Inspect timer alignment,
+     button labels, long titles, history columns, dialogs, and loading states.
+  4. Open the offline fallback without network access and inspect its text.
+- **Expected results:** The app imports Geist Variable and Geist Mono Variable
+  from local Fontsource packages. Theme font families match the local UI source.
+  No Inter font asset remains required. Fonts load without missing requests or
+  external font services. Controls and text remain readable and do not clip. The
+  offline page uses Geist if available and system fallback otherwise; it does
+  not require a font request to render.
+- **Evidence:** Save sanitized font request/computed-style observations, build
+  asset list, and screenshots in `qa-artifacts/QA-209/`; inspect each result.
+- **Cleanup:** Restore network controls, theme, and viewport. Stop only
+  processes started for the case. No stored records need removal.
+- **Status:** pending; production build and browser checks remain deferred.
+
+Coverage: default action sizes use QA-208; font assets and layout use QA-209. No
+API, stored data, or authentication contract changes are intended.
+
+### Default-size and Geist static results — 2026-11-11
+
+`bun install` added the two pinned 5.3.0 Geist font packages and removed Inter.
+Both packages declare OFL-1.1 and no install lifecycle scripts. No application
+license file changed. Root `bun run lint`, `bun run format:check`, and
+`bun run typecheck` passed. `git diff --check` passed. Source review found no
+non-default app Button sizes and no old runtime Inter/IBM Plex references.
+
+QA-208 and QA-209 remain pending at P1. Browser measurements, font loading,
+production CSS/font output, and offline rendering have not been checked.
