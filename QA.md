@@ -5593,9 +5593,10 @@ change does not alter them. Existing behavior cases remain applicable.
   Visit each route at 390, 768, 1024, and 1440 CSS pixels. Use each navigation
   link, reload, and use Back. Open /focus and enter browser fullscreen from the
   timer. 3. Inspect browser errors and save sanitized evidence.
-- **Expected results:** Navigation identifies the current route. Page edges
-  align. Content has no horizontal overflow. Focus and fullscreen keep their
-  existing reduced layout.
+- **Expected results:** Navigation identifies the current route with neutral
+  text and a neutral surface, not blue accent text. Keyboard focus remains
+  visible. Page edges align. Content has no horizontal overflow. Focus and
+  fullscreen keep their existing reduced layout.
 - **Evidence:** Save screenshots and action/result notes in
   `qa-artifacts/QA-199/`. Inspect each result and record revision, environment,
   and date before marking passed.
@@ -5786,3 +5787,107 @@ installability or browser QA pass.
 Deferred: browser workflows, accessibility review, responsive screenshots, SSR
 and hydration checks, automated tests, production build, installability, and
 service-worker offline/update checks. These need the separate QA pass.
+
+## Focus history layout follow-up
+
+Task: redesign `ReportHistory` and its loading placeholder at `/reports`.
+Affected files: `apps/web/src/features/reports/components/report-history.tsx`
+and `reports-loading.tsx` in the same directory. Use the shared refresh setup
+and approved isolated guest workspace. Run P1 before P2. No API or stored
+session contract changes are intended.
+
+### [ ] QA-206 — P1 — History frame, records, and actions
+
+- **Purpose:** Check the new history hierarchy and preserve edit, delete, empty
+  state, range selection, and URL-based pagination.
+- **Prerequisites:** Shared refresh setup; approved browser QA; isolated guest
+  workspace with a backup; `/reports` available at the recorded web origin.
+- **Inputs:** A manual focus record named `Design review`, project `Website`,
+  duration 25 minutes; another record with no project; an empty date range. Use
+  the existing Add focus time form to create enough isolated records for two
+  pages. Read its current page limit before creating records.
+- **Steps:**
+  1. Open `/reports`, select the range containing the isolated records, and
+     inspect the history header, total, table, and page controls.
+  2. Edit `Design review` with its labelled edit button. Save the change and
+     inspect the row and report totals. Cancel deletion once, then confirm
+     deletion on an isolated record and inspect the removed row and totals.
+  3. Use Next, Previous, reload, and Back. Select the empty date range.
+  4. Repeat at 390 and 1440 CSS pixels in both themes. Use the keyboard to reach
+     each action. Change the time preference between 12h and 24h and inspect the
+     record timestamps.
+- **Expected results:** One shared frame contains the history header, table, and
+  footer without a nested card. Task and project names remain visible. Duration
+  and timestamps retain their original values. The total and page labels are
+  correct. Actions retain confirmation and owner guards. Cancel does not write
+  data. Only the table scrolls horizontally on narrow screens. Empty history has
+  guidance and disabled page controls. No action or content disappears in either
+  theme, and no unexpected browser error appears.
+- **Evidence:** Save sanitized screenshots and action results in
+  `qa-artifacts/QA-206/`; inspect the populated, empty, edit, delete, and
+  pagination results before marking passed.
+- **Cleanup:** Remove only isolated records and restore the recorded range, time
+  preference, theme, and viewport. Do not clear existing user storage.
+- **Status:** pending; runtime QA is not approved for this implementation pass.
+
+Coverage: the header navigation requirement uses QA-199. History hierarchy,
+record rendering, empty state, and unchanged actions use QA-206. Loading
+geometry uses QA-195 and QA-204; reopen those cases for this revision. No
+authentication, payment, API, or persistence contract changes are in scope.
+
+### [ ] QA-207 — P1 — Shared control sizes and remaining source styles
+
+- **Purpose:** Check source-owned button sizing, navigation composition, notes
+  fields, input placeholders, and overlay edges after the source comparison.
+- **Prerequisites:** Shared refresh setup; approved browser QA; isolated guest
+  workspace. Read the current local registry Button and Textarea source before
+  comparison. No new dependencies or services are required.
+- **Inputs:** `/`, `/projects`, `/templates`, `/reports`, `/settings`,
+  `/offline.html`; 390 and 1440 CSS pixel viewports; light/dark themes; mouse
+  and touch emulation; task title `Design review` and notes
+  `Review spacing and controls.`
+- **Steps:**
+  1. Open each route. Inspect header and settings links, page actions, timer
+     actions, theme control, task actions, and history pagination.
+  2. Compare their measured heights with the source scale: small buttons 32px,
+     default buttons 40px, and large buttons 48px. Main navigation uses small
+     ghost Buttons; settings navigation uses default ghost Buttons. Check
+     pointer targets of at least 44px with touch emulation. Check the static
+     retry link on `/offline.html` against the default 40px button size.
+  3. Open the task and template forms. Inspect their notes fields and input
+     placeholders against the local source. Enter and preserve the input text.
+     Open and close the date picker and an existing notification.
+  4. Use keyboard navigation for all links and controls. Repeat in both themes
+     and at both viewports. Capture the settings loading state before its
+     content loads and compare navigation placeholder height.
+- **Expected results:** Controls use the shared scale without custom height or
+  padding rules on navigation links. Active header text remains neutral. Link
+  URLs, hashes, focus indicators, labels, actions, and timer behavior do not
+  change. Navigation wraps without clipped targets or page overflow. The default
+  notes minimum height is 120px and horizontal padding is 15px. Input
+  placeholders use the muted foreground. Popovers and notifications have no old
+  inset edge shadow. Reduced-motion notification behavior remains intact.
+- **Evidence:** Save sanitized measurements, screenshots, and keyboard/action
+  observations in `qa-artifacts/QA-207/`; inspect each comparison and the action
+  results before marking passed.
+- **Cleanup:** Discard or remove only isolated form data and restore viewport,
+  theme, and emulation. Close only case-owned overlays. Do not clear storage.
+- **Status:** pending; runtime QA remains deferred.
+
+Coverage: shared button and form sizing and source-style gaps use QA-207. QA-199
+covers link routing and neutral active styling. QA-206 covers the redesigned
+history. QA-195 and QA-204 cover changed loading geometry.
+
+### Follow-up static results — 2026-11-11
+
+Root `bun run lint`, `bun run format:check`, and `bun run typecheck` passed
+after the navigation composition and source-style fixes. Lint includes Cargo
+Clippy with warnings denied; format includes rustfmt; typecheck includes the
+locked Cargo check and web app, tools, and service-worker projects.
+`git diff --check` passed. The initial `yopem-ui/no-restyle` diagnostics were
+fixed with component variants and parent layout, not rule changes or disables.
+
+No browser, API, test, build, deployment, or extra scanner ran. QA-206 and
+QA-207 remain pending at P1. QA-199 remains pending for neutral navigation and
+wrapping; QA-195 and QA-204 need the updated loading states. Existing QA-198,
+QA-203, and QA-205 also cover the changed controls and offline link.
