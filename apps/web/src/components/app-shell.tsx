@@ -3,13 +3,19 @@ import type { ReactNode } from "react"
 
 import * as stylex from "@stylexjs/stylex"
 import { Link, useRouterState } from "@tanstack/react-router"
-import { TimerIcon } from "lucide-react"
+import { CheckIcon, MenuIcon, TimerIcon } from "lucide-react"
 
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Box } from "@/components/ui/box"
 import { Button } from "@/components/ui/button"
 import { Container } from "@/components/ui/container"
 import { HStack } from "@/components/ui/hstack"
+import {
+  Menu,
+  MenuLinkItem,
+  MenuPopup,
+  MenuTrigger,
+} from "@/components/ui/menu"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { AccountControls } from "@/features/account/components/account-controls"
@@ -20,6 +26,14 @@ import { useBrowserFullscreen } from "@/features/timer/hooks/use-browser-fullscr
 import { tokens } from "@/styles/tokens.stylex"
 
 const exactMatch = { exact: true }
+
+const navigationItems = [
+  { label: "Timer", to: "/", routeId: "/" },
+  { label: "Projects", to: "/projects", routeId: "/projects/" },
+  { label: "Templates", to: "/templates", routeId: "/templates/" },
+  { label: "Reports", to: "/reports", routeId: "/reports/" },
+  { label: "Settings", to: "/settings", routeId: "/settings/" },
+] as const
 
 function getRouteId(state: RegisteredRouter["state"]) {
   return state.matches.at(-1)?.routeId
@@ -51,7 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         variant="appHeader"
       >
         <Container variant="navigation">
-          <HStack layout="spread">
+          <HStack layout="spread" wrap={false}>
             <Link
               to="/"
               {...stylex.props(styles.brand)}
@@ -68,45 +82,56 @@ export function AppShell({ children }: { children: ReactNode }) {
               render={<nav aria-label="Main navigation" />}
               variant="appNavigation"
             >
-              <Button
-                variant={routeId === "/" ? "secondary" : "ghost"}
-
-                render={<Link to="/" activeOptions={exactMatch} />}
-              >
-                Timer
-              </Button>
-              <Button
-                variant={routeId === "/projects/" ? "secondary" : "ghost"}
-
-                render={<Link to="/projects" />}
-              >
-                Projects
-              </Button>
-              <Button
-                variant={routeId === "/templates/" ? "secondary" : "ghost"}
-
-                render={<Link to="/templates" />}
-              >
-                Templates
-              </Button>
-              <Button
-                variant={routeId === "/reports/" ? "secondary" : "ghost"}
-
-                render={<Link to="/reports" />}
-              >
-                Reports
-              </Button>
-              <Button
-                variant={routeId === "/settings/" ? "secondary" : "ghost"}
-
-                render={<Link to="/settings" />}
-              >
-                Settings
-              </Button>
+              {navigationItems.map((item) => (
+                <Button
+                  key={item.to}
+                  variant={routeId === item.routeId ? "secondary" : "ghost"}
+                  render={
+                    <Link
+                      to={item.to}
+                      activeOptions={item.to === "/" ? exactMatch : undefined}
+                    />
+                  }
+                >
+                  {item.label}
+                </Button>
+              ))}
             </Box>
-            <HStack layout="actions">
+            <HStack layout="actions" wrap={false}>
               <ThemeSwitcher key={snapshot.owner.generation} />
               <AccountControls controller={controller} state={state} />
+              <Box variant="appMobileNavigation">
+                <Menu>
+                  <MenuTrigger
+                    aria-label="Open navigation"
+                    render={
+                      <Button variant="ghost" size="icon" title="Navigation" />
+                    }
+                  >
+                    <MenuIcon size={18} aria-hidden="true" />
+                  </MenuTrigger>
+                  <MenuPopup align="end">
+                    {navigationItems.map((item) => (
+                      <MenuLinkItem
+                        key={item.to}
+                        render={
+                          <Link
+                            to={item.to}
+                            activeOptions={
+                              item.to === "/" ? exactMatch : undefined
+                            }
+                          />
+                        }
+                      >
+                        {item.label}
+                        {routeId === item.routeId && (
+                          <CheckIcon size={16} aria-hidden="true" />
+                        )}
+                      </MenuLinkItem>
+                    ))}
+                  </MenuPopup>
+                </Menu>
+              </Box>
             </HStack>
           </HStack>
         </Container>

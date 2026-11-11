@@ -92,21 +92,18 @@ const styles = stylex.create({
     display: { default: "inline", "@media (max-width: 480px)": "none" },
   },
   appHeader: {
-    borderBlockEndStyle: "solid",
-    borderBlockEndWidth: 1,
-    borderBlockEndColor: tokens["--border"],
     backgroundColor: tokens["--background"],
   },
+  appMobileNavigation: {
+    display: { default: "none", "@media (max-width: 900px)": "flex" },
+  },
   appNavigation: {
-    display: "flex",
+    display: { default: "flex", "@media (max-width: 900px)": "none" },
     alignItems: "center",
     justifyContent: "center",
-    gap: { default: tokens["--spacing"], "@media (max-width: 390px)": 0 },
+    gap: tokens["--spacing"],
     minInlineSize: 0,
-    flexBasis: { default: "auto", "@media (max-width: 900px)": "100%" },
-    order: { default: 0, "@media (max-width: 900px)": 1 },
-    flexWrap: "wrap",
-    rowGap: 12,
+    flexWrap: "nowrap",
   },
 })
 
@@ -118,6 +115,7 @@ export type BoxProps = StyleXComponentProps<useRender.ComponentProps<"div">> & {
     | "appBrandLabel"
     | "appHeader"
     | "appNavigation"
+    | "appMobileNavigation"
     | "focusDial"
     | "focusTask"
     | "taskQueue"
@@ -153,6 +151,7 @@ export function Box({
           variant === "appBrandLabel" && styles.appBrandLabel,
           variant === "appHeader" && styles.appHeader,
           variant === "appNavigation" && styles.appNavigation,
+          variant === "appMobileNavigation" && styles.appMobileNavigation,
           xstyle,
         ),
         "data-slot": "box",
