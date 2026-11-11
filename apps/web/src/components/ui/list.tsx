@@ -18,6 +18,7 @@ const styles = stylex.create({
   plain: {
     listStyleType: "none",
     padding: 0,
+    paddingInlineStart: 0,
     margin: 0,
     display: "flex",
     flexDirection: "column",

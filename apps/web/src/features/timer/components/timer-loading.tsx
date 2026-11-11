@@ -128,10 +128,10 @@ export function TimerWorkspaceSkeleton({
         </Stack>
         <Box variant="taskQueue" hidden={fullscreen} aria-hidden="true">
           <Stack>
-            <HStack layout="spread">
+            <HStack layout="spread" wrap={false}>
               <Skeleton xstyle={styles.heading} />
-              <HStack layout="row">
-                <Skeleton xstyle={styles.primaryControl} />
+              <HStack layout="actions" wrap={false}>
+                <Skeleton xstyle={styles.iconControl} />
                 <Skeleton xstyle={styles.primaryControl} />
               </HStack>
             </HStack>
@@ -140,13 +140,13 @@ export function TimerWorkspaceSkeleton({
                 <Card key={row} render={<li />}>
                   <CardPanel density="compact">
                     <Stack spacing="compact">
-                      <HStack layout="spread">
+                      <HStack layout="spread" wrap={false}>
                         <Skeleton xstyle={styles.shortLine} />
-                        <Skeleton xstyle={styles.label} />
+                        <Skeleton xstyle={styles.iconControl} />
                       </HStack>
+                      <Skeleton xstyle={styles.label} />
                       <HStack layout="row">
                         <Skeleton xstyle={styles.iconControl} />
-                        <Skeleton xstyle={styles.control} />
                         <Skeleton xstyle={styles.control} />
                       </HStack>
                     </Stack>
@@ -154,6 +154,10 @@ export function TimerWorkspaceSkeleton({
                 </Card>
               ))}
             </List>
+            <HStack layout="spread" wrap={false}>
+              <Skeleton xstyle={styles.primaryControl} />
+              <Skeleton xstyle={styles.iconControl} />
+            </HStack>
           </Stack>
         </Box>
       </Grid>

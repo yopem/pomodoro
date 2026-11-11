@@ -6138,3 +6138,32 @@ This removes the older popup edge/border and restores source item sizes,
 including 44px coarse-pointer targets. QA-211–214 cover the new menus; repeat
 the account menu check in QA-202 for this shared change. No registry install or
 Yopem UI dependency upgrade was used.
+
+### [ ] QA-215 — P1 — Task list edges and loading geometry
+
+- **Purpose:** Remove the inherited 24px plain-list indent and keep loading
+  placeholders consistent with the corrected task header and actions.
+- **Prerequisites:** Shared local setup; QA-208 task; `/`; current task/menu
+  implementation. Only TaskList and TimerWorkspaceSkeleton use plain List.
+- **Inputs:** 320, 390, and 1440px widths; both themes; a normal task title,
+  long title, optional notes, and route loading state.
+- **Steps:**
+  1. Inspect the plain task list and its first card at each width. Compare the
+     card edges with the Tasks header and template/action footer.
+  2. Inspect the default List contract in source: ordinary lists retain their
+     intended indentation. Inspect the loading skeleton composition.
+  3. In a requested loading-state run, slow the page connection, open `/`, and
+     compare placeholder controls and card alignment with loaded tasks. Restore
+     the network settings after capture.
+- **Expected results:** Plain lists have zero inline-start padding and cards
+  align with both panel edges. Default lists keep their indentation. The loading
+  header uses one icon and one text-control placeholder. Card actions use one
+  icon and one text-control placeholder, with a separate action-menu placeholder
+  and metadata. No page overflow occurs.
+- **Evidence:** Save and inspect screenshots and list padding/edge measurements
+  in `qa-artifacts/QA-215/`.
+- **Cleanup:** Restore network, viewport, and theme. Remove only QA tasks.
+- **Status:** pending. Loading-state execution remains separate if not run.
+
+Coverage: QA-215 extends QA-211 and reopens the affected timer loading checks in
+QA-194/204. The default List contract and task mutations do not change.
