@@ -36,16 +36,33 @@ a {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  min-height: 44px;
+  height: 40px;
+  position: relative;
   margin-top: 1rem;
-  padding: 0.625rem 1.25rem;
+  padding-inline: calc(1.25rem - 1px);
   border: 1px solid #e5e7eb;
   border-radius: 0.75rem;
   background: #111111;
   color: #fff;
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 500;
+  line-height: 1.5rem;
   text-decoration: none;
+}
+@media (min-width: 640px) {
+  a {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+@media (pointer: coarse) {
+  a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 a:hover {
   opacity: 0.9;
