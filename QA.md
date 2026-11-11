@@ -5969,3 +5969,172 @@ non-default app Button sizes and no old runtime Inter/IBM Plex references.
 
 QA-208 and QA-209 remain pending at P1. Browser measurements, font loading,
 production CSS/font output, and offline rendering have not been checked.
+
+## Browser QA finding: Select trigger size
+
+### [ ] QA-210 — P1 — Source Select trigger geometry
+
+- **Purpose:** Reproduce and fix the 32px default Project dropdown found in the
+  focus record editor while app Button actions already measured 40px.
+- **Prerequisites:** Existing Vite origin `http://localhost:13001`, anonymous
+  isolated QA records, baseline backup in `qa-artifacts/QA-206/`; current
+  unpublished local UI source. Browser QA is approved; builds are not.
+- **Inputs:** `/reports` Add focus time, `/projects` Add project, settings
+  dropdowns; 390 and 1440 CSS pixel viewports; both themes.
+- **Steps:**
+  1. Open Add focus time and inspect Project trigger height and padding.
+  2. Compare the shared Select default, small, and large definitions with the
+     local registry source. Apply that source geometry without changing
+     selection behavior, labels, or form contracts.
+  3. Reopen the affected forms and settings; inspect default dropdowns and
+     select `QA-206 Website` on the isolated record. Cancel an editor once.
+- **Expected results:** Default Select triggers measure 40px with the source
+  14px font and weight 450. Source small/large variants remain 32px/48px. Source
+  padding, coarse-pointer target, focus, and invalid states remain intact. The
+  obsolete inset pseudo-shadow is absent. No stored data changes on cancel, and
+  saving the isolated choice keeps its project.
+- **Evidence:** Save measurements and screenshots in `qa-artifacts/QA-210/`.
+  Inspect the actual trigger, source diff, and saved project before passing.
+- **Cleanup:** Close case-owned popups and remove only QA records. Restore theme
+  and viewport. Do not clear or replace user storage.
+- **Status:** failed on revision `40971ec`; the default Project trigger measured
+  32px at desktop width. Fix and browser rerun are pending.
+
+Coverage: QA-210 covers the shared Select gap found during QA-208/QA-209.
+
+## Task queue layout correction
+
+Task: fix the crowded task header, uneven card actions, and scattered cleanup
+buttons shown in the user screenshot. Files: task-list.tsx and its existing UI
+composition. Route: `/`. Keep all action handlers, owner checks, expected
+workspace checks, disabled states, data, and confirmation flows. Reuse the
+installed Menu, Button, HStack, Text, and controlled task ConfirmAction. No new
+dependencies or styling policy are needed.
+
+### [ ] QA-211 — P1 — Task queue alignment and menu layout
+
+- **Purpose:** Replace wrapping action clusters with a stable task header,
+  readable card hierarchy, and grouped secondary actions.
+- **Prerequisites:** Existing approved browser environment on port 13001;
+  isolated task `QA-208 Timer probe — café`; baseline backup from QA-206;
+  current local Yopem UI source and both themes.
+- **Inputs:** `/`; 320, 390, and 1440 CSS pixel viewports; one task with notes
+  `Review spacing and controls.` and one 200-character unbroken task title.
+- **Steps:**
+  1. Inspect the task header, title, session count, notes, and action row.
+  2. Open each task's Actions menu and the Task list actions menu. Inspect edit,
+     move, delete, and cleanup items, including disabled move bounds.
+  3. Repeat at each width and in each theme. Inspect a completed task, a
+     selected task, and the empty list after removing only QA fixtures.
+- **Expected results:** Header actions do not compete with the Tasks title. Task
+  actions use one stable row and a source-owned 40px menu trigger. Metadata and
+  notes have clear hierarchy and wrap without page overflow. Cleanup actions
+  stay inside the list menu instead of scattered rows. Source MenuItem sizing
+  remains unchanged. Labels remain accessible and no controls clip or overlap at
+  the panel edges.
+- **Evidence:** Save and inspect screenshots, menu snapshots, control sizes, and
+  overflow observations in `qa-artifacts/QA-211/`.
+- **Cleanup:** Remove only named QA tasks and restore theme and viewport. Do not
+  clear unrelated tasks, history, or browser storage.
+- **Status:** pending.
+
+### [ ] QA-212 — P0 — Task menu safety and existing mutations
+
+- **Purpose:** Keep edit, completion, selection, move, delete, and cleanup
+  safeguards while moving actions into menus.
+- **Prerequisites:** Shared browser setup and backup; only explicitly named QA
+  tasks may be mutated. Before a bulk confirmation, inspect the full task list
+  and stop if unrelated tasks are present.
+- **Inputs:** `QA-208 Timer probe — café`; a second isolated task named
+  `QA-212 Reorder probe`; a completed QA task; zero actual counts.
+- **Steps:**
+  1. Open the row menu and edit the QA task. Move the two QA tasks up/down and
+     inspect order. Toggle completion and selection on an isolated task.
+  2. Open task deletion, cancel, and inspect the unchanged task and history.
+  3. Open list cleanup actions. Check that unavailable completed/count cleanup
+     items are disabled. Open an available completed cleanup and cancel. Open
+     Clear all tasks and cancel.
+  4. Delete only an isolated task through confirmation. Inspect the list and
+     reports. Retain the existing owner and expected-workspace guard path.
+- **Expected results:** Actions call the existing guarded workflows. Cancel does
+  not change data. Disabled actions do not run. Reorder keeps all task records.
+  A confirmed delete affects only its intended task. Task cleanup does not
+  remove focus history. Failed mutations keep their error feedback and do not
+  silently discard data.
+- **Evidence:** Save and inspect before/after snapshots, confirmations, and
+  report counts in `qa-artifacts/QA-212/`. Record any guard check not run.
+- **Cleanup:** Remove only named QA tasks. Compare the final workspace with the
+  baseline; do not restore by replacing user storage.
+- **Status:** pending; run this P0 case before the layout acceptance pass.
+
+### [ ] QA-213 — P1 — Task menu keyboard and focus
+
+- **Purpose:** Keep native menu navigation, confirmation focus, touch targets,
+  and task visibility controls accessible.
+- **Prerequisites:** Shared setup; QA task; keyboard and page-scoped touch
+  emulation. Use the existing project-group browser tab.
+- **Inputs:** `/`; 390 CSS pixels; dark/light themes; row Actions, Task list
+  actions, Add task, and Hide/Show tasks controls.
+- **Steps:**
+  1. Reach each control by keyboard. Open menus with Enter and move between
+     items with arrow keys. Check disabled items and close with Escape.
+  2. Open Edit task and a destructive confirmation from a menu. Cancel or press
+     Escape. Inspect focus return and the unchanged task.
+  3. Hide and show the task list twice. Check the accessible button label and
+     the preserved task data. Inspect the 40px visible controls and the source
+     coarse-pointer target without clipping.
+- **Expected results:** Focus remains visible and logical. Menus close
+  correctly, dialogs receive focus, and closing returns focus to a valid
+  task/list control. No hidden menu item receives focus. Visibility changes do
+  not delete data. Touch and keyboard users can reach the same actions.
+- **Evidence:** Save and inspect focus paths, menu/dialog snapshots, and
+  screenshots in `qa-artifacts/QA-213/`.
+- **Cleanup:** Close owned popups; show tasks; restore emulation, theme, and
+  viewport. Remove only QA records during shared cleanup.
+- **Status:** pending.
+
+Coverage: layout uses QA-211; data and mutation safety use QA-212; keyboard,
+focus, and visibility use QA-213. QA-208 covers default action sizes, and QA-206
+continues to cover history. No API or authentication change is planned.
+
+## Compact mobile navigation
+
+### [ ] QA-214 — P1 — One-row mobile header and navigation menu
+
+- **Purpose:** Replace the two wrapping navigation rows shown in the user's
+  mobile screenshot with one compact header and an accessible route menu.
+- **Prerequisites:** Existing approved local browser environment on port 13001;
+  anonymous guest state; both themes; installed source-owned Menu.
+- **Inputs:** 320, 390, 900, 901, and 1440 CSS pixel widths; `/`, `/projects`,
+  `/templates`, `/reports`, and `/settings`; `/focus` remains compact.
+- **Steps:**
+  1. At mobile/tablet widths, inspect one header row containing the brand,
+     theme, account/login, and Open navigation control. Open the menu.
+  2. Select each route from the menu. Inspect the URL, heading, current-page
+     marker, menu closure, and unchanged guest data after each transition.
+  3. Open and close the menu with keyboard controls and Escape. Inspect focus
+     return, labels, 40px button size, and coarse-pointer targets.
+  4. Repeat in both themes at 320 and 390px. Check 900/901px boundary and 1440px
+     desktop navigation. Inspect the compact `/focus` route.
+- **Expected results:** No second or third mobile navigation row remains. The
+  header has no bottom border. Desktop links remain visible and stay in one row.
+  Hidden navigation does not receive focus. All five routes remain reachable.
+  Current-page styling stays neutral, not blue. Menus use existing source sizing
+  and keyboard behavior. Header controls do not clip or cause page overflow.
+  Compact and error-route header rules stay unchanged.
+- **Evidence:** Save and inspect header/menu screenshots, navigation/focus
+  observations, and measurements in `qa-artifacts/QA-214/`.
+- **Cleanup:** Close the menu and restore the original viewport and dark theme.
+  Do not change identity or clear existing storage.
+- **Status:** pending.
+
+Coverage: QA-214 supersedes mobile header wrapping expectations in QA-199 and
+QA-208. Default source Button sizes still use QA-208. No authentication contract
+or account action changes are planned.
+
+Local-source refinement: `components/ui/menu.tsx` uses the style block from
+`/home/karyana/Codes/projects/ui/packages/registry/src/components/ui/menu.tsx`.
+This removes the older popup edge/border and restores source item sizes,
+including 44px coarse-pointer targets. QA-211–214 cover the new menus; repeat
+the account menu check in QA-202 for this shared change. No registry install or
+Yopem UI dependency upgrade was used.
