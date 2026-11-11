@@ -9,7 +9,7 @@ import { ChevronRightIcon } from "lucide-react"
 import type { StyleXComponentProps } from "@/lib/stylex"
 
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
-import { themeMarker, tokens } from "@/styles/tokens.stylex"
+import { tokens } from "@/styles/tokens.stylex"
 
 export const menuSlotStyles = stylex.create({
   icon: {
@@ -26,28 +26,13 @@ const styles = stylex.create({
   popup: {
     backgroundClip: "padding-box",
     backgroundColor: tokens["--popover"],
-    borderColor: tokens["--border"],
     borderRadius: tokens["--radius"],
-    borderStyle: "solid",
-    borderWidth: 1,
     boxShadow: tokens["--shadow-md"],
     display: "flex",
     minInlineSize: "8rem",
     outline: "none",
     position: "relative",
     transformOrigin: "var(--transform-origin)",
-    "::before": {
-      borderRadius: "calc(var(--radius-md) - 1px)",
-      boxShadow: {
-        default: "0 1px rgb(0 0 0 / 0.04)",
-        [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-          "0 -1px rgb(255 255 255 / 0.06)",
-      },
-      content: '""',
-      inset: 0,
-      pointerEvents: "none",
-      position: "absolute",
-    },
     ":focus": { outline: "none" },
   },
   popupViewport: {
@@ -64,7 +49,7 @@ const styles = stylex.create({
     display: "flex",
     fontSize: "0.875rem",
     gap: "0.5rem",
-    minBlockSize: 44,
+    minBlockSize: { default: "2rem", "@media (pointer: coarse)": "2.75rem" },
     outline: "none",
     paddingBlock: "0.25rem",
     paddingInline: "0.5rem",
@@ -85,7 +70,7 @@ const styles = stylex.create({
     display: "grid",
     fontSize: "0.875rem",
     gap: "0.5rem",
-    minBlockSize: { default: "2rem", "@media (min-width: 640px)": "1.75rem" },
+    minBlockSize: { default: "2rem", "@media (pointer: coarse)": "2.75rem" },
     outline: "none",
     paddingBlock: "0.25rem",
     paddingInlineStart: "0.5rem",
@@ -107,57 +92,46 @@ const styles = stylex.create({
   },
   choiceContent: { gridColumnStart: 2 },
   choiceContentFirst: { gridColumnStart: 1 },
-  indicator: { gridColumnStart: 1, marginInlineStart: "-0.125rem" },
+  indicator: {
+    color: tokens["--accent-solid"],
+    gridColumnStart: 1,
+    marginInlineStart: "-0.125rem",
+  },
   switch: {
     alignItems: "center",
     backgroundColor: tokens["--accent"],
-    blockSize: "calc(var(--thumb-size) + 2px)",
+    blockSize: "18px",
+    borderColor: "transparent",
     borderRadius: "9999px",
-    boxShadow: "inset 0 1px rgb(0 0 0 / 0.04)",
+    borderStyle: "solid",
+    borderWidth: 2,
     display: "inline-flex",
     flexShrink: 0,
-    inlineSize: "calc(var(--thumb-size) * 2 - 2px)",
-    outline: "none",
-    padding: 1,
-    transitionDuration: "200ms",
-    transitionProperty: "background-color, box-shadow",
-    "--thumb-size": { default: "1rem", "@media (min-width: 640px)": "0.75rem" },
-    ":focus-visible": {
-      boxShadow: `0 0 0 2px ${tokens["--ring"]}, 0 0 0 3px ${tokens["--background"]}`,
-    },
+    inlineSize: "37px",
+    transition: "background-color .2s",
     "[data-checked]": { backgroundColor: tokens["--accent-solid"] },
-    "[data-disabled]": { opacity: 0.64 },
   },
   switchThumb: {
-    borderRadius: "9999px",
-    scale: {
-      default: null,
-      ':is([data-slot="menu-checkbox-item"]:active [data-slot="menu-switch-thumb"])':
-        "1.1 1",
-    },
-    transformOrigin: {
-      default: "left",
-      ':is([data-slot="menu-checkbox-item"][data-checked] [data-slot="menu-switch-thumb"])':
-        "var(--thumb-size) 50%",
-    },
-    translate: {
-      default: null,
-      ':is([data-slot="menu-checkbox-item"][data-checked] [data-slot="menu-switch-thumb"])':
-        "calc(var(--thumb-size) - 4px) 0",
-    },
-    aspectRatio: "1",
     backgroundColor: {
       default: tokens["--muted-foreground"],
       ':is([data-slot="menu-checkbox-item"][data-checked] [data-slot="menu-switch-thumb"])':
         tokens["--accent-solid-foreground"],
     },
-    blockSize: "100%",
+    blockSize: "8px",
+    inlineSize: "8px",
+    borderRadius: "9999px",
     boxShadow: tokens["--shadow-sm"],
     display: "block",
     pointerEvents: "none",
-    transition:
-      "translate .15s, border-radius .15s, scale .1s .1s, transform-origin .15s",
-    willChange: "transform",
+    transform: {
+      default: "translateX(4px)",
+      ':is([data-slot="menu-checkbox-item"][data-checked] [data-slot="menu-switch-thumb"])':
+        "translateX(22px)",
+      ":dir(rtl)": "translateX(-4px)",
+      ':is([data-slot="menu-checkbox-item"][data-checked] [data-slot="menu-switch-thumb"]):dir(rtl)':
+        "translateX(-22px)",
+    },
+    transition: "transform .15s",
   },
   label: {
     color: tokens["--muted-foreground"],
@@ -180,10 +154,9 @@ const styles = stylex.create({
   },
   shortcut: {
     color: tokens["--muted-foreground"],
-    fontFamily: tokens["--font-sans"],
+    fontFamily: tokens["--font-mono"],
     fontSize: "0.75rem",
     fontWeight: 500,
-    letterSpacing: "0.1em",
     marginInlineStart: "auto",
   },
   subTrigger: {
@@ -193,7 +166,7 @@ const styles = stylex.create({
     display: "flex",
     fontSize: "0.875rem",
     gap: "0.5rem",
-    minBlockSize: { default: "2rem", "@media (min-width: 640px)": "1.75rem" },
+    minBlockSize: { default: "2rem", "@media (pointer: coarse)": "2.75rem" },
     outline: "none",
     paddingBlock: "0.25rem",
     paddingInline: "0.5rem",
