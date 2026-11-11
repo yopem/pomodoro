@@ -1,6 +1,15 @@
 import * as stylex from "@stylexjs/stylex"
 
-import { Card, CardPanel } from "@/components/ui/card"
+import {
+  Card,
+  CardFrame,
+  CardFrameAction,
+  CardFrameDescription,
+  CardFrameFooter,
+  CardFrameHeader,
+  CardFrameTitle,
+  CardPanel,
+} from "@/components/ui/card"
 import { Grid } from "@/components/ui/grid"
 import { Heading } from "@/components/ui/heading"
 import { HStack } from "@/components/ui/hstack"
@@ -110,58 +119,66 @@ export function ReportsSkeleton() {
             </Card>
           ))}
         </Grid>
-        <Card>
-          <CardPanel>
-            <Stack>
+        <CardFrame>
+          <CardFrameHeader>
+            <CardFrameTitle>
               <Skeleton xstyle={styles.title} />
-              <Table variant="card">
-                <TableCaption>
-                  <Skeleton xstyle={styles.label} />
-                </TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    {[0, 1, 2, 3].map((column) => (
-                      <TableHead key={column} scope="col">
-                        <Skeleton xstyle={styles.tableLabel} />
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {[0, 1, 2].map((row) => (
-                    <TableRow key={row}>
-                      <TableCell>
-                        <Skeleton xstyle={styles.label} />
-                      </TableCell>
-                      <TableCell>
-                        <Stack spacing="compact">
-                          <Skeleton xstyle={styles.label} />
-                          <Skeleton xstyle={styles.label} />
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton xstyle={styles.label} />
-                      </TableCell>
-                      <TableCell>
-                        <HStack layout="row">
-                          <Skeleton xstyle={styles.icon} />
-                          <Skeleton xstyle={styles.icon} />
-                        </HStack>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <HStack layout="spread">
-                <Skeleton xstyle={styles.label} />
-                <HStack>
-                  <Skeleton xstyle={styles.control} />
-                  <Skeleton xstyle={styles.control} />
-                </HStack>
+            </CardFrameTitle>
+            <CardFrameDescription>
+              <Skeleton xstyle={styles.label} />
+            </CardFrameDescription>
+            <CardFrameAction>
+              <Skeleton xstyle={styles.label} />
+            </CardFrameAction>
+          </CardFrameHeader>
+          <Table variant="card">
+            <TableCaption>
+              <Skeleton xstyle={styles.label} />
+            </TableCaption>
+            <TableHeader>
+              <TableRow>
+                {[0, 1, 2, 3].map((column) => (
+                  <TableHead key={column} scope="col">
+                    <Skeleton xstyle={styles.tableLabel} />
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {[0, 1, 2].map((row) => (
+                <TableRow key={row}>
+                  <TableCell>
+                    <Stack spacing="compact">
+                      <Skeleton xstyle={styles.label} />
+                      <Skeleton xstyle={styles.label} />
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton xstyle={styles.label} />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton xstyle={styles.label} />
+                  </TableCell>
+                  <TableCell>
+                    <HStack layout="row">
+                      <Skeleton xstyle={styles.icon} />
+                      <Skeleton xstyle={styles.icon} />
+                    </HStack>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <CardFrameFooter>
+            <HStack layout="spread">
+              <Skeleton xstyle={styles.label} />
+              <HStack>
+                <Skeleton xstyle={styles.control} />
+                <Skeleton xstyle={styles.control} />
               </HStack>
-            </Stack>
-          </CardPanel>
-        </Card>
+            </HStack>
+          </CardFrameFooter>
+        </CardFrame>
       </Stack>
     </Stack>
   )
