@@ -52,7 +52,7 @@ export function ThemeSwitcher() {
   return (
     <Button
       variant="outline"
-      size="icon-xl"
+      size="icon-lg"
       aria-label={label}
       title={label}
       disabled={!hydrated || error !== null || forcedDark}

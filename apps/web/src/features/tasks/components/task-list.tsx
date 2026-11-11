@@ -177,7 +177,7 @@ export function TaskRow({
           <HStack layout="row">
             <Button
               variant={task.completed ? "secondary" : "outline"}
-              size="icon-xl"
+              size="icon-lg"
               disabled={disabled}
               aria-label={`${task.completed ? "Mark incomplete" : "Complete"}: ${task.title}`}
               aria-pressed={task.completed}
@@ -205,7 +205,7 @@ export function TaskRow({
               <HStack layout="row">
                 <Button
                   variant="ghost"
-                  size="icon-xl"
+                  size="icon-lg"
                   disabled={disabled}
                   aria-label={`Edit ${task.title}`}
                   onClick={events.edit}
@@ -214,7 +214,7 @@ export function TaskRow({
                 </Button>
                 <Button
                   variant="ghost"
-                  size="icon-xl"
+                  size="icon-lg"
                   disabled={disabled || index === 0}
                   aria-label={`Move ${task.title} up`}
                   onClick={events.moveUp}
@@ -223,7 +223,7 @@ export function TaskRow({
                 </Button>
                 <Button
                   variant="ghost"
-                  size="icon-xl"
+                  size="icon-lg"
                   disabled={disabled || index === taskCount - 1}
                   aria-label={`Move ${task.title} down`}
                   onClick={events.moveDown}
@@ -232,7 +232,7 @@ export function TaskRow({
                 </Button>
                 <Button
                   variant="ghost"
-                  size="icon-xl"
+                  size="icon-lg"
                   disabled={disabled}
                   aria-label={`Delete ${task.title}`}
                   onClick={events.remove}
