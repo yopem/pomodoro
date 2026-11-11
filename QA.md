@@ -6163,7 +6163,39 @@ Yopem UI dependency upgrade was used.
 - **Evidence:** Save and inspect screenshots and list padding/edge measurements
   in `qa-artifacts/QA-215/`.
 - **Cleanup:** Restore network, viewport, and theme. Remove only QA tasks.
-- **Status:** pending. Loading-state execution remains separate if not run.
+- **Status:** failed on local revision `eb475d1`, 2026-11-11. Card padding is
+  now 0px and all six inspected task buttons are 40px. Screenshots show aligned
+  cards in light/dark themes. Fresh reload still produces a React hydration
+  mismatch: server HTML contains the old loading layout while client code
+  contains the new one. Stop and restart the existing Vite process on port
+  13001, then retest to rule out stale SSR modules. No replacement server has
+  been started. Slow-network execution is unrun.
 
 Coverage: QA-215 extends QA-211 and reopens the affected timer loading checks in
 QA-194/204. The default List contract and task mutations do not change.
+
+### Task/mobile follow-up: actual results
+
+- Revisions: `46b3706` Menu, `5a2d34c` navigation/header, `bff60f2` task
+  actions, and `eb475d1` plain-list/loading correction. All enabled commit hooks
+  passed. Root lint, format:check, and typecheck passed four packages. Final web
+  checks for the list/loading correction passed.
+- Browser: all five mobile routes were reached and menus closed. At 320px, the
+  header is one 68px row with a 40px navigation trigger and 0px bottom border.
+  Native CDP touch opened the menu; the inspected touch menu item measured 44px.
+  At 390px, plain lists have zero start padding and no list overflow. Light/dark
+  task screenshots were saved and inspected.
+- Task safety: unavailable move and cleanup actions stayed disabled. Row
+  deletion cancellation preserved the task and returned focus. Escape from bulk
+  cleanup preserved the task and returned focus to Task list actions. Positive
+  reorder, completed cleanup, and cross-owner race checks are unrun.
+- Evidence is staged locally outside the Vite watch tree at
+  `/tmp/pomodoro-browser-qa-40971ec/`: `task-layout-checks.json`,
+  `tasks-390-dark-aligned.png`, `tasks-390-light-aligned.png`,
+  `navigation-320-dark-touch-open.png`, and `fresh-reload-check.json`. Copy
+  final sanitized evidence into ignored `qa-artifacts/` after testing.
+- QA-211–214 remain pending because their full scenario lists are incomplete.
+  QA-215 remains failed until fresh SSR loading succeeds. Older inline-style CSP
+  warnings also remain unattributed; the policy was not weakened.
+- Cleanup is still required for the named QA task, 20 QA-206 history records,
+  and QA-206 Website. Preserve the baseline Focus record and user data.
