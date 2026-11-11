@@ -26,7 +26,7 @@ export function LoginRoute() {
               <Heading render={<h1>Welcome</h1>} />
               <Text tone="muted">Use your Yopem account to continue</Text>
             </Stack>
-            <Button variant="outline" size="lg" onClick={startLogin}>
+            <Button variant="outline" onClick={startLogin}>
               Log in with Yopem
             </Button>
           </Stack>

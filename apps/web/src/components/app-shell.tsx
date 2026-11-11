@@ -70,35 +70,35 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <Button
                 variant={routeId === "/" ? "secondary" : "ghost"}
-                size="sm"
+
                 render={<Link to="/" activeOptions={exactMatch} />}
               >
                 Timer
               </Button>
               <Button
                 variant={routeId === "/projects/" ? "secondary" : "ghost"}
-                size="sm"
+
                 render={<Link to="/projects" />}
               >
                 Projects
               </Button>
               <Button
                 variant={routeId === "/templates/" ? "secondary" : "ghost"}
-                size="sm"
+
                 render={<Link to="/templates" />}
               >
                 Templates
               </Button>
               <Button
                 variant={routeId === "/reports/" ? "secondary" : "ghost"}
-                size="sm"
+
                 render={<Link to="/reports" />}
               >
                 Reports
               </Button>
               <Button
                 variant={routeId === "/settings/" ? "secondary" : "ghost"}
-                size="sm"
+
                 render={<Link to="/settings" />}
               >
                 Settings

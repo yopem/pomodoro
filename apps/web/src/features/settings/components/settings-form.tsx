@@ -425,7 +425,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
                           <Button
                             type="button"
                             variant="outline"
-                            size="lg"
+
                             onClick={reloadSettings}
                             disabled={state.isSubmitting}
                           >
@@ -434,7 +434,7 @@ export function SettingsForm({ settings }: { settings: Settings }) {
                         )}
                         <Button
                           type="submit"
-                          size="lg"
+
                           loading={state.isSubmitting}
                           disabled={changedElsewhere}
                         >

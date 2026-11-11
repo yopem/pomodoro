@@ -259,7 +259,7 @@ export function ProjectCard({
         <HStack layout="row">
           <Button
             variant="outline"
-            size="sm"
+
             disabled={pending}
             onClick={events.edit}
           >
@@ -267,7 +267,7 @@ export function ProjectCard({
           </Button>
           <Button
             variant="ghost"
-            size="sm"
+
             disabled={pending}
             onClick={events.archive}
           >

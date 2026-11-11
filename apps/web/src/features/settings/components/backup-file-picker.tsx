@@ -78,7 +78,7 @@ export function BackupFilePicker({
             ref={chooseRef}
             type="button"
             variant="outline"
-            size="lg"
+
             disabled={disabled}
             aria-controls="backup-file"
             aria-describedby="backup-file-help"
@@ -91,7 +91,7 @@ export function BackupFilePicker({
             <Button
               type="button"
               variant="ghost"
-              size="lg"
+
               disabled={disabled}
               aria-label="Remove selected backup"
               onClick={events.remove}
@@ -112,7 +112,7 @@ export function BackupRestoreActions({ disabled }: { disabled: boolean }) {
   return (
     <HStack layout="row">
       <DialogTrigger
-        render={<Button variant="destructive-outline" size="lg" />}
+        render={<Button variant="destructive-outline" />}
         type="submit"
         value="prepare"
         disabled={disabled}
@@ -120,7 +120,7 @@ export function BackupRestoreActions({ disabled }: { disabled: boolean }) {
         <UploadIcon size={16} aria-hidden="true" /> Import backup
       </DialogTrigger>
       <DialogTrigger
-        render={<Button variant="ghost" size="lg" />}
+        render={<Button variant="ghost" />}
         type="submit"
         value="recover"
         disabled={disabled}

@@ -247,7 +247,7 @@ export function FocusTimer({
                   key={value}
                   value={value}
                   variant={timer.phase === value ? "default" : "ghost"}
-                  size="sm"
+
                   aria-pressed={timer.phase === value}
                   disabled={busy}
                   onClick={request}
@@ -293,7 +293,7 @@ export function FocusTimer({
             </Text>
           </Box>
           <HStack layout="centered">
-            <Button size="lg" value="toggle" disabled={busy} onClick={request}>
+            <Button value="toggle" disabled={busy} onClick={request}>
               {timer.deadline_ms === null ? (
                 <PlayIcon size={16} aria-hidden="true" />
               ) : (
@@ -307,7 +307,7 @@ export function FocusTimer({
             </Button>
             <Button
               variant="outline"
-              size="lg"
+
               value="reset"
               disabled={busy}
               onClick={request}
@@ -316,7 +316,7 @@ export function FocusTimer({
             </Button>
             <Button
               variant="outline"
-              size="lg"
+
               value="skip"
               disabled={busy}
               onClick={request}

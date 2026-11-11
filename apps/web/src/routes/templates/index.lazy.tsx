@@ -187,7 +187,6 @@ export function TemplatesRoute() {
                     <CardFooter separator>
                       <HStack layout="row">
                         <Button
-                          size="sm"
                           disabled={!hydrated || pending}
                           value={template.id}
                           onClick={events.apply}
@@ -196,7 +195,7 @@ export function TemplatesRoute() {
                         </Button>
                         <Button
                           variant="ghost"
-                          size="sm"
+
                           value={template.id}
                           disabled={pending}
                           onClick={events.edit}

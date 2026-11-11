@@ -318,7 +318,7 @@ export function WorkspaceBackup({
               <Button
                 type="button"
                 variant="outline"
-                size="lg"
+
                 disabled={pending}
                 onClick={events.download}
               >

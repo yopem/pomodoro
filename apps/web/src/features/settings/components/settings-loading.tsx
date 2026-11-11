@@ -30,7 +30,7 @@ const styles = stylex.create({
   saveText: { inlineSize: "min(100%, 240px)" },
   toggleLabel: { blockSize: 20, inlineSize: "65%" },
   toggle: { blockSize: 18, inlineSize: 37 },
-  button: { blockSize: 48, inlineSize: 132 },
+  button: { blockSize: 40, inlineSize: 132 },
   defaultButton: { blockSize: 40, inlineSize: 132 },
 })
 

@@ -58,7 +58,7 @@ export function ConfirmAction<T, Owner>({
   return (
     <Dialog open={opening?.open ?? false} onOpenChange={changeOpen}>
       <DialogTrigger
-        render={trigger ?? <Button variant="destructive-outline" size="sm" />}
+        render={trigger ?? <Button variant="destructive-outline" />}
       >
         {children}
       </DialogTrigger>

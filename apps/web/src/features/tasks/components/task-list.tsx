@@ -177,7 +177,7 @@ export function TaskRow({
           <HStack layout="row">
             <Button
               variant={task.completed ? "secondary" : "outline"}
-              size="icon-lg"
+              size="icon"
               disabled={disabled}
               aria-label={`${task.completed ? "Mark incomplete" : "Complete"}: ${task.title}`}
               aria-pressed={task.completed}
@@ -188,7 +188,7 @@ export function TaskRow({
             {(!task.completed || task.id === selectedTaskId) && (
               <Button
                 variant={task.id === selectedTaskId ? "secondary" : "ghost"}
-                size="lg"
+
                 disabled={disabled}
                 onClick={events.toggleSelected}
               >
@@ -205,7 +205,7 @@ export function TaskRow({
               <HStack layout="row">
                 <Button
                   variant="ghost"
-                  size="icon-lg"
+                  size="icon"
                   disabled={disabled}
                   aria-label={`Edit ${task.title}`}
                   onClick={events.edit}
@@ -214,7 +214,7 @@ export function TaskRow({
                 </Button>
                 <Button
                   variant="ghost"
-                  size="icon-lg"
+                  size="icon"
                   disabled={disabled || index === 0}
                   aria-label={`Move ${task.title} up`}
                   onClick={events.moveUp}
@@ -223,7 +223,7 @@ export function TaskRow({
                 </Button>
                 <Button
                   variant="ghost"
-                  size="icon-lg"
+                  size="icon"
                   disabled={disabled || index === taskCount - 1}
                   aria-label={`Move ${task.title} down`}
                   onClick={events.moveDown}
@@ -232,7 +232,7 @@ export function TaskRow({
                 </Button>
                 <Button
                   variant="ghost"
-                  size="icon-lg"
+                  size="icon"
                   disabled={disabled}
                   aria-label={`Delete ${task.title}`}
                   onClick={events.remove}
@@ -414,12 +414,12 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
             <Heading id="tasks-heading">Tasks</Heading>
           </Box>
           <HStack layout="row">
-            <Button variant="ghost" size="lg" onClick={events.toggleHidden}>
+            <Button variant="ghost" onClick={events.toggleHidden}>
               {hidden ? "Show tasks" : "Hide tasks"}
             </Button>
             <Button
               variant="outline"
-              size="lg"
+
               disabled={busy}
               onClick={events.addTask}
             >
@@ -466,7 +466,7 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
                   <Link to="/templates">Apply a template</Link>
                   <Button
                     variant="ghost"
-                    size="lg"
+
                     disabled={busy || !tasks.some((task) => task.completed)}
                     onClick={events.clearCompleted}
                   >
@@ -474,7 +474,7 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
                   </Button>
                   <Button
                     variant="ghost"
-                    size="lg"
+
                     disabled={busy || !tasks.some((task) => task.actual > 0)}
                     onClick={events.clearActual}
                   >
@@ -482,7 +482,7 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
                   </Button>
                   <Button
                     variant="ghost"
-                    size="lg"
+
                     disabled={busy || !tasks.length}
                     onClick={events.clearAll}
                   >

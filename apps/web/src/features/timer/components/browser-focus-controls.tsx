@@ -96,7 +96,7 @@ export function FocusBrowserControls() {
     <HStack wrap ref={listenForFullscreenEscape}>
       <Button
         variant="outline"
-        size="icon-lg"
+        size="icon"
         aria-label={fullscreen ? "Exit full screen" : "Full screen"}
         title={fullscreen ? "Exit full screen" : "Full screen"}
         aria-disabled={pending}
@@ -110,7 +110,7 @@ export function FocusBrowserControls() {
       </Button>
       <Button
         variant="outline"
-        size="icon-lg"
+        size="icon"
         aria-label="Focus window"
         title="Focus window"
         onClick={openFocusWindow}
