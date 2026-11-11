@@ -16,7 +16,7 @@ import type { StyleXComponentProps, StyleXProps } from "@/lib/stylex"
 
 import { buttonVariants } from "@/components/ui/button"
 import { mergeStylexProps } from "@/lib/stylex"
-import { themeMarker, tokens } from "@/styles/tokens.stylex"
+import { tokens } from "@/styles/tokens.stylex"
 
 const successOdd = stylex.keyframes({
   "0%": { scale: 1 },
@@ -92,18 +92,6 @@ const styles = stylex.create({
     "--toast-peek": "0.75rem",
     "--toast-scale": "calc(max(0, 1 - (var(--toast-index) * .1)))",
     "--toast-shrink": "calc(1 - var(--toast-scale))",
-    "::before": {
-      borderRadius: "calc(var(--radius-md) - 1px)",
-      boxShadow: {
-        default: "0 1px rgb(0 0 0 / 0.04)",
-        [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-          "0 -1px rgb(255 255 255 / 0.06)",
-      },
-      content: '""',
-      inset: 0,
-      pointerEvents: "none",
-      position: "absolute",
-    },
     "::after": {
       blockSize: "calc(var(--toast-gap) + 1px)",
       content: '""',
@@ -249,29 +237,16 @@ const styles = stylex.create({
     position: "relative",
     textWrap: "balance",
     transitionProperty: "scale, opacity",
-    "::before": {
-      boxShadow: {
-        default: "0 1px rgb(0 0 0 / 0.04)",
-        [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-          "0 -1px rgb(255 255 255 / 0.06)",
-      },
-      content: '""',
-      inset: 0,
-      pointerEvents: "none",
-      position: "absolute",
-    },
     "[data-ending-style]": { opacity: 0, scale: 0.98 },
     "[data-starting-style]": { opacity: 0, scale: 0.98 },
   },
   anchoredTooltip: {
     borderRadius: tokens["--radius"],
     boxShadow: tokens["--shadow-sm"],
-    "::before": { borderRadius: "calc(var(--radius-md) - 1px)" },
   },
   anchoredDefault: {
     borderRadius: tokens["--radius"],
     boxShadow: tokens["--shadow-md"],
-    "::before": { borderRadius: "calc(var(--radius-md) - 1px)" },
   },
   tooltipContent: {
     paddingBlock: "0.25rem",

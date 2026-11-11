@@ -6,7 +6,7 @@ import * as stylex from "@stylexjs/stylex"
 import type { StyleXComponentProps } from "@/lib/stylex"
 
 import { mergeStylexProps, stylexProps } from "@/lib/stylex"
-import { themeMarker, tokens } from "@/styles/tokens.stylex"
+import { tokens } from "@/styles/tokens.stylex"
 
 const styles = stylex.create({
   positioner: {
@@ -44,21 +44,6 @@ const styles = stylex.create({
       default: null,
       "[data-starting-style]": 0.98,
     },
-    "::before": {
-      borderRadius: {
-        default: "calc(var(--radius-md, 0.75rem) - 1px)",
-        ':has([data-slot="calendar"])': "calc(var(--radius-md) - 1px)",
-      },
-      boxShadow: {
-        default: "0 1px rgb(0 0 0 / 0.04)",
-        [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]:
-          "0 -1px rgb(255 255 255 / 0.06)",
-      },
-      content: '""',
-      inset: 0,
-      pointerEvents: "none",
-      position: "absolute",
-    },
   },
   tooltipPopup: {
     borderRadius: tokens["--radius"],
@@ -66,12 +51,6 @@ const styles = stylex.create({
     fontSize: "0.75rem",
     inlineSize: "fit-content",
     textWrap: "balance",
-    "::before": {
-      borderRadius: {
-        default: "calc(var(--radius-md, 0.75rem) - 1px)",
-        ':has([data-slot="calendar"])': "calc(var(--radius-md) - 1px)",
-      },
-    },
   },
   viewport: {
     padding: {
