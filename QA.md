@@ -5828,7 +5828,10 @@ session contract changes are intended.
   pagination results before marking passed.
 - **Cleanup:** Remove only isolated records and restore the recorded range, time
   preference, theme, and viewport. Do not clear existing user storage.
-- **Status:** pending; runtime QA is not approved for this implementation pass.
+- **Status:** pending. Browser checks cover populated/empty ranges, two-page URL
+  pagination, reload, Back/Forward, edit, cancel, confirmed deletion, mobile
+  table scrolling, and keyboard dialog focus. Complete the 12-hour and time-zone
+  matrix. See the browser run record below.
 
 Coverage: the header navigation requirement uses QA-199. History hierarchy,
 record rendering, empty state, and unchanged actions use QA-206. Loading
@@ -5926,7 +5929,9 @@ Reopen QA-195, QA-196, QA-199, QA-200, and QA-204 for these changes.
   `qa-artifacts/QA-208/`; inspect each route and opened form before passing.
 - **Cleanup:** Cancel forms and remove only isolated records. Restore theme,
   viewport, and emulation. Do not clear existing storage.
-- **Status:** pending; no runtime QA is approved for this pass.
+- **Status:** pending. Recorded guest views and editors use 40px app buttons.
+  Mobile header and task controls have extended touch targets. Full loading and
+  account-control coverage remains unrun.
 
 ### [ ] QA-209 — P1 — Geist font loading and layout
 
@@ -5954,7 +5959,10 @@ Reopen QA-195, QA-196, QA-199, QA-200, and QA-204 for these changes.
   asset list, and screenshots in `qa-artifacts/QA-209/`; inspect each result.
 - **Cleanup:** Restore network controls, theme, and viewport. Stop only
   processes started for the case. No stored records need removal.
-- **Status:** pending; production build and browser checks remain deferred.
+- **Status:** pending. Computed Geist Variable and explicit Geist Mono Variable
+  loading passed. Captured same-origin sans font responses returned 200. The
+  production build, cold/slow completion, and offline fallback checks remain
+  unrun. A build still needs approval.
 
 Coverage: default action sizes use QA-208; font assets and layout use QA-209. No
 API, stored data, or authentication contract changes are intended.
@@ -5997,8 +6005,10 @@ production CSS/font output, and offline rendering have not been checked.
   Inspect the actual trigger, source diff, and saved project before passing.
 - **Cleanup:** Close case-owned popups and remove only QA records. Restore theme
   and viewport. Do not clear or replace user storage.
-- **Status:** failed on revision `40971ec`; the default Project trigger measured
-  32px at desktop width. Fix and browser rerun are pending.
+- **Status:** pending. Retain the original 32px failure on `40971ec`. The fix is
+  in `6f81968`. Report-filter and record-editor triggers now measure 40px, with
+  a 14px font and weight 450. The saved QA record kept its project. Finish
+  focus, invalid, and coarse-pointer state checks before checking this case.
 
 Coverage: QA-210 covers the shared Select gap found during QA-208/QA-209.
 
@@ -6036,7 +6046,10 @@ dependencies or styling policy are needed.
   overflow observations in `qa-artifacts/QA-211/`.
 - **Cleanup:** Remove only named QA tasks and restore theme and viewport. Do not
   clear unrelated tasks, history, or browser storage.
-- **Status:** pending.
+- **Status:** pending. The 390px light/dark images show aligned metadata and
+  actions. The 200-character title, selected/completed states, and empty state
+  were exercised. Complete the remaining 320/1440px task and theme matrix.
+  QA-212 also remains unchecked.
 
 ### [ ] QA-212 — P0 — Task menu safety and existing mutations
 
@@ -6065,7 +6078,11 @@ dependencies or styling policy are needed.
   report counts in `qa-artifacts/QA-212/`. Record any guard check not run.
 - **Cleanup:** Remove only named QA tasks. Compare the final workspace with the
   baseline; do not restore by replacing user storage.
-- **Status:** pending; run this P0 case before the layout acceptance pass.
+- **Status:** pending. Normal guest edit, reorder, selection, completion,
+  cancel, disabled cleanup, and confirmed single-task deletion checks passed.
+  Source review found unchanged action and guard logic. Error and race paths
+  were not forced. The final backup matches the baseline byte for byte. No
+  runtime authorization pass is claimed.
 
 ### [ ] QA-213 — P1 — Task menu keyboard and focus
 
@@ -6091,7 +6108,11 @@ dependencies or styling policy are needed.
   screenshots in `qa-artifacts/QA-213/`.
 - **Cleanup:** Close owned popups; show tasks; restore emulation, theme, and
   viewport. Remove only QA records during shared cleanup.
-- **Status:** pending.
+- **Status:** pending. Editor/confirmation focus return, disabled keyboard
+  activation, two keyboard hide/show cycles, and native touch beyond the visible
+  40px trigger passed. Source Menu keeps disabled items focusable; Enter does
+  not activate them. Complete the full sequential Tab and task-menu Enter-open
+  run before checking this case.
 
 Coverage: layout uses QA-211; data and mutation safety use QA-212; keyboard,
 focus, and visibility use QA-213. QA-208 covers default action sizes, and QA-206
@@ -6099,7 +6120,7 @@ continues to cover history. No API or authentication change is planned.
 
 ## Compact mobile navigation
 
-### [ ] QA-214 — P1 — One-row mobile header and navigation menu
+### [x] QA-214 — P1 — One-row mobile header and navigation menu
 
 - **Purpose:** Replace the two wrapping navigation rows shown in the user's
   mobile screenshot with one compact header and an accessible route menu.
@@ -6126,7 +6147,15 @@ continues to cover history. No API or authentication change is planned.
   observations, and measurements in `qa-artifacts/QA-214/`.
 - **Cleanup:** Close the menu and restore the original viewport and dark theme.
   Do not change identity or clear existing storage.
-- **Status:** pending.
+- **Status:** passed on `a709358`, 2026-11-11, Chrome 157 on Linux, using the
+  existing web/API services on ports 13001/18001. Both themes at 320/390px, the
+  900/901px boundary, 1440px desktop, all five routes, the current-page marker,
+  keyboard/Escape focus return, native touch, and compact `/focus` checks
+  passed. Header height is 68px; its bottom border is 0px. No page overflow was
+  found. Active colors are neutral in both themes. Source review found unchanged
+  error-header rules. Evidence is in
+  `qa-artifacts/ui-refresh-browser-qa/mobile-header-checks.json` and the
+  matching PNG files.
 
 Coverage: QA-214 supersedes mobile header wrapping expectations in QA-199 and
 QA-208. Default source Button sizes still use QA-208. No authentication contract
@@ -6163,13 +6192,15 @@ Yopem UI dependency upgrade was used.
 - **Evidence:** Save and inspect screenshots and list padding/edge measurements
   in `qa-artifacts/QA-215/`.
 - **Cleanup:** Restore network, viewport, and theme. Remove only QA tasks.
-- **Status:** failed on local revision `eb475d1`, 2026-11-11. Card padding is
-  now 0px and all six inspected task buttons are 40px. Screenshots show aligned
-  cards in light/dark themes. Fresh reload still produces a React hydration
-  mismatch: server HTML contains the old loading layout while client code
-  contains the new one. Stop and restart the existing Vite process on port
-  13001, then retest to rule out stale SSR modules. No replacement server has
-  been started. Slow-network execution is unrun.
+- **Status:** pending after the server restart. Retain the failed `eb475d1` run:
+  old server skeleton markup caused a hydration mismatch. The first load after
+  restart still showed that mismatch. Later stable fresh loads, including the
+  final normal reload on `a709358`, completed without hydration errors.
+  Plain-list padding is 0px and the six inspected task buttons are 40px.
+  Light/dark images show aligned cards. Slow-network loading comparison remains
+  unrun. Evidence includes
+  `qa-artifacts/ui-refresh-browser-qa/final-reload.json` and
+  `post-restart-ssr.json`. No duplicate server was started.
 
 Coverage: QA-215 extends QA-211 and reopens the affected timer loading checks in
 QA-194/204. The default List contract and task mutations do not change.
@@ -6199,3 +6230,41 @@ QA-194/204. The default List contract and task mutations do not change.
   warnings also remain unattributed; the policy was not weakened.
 - Cleanup is still required for the named QA task, 20 QA-206 history records,
   and QA-206 Website. Preserve the baseline Focus record and user data.
+
+## Browser run record — 2026-11-11
+
+- Tested source: `a709358`. Use the existing local web at
+  `http://localhost:13001` and API at `http://localhost:18001`. Tools were
+  Chrome 157 on Linux, Playwriter session 24, and Bun 1.4.4. The browser
+  language was `id-ID`. No replacement server or new port was used.
+- Evidence: `qa-artifacts/ui-refresh-browser-qa/index.json` lists files, hashes,
+  tested revisions, results, and remaining checks. This directory is ignored.
+  Images and saved measurements were inspected. Do not count screenshot attempts
+  that timed out as evidence.
+- QA-214 passed. Other cases remain unchecked where their full scenario is
+  incomplete. Older loading, PWA, keyboard, and account cases remain in the
+  shared checklist. No production build or test suite was run.
+- Normal guest task checks covered editing, a 200-character title, reorder in
+  both directions, selection, completion, cancel, disabled cleanup, confirmed
+  deletion, focus return, visibility, and native touch. Guard code was reviewed
+  without changing it. Error/race and authenticated account paths are not a
+  runtime pass.
+- Cleanup removed all 21 history fixtures, both task fixtures, and
+  `QA-206 Website`. The original record remains. The final exported backup
+  matches the pre-QA backup byte for byte. Inspect `cleanup-comparison.json` for
+  field checks, counts, and matching hashes.
+- The dark theme, original 1667x1257 viewport, normal network/cache, and
+  non-touch pointer settings were restored. QA-owned listeners, init scripts,
+  and page globals were removed. Other tabs and services were not stopped or
+  changed.
+- Root lint, format, and typecheck each passed all four packages. The later
+  list/loading changes passed scoped web lint, format, and typecheck. Saved
+  command logs are in the evidence directory. Commit hooks remained enabled.
+- Earlier diagnostics include one `/api/session` response with status 503, a
+  `script-src` eval warning from `zod.js:263`, and an unassigned inline-style
+  CSP warning. The final normal reload had no hydration or browser errors. The
+  earlier warnings are not proven fixed. Do not relax CSP to hide them.
+- Remaining work: QA-202/212 are P0. QA-206/208/209/210/211/213/215 are P1.
+  Finish the task viewport and keyboard matrix, failure/race checks, loading
+  comparison, and the permitted font checks. A production build still needs
+  approval. Keep the older pending cases and their evidence.
