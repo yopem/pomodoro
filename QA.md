@@ -5,6 +5,22 @@ fixed Bun versions, and Bun revision gates must remain removed. QA-121 covers
 CI's three checks. QA-123 covers the removal checks; QA-125 covers the current
 hooks and Turbo tasks.
 
+## Disposable QA profile authorization
+
+The user approved separate QA profiles and tabs, two real test identities, and
+controlled failures on disposable data only. The user then asked the agent to
+create the profiles. Two empty local profiles used the installed Chrome for
+Testing and Playwriter extension. No current profile, cookie, or session was
+copied. No test changed the protected current workspace or running servers. No
+app server, package, or global tool was installed or replaced.
+
+Guest storage, real-time timer recovery, and multiline report exports passed in
+these profiles. Each workspace matched its seven-section baseline after normal
+UI restore. The owned browser processes were stopped and profile directories
+removed; evidence remains local. Real account tests still need genuine sign-ins.
+No authenticated identity was fabricated. See `docs/qa-isolated-profiles.md` and
+`qa-artifacts/qa-isolated-setup/guest-profile-cleanup.json`.
+
 ## Account-first QA authorization
 
 The user requested signed-in account QA first, then guest QA. The user confirmed
@@ -13,10 +29,10 @@ with cleanup limited to those records. This approval replaces the earlier
 runtime-target blocker below. It does not approve production access, clearing
 existing data, changing credentials, or replacing running servers.
 
-Keep the current servers. Use one browser owner. Preserve existing account and
-guest records and settings. Complete account cases and cleanup before normal UI
-sign-out and guest cases. Cross-account cases still need a second real identity.
-Record each result only after its evidence is inspected.
+Keep the current servers. Use one browser owner per profile. Preserve account
+and guest records and settings. Complete account cases and cleanup before normal
+UI sign-out and guest cases. Cross-account cases still need a second real
+identity. Record each result only after its evidence is inspected.
 
 Current reports: `docs/qa-account-first-browser.md` and
 `docs/qa-approved-api.md`. Evidence stays in ignored `qa-artifacts/`.
@@ -32,7 +48,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 31 checked sections out of 198, including historical passes. The
+Current total: 36 checked sections out of 198, including historical passes. The
 Settings submit and backup-isolation cases passed; layout QA-216 remains
 pending. Retired cases are removed without renumbering the remaining cases.
 
@@ -371,7 +387,7 @@ passed.
   guest state matched baseline in every section. Existing-tab reuse follows the
   shared setup and user approval, not a newly created profile.
 
-### [ ] QA-005 — P0 — Guest storage failure does not erase work
+### [x] QA-005 — P0 — Guest storage failure does not erase work
 
 - **Purpose:** Keep local work safe when persistence fails.
 - **Prerequisites:** Shared setup above. An isolated guest workspace with QA-004
@@ -384,14 +400,24 @@ passed.
   3. Save the observable result and inspect the evidence.
 - **Expected results:** The app reports the failure. Existing durable data is
   not silently replaced with an empty workspace.
-- **Evidence:** `qa-artifacts/QA-005.txt` and relevant screenshots or downloads
-  in `qa-artifacts/QA-005/`; inspect actual state, errors and stored effects.
+- **Evidence:** `qa-artifacts/qa-isolated-storage/denied-write-proof.json`,
+  `denied-write-visible.txt`, `recovered-sections.json`, and `cleanup.json` in
+  that directory. Inspect alerts, unchanged bytes, reload, and restored data.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** passed on 2026-11-12 at `90fe652` in disposable guest browser B.
+  Created one task with Unicode and notes, one project, one template, and one
+  manual history record. Reload confirmed durable data. A tab-local write hook
+  raised `QuotaExceededError` on the real task edit. Both the page and form
+  reported the failure; all stored keys stayed byte-for-byte unchanged. After
+  access was restored, reload and a fresh export matched all seven pre-failure
+  sections. Normal UI restore then matched the empty initial baseline. The hook
+  was removed, and the owned browser and profile were stopped and removed.
+  Evidence: `qa-artifacts/qa-isolated-storage/`, including
+  `denied-write-proof.json`, `recovered-sections.json`, and `cleanup.json`. The
+  protected account and running app servers were not changed.
 
-### [ ] QA-006 — P1 — Timer completion records one focus interval
+### [x] QA-006 — P1 — Timer completion records one focus interval
 
 - **Purpose:** Complete a focus interval and start the configured break.
 - **Prerequisites:** Shared setup above. Guest mode; set focus to 1 minute,
@@ -403,14 +429,22 @@ passed.
   3. Save the observable result and inspect the evidence.
 - **Expected results:** Exactly one focus record and one task pomodoro are
   added. The short break runs. Break time is not counted as focus.
-- **Evidence:** `qa-artifacts/QA-006.txt` and relevant screenshots or downloads
-  in `qa-artifacts/QA-006/`; inspect actual state, errors and stored effects.
+- **Evidence:** `qa-artifacts/qa-isolated-guest-timer/QA-006-timer.txt`,
+  `QA-006-reports.txt`, `QA-006-return.txt`, and `after-scenarios.json` in that
+  directory. Inspect the running break, one task count, and one 60-second
+  record.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** passed on 2026-11-12 at `90fe652` in disposable guest browser A. A
+  real one-minute focus interval added one 60-second completed history record
+  and one task pomodoro, then started the configured short break. Reports showed
+  one minute of focus, not break time. The parent inspected the timer, report,
+  return, and exported-record evidence. Normal UI restore matched all seven
+  baseline sections; owned browser tabs, process, and profile were removed.
+  Evidence: `qa-artifacts/qa-isolated-guest-timer/`; report:
+  `docs/qa-isolated-guest-timer.md`. No clock was changed.
 
-### [ ] QA-007 — P1 — Timer recovery does not duplicate records
+### [x] QA-007 — P1 — Timer recovery does not duplicate records
 
 - **Purpose:** Recover after suspension or reload without fabricated sessions.
 - **Prerequisites:** Shared setup above. QA-006 settings; two tabs for the same
@@ -423,12 +457,23 @@ passed.
   3. Save the observable result and inspect the evidence.
 - **Expected results:** At most one completion is recorded. No chain of
   unattended focus intervals is invented.
-- **Evidence:** `qa-artifacts/QA-007.txt` and relevant screenshots or downloads
-  in `qa-artifacts/QA-007/`; inspect actual state, errors and stored effects.
+- **Evidence:** `qa-artifacts/qa-isolated-guest-timer/results.txt` lists the
+  inspected snapshots, report image, and before/after recovery JSON. Check the
+  new record ID, duration, completion state, totals, and fresh break deadline.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** passed on 2026-11-12 at `90fe652` in disposable guest browser A.
+  Closed the tab that started focus before its real deadline. The remaining tab
+  recorded one completion. Reopened and refreshed tabs agreed on records and
+  totals. In a separate run, all app tabs were absent for 209 real seconds with
+  automatic breaks and focus enabled. Return created exactly one new completed
+  60-second record with the captured run ID and a fresh short break, not a chain
+  of unattended focus records. The parent checked record IDs, snapshots, and the
+  report image. A lifecycle-freeze attempt was inconclusive and is not used as
+  proof. No separate lease-owner claim is made. Normal UI restore matched all
+  seven baseline sections; owned browser/profile cleanup completed. Evidence:
+  `qa-artifacts/qa-isolated-guest-timer/results.txt` and the referenced
+  snapshots, image, and JSON. No clock was changed.
 
 ### [ ] QA-008 — P1 — Pause and skip preserve timer semantics
 
@@ -549,7 +594,7 @@ passed.
 - **Status:** pending; implementation and final executable mappings are
   required.
 
-### [ ] QA-013 — P0 — CSV export is scoped and formula-safe
+### [x] QA-013 — P0 — CSV export is scoped and formula-safe
 
 - **Purpose:** Export requested report data without spreadsheet formula
   execution.
@@ -565,19 +610,23 @@ passed.
 - **Expected results:** Only selected records appear. Delimiters and quotes are
   escaped. Formula-like text is neutralized. Unit conversions and optional
   columns match the selected options.
-- **Evidence:** `qa-artifacts/QA-013.txt` and relevant screenshots or downloads
-  in `qa-artifacts/QA-013/`; inspect actual state, errors and stored effects.
+- **Evidence:** `qa-artifacts/qa-guest-finish/` and
+  `qa-artifacts/qa-isolated-storage/`; inspect the strict parser results, actual
+  downloaded files, byte hashes, selected rows, and final cleanup comparison.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** partial on 2026-11-12 in the approved non-production browser. Six
-  guest CSV/TSV exports passed local parsing for formula neutralization,
-  commas/quotes, units, optional task columns, date range, and project scope.
-  Account CSV also neutralized the tested formula. Embedded-newline export
-  remains unverified because the single-line input normalized it to a space.
-  Inspected `qa-artifacts/qa-guest-finish/csv-parse-results.txt` and sanitized
-  export files; account evidence is
-  `qa-artifacts/qa-account-first/account-report.csv`. Exact owned records were
-  removed; guest baseline matched afterward. Do not mark the whole case passed.
+- **Status:** passed on 2026-11-12 at `90fe652`. The parent reparsed the six
+  earlier sanitized exports for selected dates, project scope, units,
+  task-column choice, formula prefixes, commas, and quotes. In disposable guest
+  browser B, normal UI restore accepted an owned history title with a comma,
+  quote, and embedded line break plus a separate formula-like title. Both
+  comma/minutes and tab/hours downloads preserved the exact multiline title and
+  neutralized the formula. Strict parsers found exactly two selected rows with
+  correct dates, projects, and numeric units. Actual recent OS download files
+  matched the captured UI bytes by SHA-256. Normal UI restore matched all seven
+  initial baseline sections; the owned browser/profile was removed. Evidence:
+  `qa-artifacts/qa-guest-finish/` and `qa-artifacts/qa-isolated-storage/`,
+  including `newline-export-parse-results.json` and both download proof files.
 
 ### [x] QA-014 — P1 — Manual focus entry validates time and updates totals
 
@@ -3893,7 +3942,7 @@ not affected by this source-only change.
   and a supervised control have not run. Do not label this an OOM or an issuer
   failure without evidence.
 
-### [ ] QA-123 — P1 — Keep snapshot helpers and Bun pins removed
+### [x] QA-123 — P1 — Keep snapshot helpers and Bun pins removed
 
 - **Purpose:** Keep the custom snapshot checker, fixed Bun version, and Bun
   revision gate removed. Preserve Lefthook, Turbo, and the required static
@@ -3923,13 +3972,18 @@ not affected by this source-only change.
 - **Evidence:** Keep sanitized source inspection, YAML/shell results, command
   outputs, and protected-file comparisons under `qa-artifacts/QA-123/`.
 - **Cleanup:** No app or data cleanup. Preserve user hooks and running services.
-- **Status:** reopened on 2026-11-12 for the current retained-Lefthook/Turbo
-  policy. The 2026-11-10 result remains historical evidence for removing the
-  snapshot helper and exact Bun pin. Its hook-removal and native-root-dispatch
-  instructions are retired, not current acceptance. Recent root checks and four
-  commits passed their applicable hooks, but complete current-policy inspection
-  must be recorded before checking this case again. QA-125 covers the related
-  hook and Turbo regression checks.
+- **Status:** passed on 2026-11-12 at `90fe652` for the current policy.
+  Inspected retained Lefthook, installed hooks, Turbo, all four workspace check
+  scripts, strict type and lint settings, container setup, parsed CI YAML, and
+  five shell blocks. No custom snapshot helper or exact Bun gate remains. All
+  165 tracked paths other than this checklist match the successful isolated
+  root-check snapshot; the parent independently checked each hash and all cited
+  evidence. Root lint, format checks, and typechecks passed in that unchanged
+  snapshot. Current checklist formatting passed the actual cleanup commit hook.
+  These are reused command results with verified source identity, not new CI or
+  pre-push executions. Evidence: `qa-artifacts/qa-current-tooling-removal/`;
+  report: `docs/qa-current-tooling-removal.md`. QA-125 retains broader hook
+  coverage.
 
 ### [x] QA-125 — P1 — Retain Turbo and Lefthook without Bun pins
 
