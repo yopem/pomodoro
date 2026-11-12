@@ -21,7 +21,7 @@ export function BackupFilePicker({
   onBlur: () => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const chooseRef = useRef<HTMLButtonElement>(null)
+  const focusAfterRemove = useRef(false)
 
   const [events] = useState(function createFileEvents() {
     function choose() {
@@ -35,11 +35,18 @@ export function BackupFilePicker({
     }
 
     function remove() {
+      focusAfterRemove.current = true
       onSelect(null)
-      chooseRef.current?.focus()
     }
 
-    return { choose, select, remove }
+    function restoreChooseFocus(button: HTMLButtonElement | null) {
+      if (button && focusAfterRemove.current) {
+        focusAfterRemove.current = false
+        button.focus()
+      }
+    }
+
+    return { choose, select, remove, restoreChooseFocus }
   })
 
   return (
@@ -75,7 +82,7 @@ export function BackupFilePicker({
         </HStack>
         <HStack layout="row">
           <Button
-            ref={chooseRef}
+            ref={file || disabled ? undefined : events.restoreChooseFocus}
             type="button"
             variant="outline"
 
