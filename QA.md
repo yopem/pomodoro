@@ -6,6 +6,144 @@ QA-120 retain historical evidence only; their former snapshot/pin acceptance
 criteria no longer apply. They are not new passes. QA-121 covers CI's three
 checks; QA-123 covers the requested removal.
 
+## Account-first QA authorization
+
+The user requested signed-in account QA first, then guest QA. The user confirmed
+that the current database is non-production and approved temporary QA records
+with cleanup limited to those records. This approval replaces the earlier
+runtime-target blocker below. It does not approve production access, clearing
+existing data, changing credentials, or replacing running servers.
+
+Keep the current servers. Use one browser owner. Preserve existing account and
+guest records and settings. Complete account cases and cleanup before normal UI
+sign-out and guest cases. Cross-account cases still need a second real identity.
+Record each result only after its evidence is inspected.
+
+Current reports: `docs/qa-account-first-browser.md` and
+`docs/qa-approved-api.md`. Evidence stays in ignored `qa-artifacts/`.
+
+The account-first pass exercised tasks, projects, templates, manual history,
+CSV, reload persistence, and a real one-minute focus session. Exact QA records
+were removed and settings restored before normal UI sign-out. One account change
+remains: timer cycle 1/4 and one completed, versus the original 0/4. The UI
+reset did not reset the cycle. No storage or sync overwrite was used. The
+account reported all changes saved. The browser then entered guest mode. Guest
+records were cleaned and its parsed backup matched the original baseline in
+every section. Further exact acceptance cases are in progress. After parent
+evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
+guest outcomes include baseline cleanup; broader account observations remain
+partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
+Current total: 32 checked sections out of 205, including historical passes. The
+Settings submit and backup-isolation cases passed; layout QA-216 remains
+pending. Six obsolete snapshot/pin cases are not new passes.
+
+QA-036 static source-contract review passed at `9bf3224`; source-level contrast
+and scanner limitations remain separate findings under QA-021 and QA-166.
+
+## Earlier resumed full QA pass — 2026-11-11
+
+Revision: `9bf32240493f8fad0c878e4d4e78ff8b2669b6bb`. The user requested all QA
+and confirmed a signed-in browser session.
+
+- The current API on port 18001 does not use the isolated QA database. Its
+  database host is not loopback, and its target does not match
+  `127.0.0.1:15432/pomodoro_qa`. No database values were saved.
+- The user selected **Do not stop them** when asked to replace the current web
+  and API processes with the guarded QA runtime. Keep both processes running. Do
+  not send API probes or run browser mutations against this target.
+- The owned QA PostgreSQL container is healthy on port 15432. Port 5432 belongs
+  to another project and remains out of scope. Do not start a second web or API
+  server on another port to bypass the user's choice.
+- Browser inspection found a signed-in account, not a confirmed isolated guest
+  workspace. The page also changed routes without an action from the browser QA
+  agent. Browser mutation cases need a safe target and exclusive control.
+- API and browser cases remain unchecked. A signed-in session does not prove
+  cross-account, recovery, or persistence behavior. Historical checks remain
+  historical. Obsolete snapshot and exact-pin cases are not new passes.
+
+Inspected safety reports: `docs/qa-resumed-api.md` and
+`docs/qa-resumed-browser.md`. These are ignored local work notes. No source
+files or running services changed.
+
+### Resumed static results
+
+- **QA-002 P1 passed again:** inspected native positive and negative format and
+  type probes. The existing checkbox remains checked with current evidence.
+- **QA-121 P1 passed:** inspected successful hosted CI for this exact revision
+  and local workflow policy and shell checks. Its checkbox is now checked.
+- **QA-001 P1 remains partial:** 13 additional boundary probes returned the
+  expected restriction results, but some synthetic imports also lack modules.
+  Full dependency-install and boundary coverage remain incomplete.
+- **QA-003 P1 is blocked:** CLI 0.4.0 rejects the function-form Vite config
+  before it can produce a proposed diff. Do not change valid app configuration
+  only to satisfy this dry-run limitation.
+- **QA-074 P1 remains failed:** recorded dependency advisories are unresolved.
+- **QA-166 P2 remains open:** an isolated compatible React Doctor scan completed
+  for 101 files without skipped checks. It reported 16 errors and 22 warnings.
+  Exit zero with `--blocking none` is not a clean result. The errors are
+  compiler `todo` lowering findings, not the `unsupported-syntax` rule. They
+  concern valid error-handling patterns and do not prove incorrect app behavior.
+  The generated import-map warning was reviewed as a false positive for the
+  inspected escaping and SSR path. The other 21 warnings and baseline comparison
+  remain open. Evidence: `docs/qa-scanner-triage.md`.
+- OpenAPI and PWA artifact inspections are partial results, not runtime passes.
+  Container, hook-execution, startup, browser, and API acceptance remain open.
+
+Inspected evidence: `qa-artifacts/qa-resumed-config/`,
+`qa-artifacts/qa-all-current/resumed-tooling/`, and
+`qa-artifacts/qa-all-current/probes/native-format-types.txt`. Detailed local
+reports: `docs/qa-resumed-config.md` and `docs/qa-resumed-tooling.md`. No
+whole-project test suite ran.
+
+Handoff: 202 case sections; 20 checked, including historical results; 176
+applicable cases remain open: 43 P0, 117 P1, and 16 P2. Six obsolete cases
+remain historical, not passes. The exact pending IDs and priorities are in
+`docs/qa-resumed-progress.md` and `docs/qa-resumed-pending.json`. Native
+`bun fmt --no-script --check QA.md` and `git diff --check` passed after this
+update. Root source checks were not rerun because no source changed; the
+exact-revision hosted checks passed as recorded under QA-121.
+
+## Current full QA pass — 2026-11-11
+
+Revision: `9bf32240493f8fad0c878e4d4e78ff8b2669b6bb`. This pass is in progress.
+Historical checks below are not current-revision passes.
+
+- Root workspace typecheck, lint, and format checks passed in a disposable
+  archive of this revision. CI-equivalent source lint and root format checks
+  also passed. The web production build passed with an explicit public origin
+  and analytics disabled. Installed dependencies were copied, not reinstalled.
+- Offline Rust OpenAPI export and frontend type generation succeeded. The
+  specification is semantically equal to the tracked file, and generated types
+  have no diff. Runtime contract acceptance is separate.
+- QA-074 failed its advisory gate. Bun reported advisories for `deepmerge` 4.3.1
+  and `minimatch` 10.2.6. Public Rust advisory queries found locked
+  `libsqlite3-sys` and `rsa` versions; neither had a selected dependency path in
+  the inspected Linux server/migration graphs. Other targets and deployed images
+  are not covered. No dependency was changed.
+- The previous saved runtime context did not identify the active development
+  services. The user stopped those services. Current-revision isolated QA
+  services now use the owned database on `127.0.0.1:15432`, API on port 18001,
+  and Vite on port 13001. Use **`http://localhost:13001`** for browser QA. Both
+  authorization and callback must keep this host. Do not use the other project's
+  PostgreSQL listener on port 5432 or the root `.env` database.
+- A real login failed after Google account selection. Its callback used
+  `127.0.0.1` after the browser started on `localhost`. The host-only PKCE
+  cookie makes this a likely cause; the exact rejected callback branch was not
+  captured. The isolated runtime now uses the consistent localhost origin.
+  Authenticated cases remain unverified until a fresh login succeeds.
+- Guest quota-failure, task menu, keyboard, and responsive checks have partial
+  evidence. Keep their cases unchecked until all stated outcomes and cleanup are
+  complete. No whole-project test suite or deployment ran.
+
+Inspected static evidence: `qa-artifacts/qa-all-current/tooling/`. Runtime
+ownership and health evidence:
+`qa-artifacts/qa-all-current/runtime/runtime-status.txt`. Browser evidence:
+`qa-artifacts/qa-all-current/browser/`. The detailed case results will be added
+when the active QA work finishes.
+
+The older setup below records prior runs. Its exact Bun pin and process
+references are historical; current instructions prohibit an exact Bun gate.
+
 ## Scope and setup
 
 Task: create a web-only reference app alternative with basic and premium
@@ -48,17 +186,19 @@ migrations. Never use the root `.env` database URL. Do not run root
 `bun run dev` or migration scripts with inherited credentials. Construct an
 explicit isolated environment and preserve all unrelated processes and data.
 
-Runtime: Bun `1.4.4-canary.1+a8fcd319b`, pinned by `bun-toolchain.json`, and
-Rust `1.97.1`, pinned by `rust-toolchain.toml`. Use `bun.lock` and `Cargo.lock`.
-Native lint, format, and typechecks, plus Cargo checks, Clippy, and Rustfmt, are
-allowed. Offline OpenAPI export and typed-client generation have explicit
-approval. The latest user request authorizes application QA after feature
-completion, including local builds and browser/API workflows. Use only owned,
-isolated non-production resources. Do not create new test infrastructure or run
-an unrelated whole-project test suite. Production changes, deployment,
-destructive shared-data operations, global tool changes and unverified
-external-account actions remain unauthorized. Record blockers without guessing
-credentials, account identities or callback permissions.
+Runtime: use the installed Bun canary; record its version with each run. Earlier
+tooling evidence used `1.4.4-canary.1+a8fcd319b`. No exact Bun pin or
+`bun-toolchain.json` is required. Rust `1.97.1` remains pinned by
+`rust-toolchain.toml`. Use `bun.lock` and `Cargo.lock`. Native lint, format, and
+typechecks, plus Cargo checks, Clippy, and Rustfmt, are allowed. Offline OpenAPI
+export and typed-client generation have explicit approval. The latest user
+request authorizes application QA after feature completion, including local
+builds and browser/API workflows. Use only owned, isolated non-production
+resources. Do not create new test infrastructure or run an unrelated
+whole-project test suite. Production changes, deployment, destructive
+shared-data operations, global tool changes and unverified external-account
+actions remain unauthorized. Record blockers without guessing credentials,
+account identities or callback permissions.
 
 Use isolated temporary directories for tooling probes. Keep sanitized evidence
 under ignored `qa-artifacts/`. Execute P0 before P1, then P2. Every new case is
@@ -67,7 +207,7 @@ actual result, and evidence path when a case runs.
 
 ## Setup cases
 
-### [ ] QA-001 — P1 — Native Bun lint policy compatibility
+### [x] QA-001 — P1 — Native Bun lint policy compatibility
 
 - **Purpose:** preserve the required shared policy, Yopem UI plugin rules, React
   Doctor rules, and React Compiler diagnostics without another runner.
@@ -89,11 +229,23 @@ actual result, and evidence path when a case runs.
   exit codes, diagnostics, and each example's expected result.
 - **Cleanup:** remove only the temporary probe directory after evidence is
   saved.
-- **Status:** pending. On 2026-11-08, isolated probes used Bun
-  `1.4.4-canary.1+a8fcd319b` and the uncommitted root policy. The inspected
-  `qa-artifacts/QA-001-toolchain.txt` records accepted and rejected examples for
-  selected rules, hooks, UI rules, and browser boundaries. Complete the
-  remaining browser boundary cases before marking this case passed.
+- **Status:** passed on 2026-11-12 for the current policy. The user approved
+  removal of the unused GPUIX exception. The shared native-property warning is
+  restored. An exact-version isolated install and the copied current policy
+  passed 45 family/boundary probes, 24 native cases, and eight additional cases.
+  Accepted native props pass. An unknown prop reports the intended warning,
+  exits zero normally, and exits one with the zero-warning flag, without a
+  TypeScript diagnostic. No plugin-load or parser-service failures occurred.
+  Full tracked frontend type-aware zero-warning lint passed on 105 files. Locked
+  shared rule maps were reviewed; idle family registrations do not remove
+  required rules. This proves the mapped native Bun policy, not support for
+  extending the shared preset API or every rule. Current policy hash and exact
+  inputs, results, and cleanup are in `qa-artifacts/qa-restored-web-policy/`;
+  retained inputs are in `probe-inputs.tar.gz`. The temporary probe was removed
+  without removing its shared dependencies. Earlier results remain under
+  `qa-artifacts/qa-lint-finish/`. Root checks and source hashes are under
+  `qa-artifacts/qa-current-root-static/`. Review:
+  `docs/qa-restored-web-policy.md`.
 
 ### [x] QA-002 — P1 — Native format and typecheck compatibility
 
@@ -117,7 +269,14 @@ actual result, and evidence path when a case runs.
   changes, in an isolated temporary package using Bun
   `1.4.4-canary.1+a8fcd319b`. Valid inputs passed; invalid types and format
   failed. The formatter sorted imports and wrapped the long assignment. See the
-  inspected `qa-artifacts/QA-002-toolchain.txt`.
+  inspected `qa-artifacts/QA-002-toolchain.txt`. Revalidated on 2026-11-11 at
+  `9bf3224` with the same Bun canary and the current copied policy. Valid types
+  passed; invalid types failed with TS2322. After the isolated repository was
+  initialized, the formatter selected the probe files: correct format passed,
+  incorrect format failed, and correction passed. Import order and line wrapping
+  also passed. Inspected evidence:
+  `qa-artifacts/qa-all-current/probes/native-format-types.txt`. Earlier
+  zero-file format attempts in that log are not passing evidence.
 
 ### [ ] QA-003 — P1 — Application dependency and UI setup review
 
@@ -138,8 +297,13 @@ actual result, and evidence path when a case runs.
 - **Evidence:** `qa-artifacts/QA-003-ui-setup.txt`; inspect dry-run and source
   diff.
 - **Cleanup:** no runtime cleanup; preserve requested source files.
-- **Status:** pending; the scaffold exists, but application setup QA has not
-  run.
+- **Status:** blocked on 2026-11-11 at `9bf3224`. CLI 0.4.0 init dry-run failed
+  with `Unsupported configuration in vite.config.ts`. Its parser requires an
+  object literal and rejects the existing function-form `defineConfig`. No
+  proposed diff was produced or applied. Existing build success does not resolve
+  this CLI review requirement. Evidence:
+  `qa-artifacts/qa-all-current/probes/yopem-dry-run.txt`. QA-001 also remains
+  incomplete.
 
 ## Coverage map and remaining cases
 
@@ -185,7 +349,7 @@ before execution. Application QA is approved only for owned isolated resources.
 Cases that require missing implementation or resources remain pending, not
 passed.
 
-### [ ] QA-004 — P1 — Guest workspace survives reload
+### [x] QA-004 — P1 — Guest workspace survives reload
 
 - **Purpose:** Use all features without an account.
 - **Prerequisites:** Shared setup above. An isolated browser profile, guest
@@ -202,8 +366,13 @@ passed.
   in `qa-artifacts/QA-004/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** Passed on 2026-11-12 in the approved existing guest tab; source
+  checkout `9bf3224`. QA-prefixed project, task with estimate 2 and project
+  link, and template retained their values after reload. No sign-in was needed.
+  Inspected `qa-artifacts/qa-guest-finish/guest004-*-reload.txt` and
+  `guest004-reload-owned.json`. Exact owned records were removed; final parsed
+  guest state matched baseline in every section. Existing-tab reuse follows the
+  shared setup and user approval, not a newly created profile.
 
 ### [ ] QA-005 — P0 — Guest storage failure does not erase work
 
@@ -285,7 +454,7 @@ passed.
 - **Status:** pending; implementation and final executable mappings are
   required.
 
-### [ ] QA-009 — P1 — Task edits and ordering preserve identity
+### [x] QA-009 — P1 — Task edits and ordering preserve identity
 
 - **Purpose:** Maintain estimates, notes and completion across task operations.
 - **Prerequisites:** Shared setup above. Guest mode; empty task list.
@@ -302,10 +471,15 @@ passed.
   in `qa-artifacts/QA-009/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** Passed on 2026-11-12 in the approved guest tab; source checkout
+  `9bf3224`. After reload, the reordered Review task remained completed, Read
+  remained selected with estimate 2 and edited note Pages 11–20, and Sessions
+  left was 2, excluding completed work. Inspected
+  `qa-artifacts/qa-account-first/guest-tasks.txt` and `guest-cleanup.txt`; later
+  guest cleanup again matched the original parsed baseline. Only QA-owned
+  records were removed.
 
-### [ ] QA-010 — P1 — Project removal preserves history
+### [x] QA-010 — P1 — Project removal preserves history
 
 - **Purpose:** Keep historical focus labels when a project is removed.
 - **Prerequisites:** Shared setup above. An isolated project Study linked to a
@@ -322,10 +496,16 @@ passed.
   in `qa-artifacts/QA-010/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** Passed on 2026-11-12 in the approved guest tab; source checkout
+  `9bf3224`. Archived Study was absent from the new-task project selector.
+  Confirmed project deletion retained its 25-minute history record, project
+  label, and report total. Inspected
+  `qa-artifacts/qa-guest-finish/project-archive-selector.txt`,
+  `project-history-before.txt`, `project-history-after.txt`, and
+  `project-owned.json`. Exact owned records were cleaned; final guest baseline
+  matched.
 
-### [ ] QA-011 — P1 — Templates have no three-template limit
+### [x] QA-011 — P1 — Templates have no three-template limit
 
 - **Purpose:** Provide the requested premium template capability.
 - **Prerequisites:** Shared setup above. Guest mode with an empty template list.
@@ -342,8 +522,12 @@ passed.
   in `qa-artifacts/QA-011/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** Passed on 2026-11-12 in the approved guest tab; source checkout
+  `9bf3224`. Four QA-prefixed templates persisted after reload without a
+  paywall. Applying Template 4 twice created distinct task IDs. Editing one task
+  left the other task and original template unchanged. Inspected
+  `qa-artifacts/qa-guest-finish/template-owned.json` and template snapshots.
+  Only owned tasks/templates were deleted; guest baseline matched afterward.
 
 ### [ ] QA-012 — P1 — Reports aggregate known focus records
 
@@ -388,10 +572,17 @@ passed.
   in `qa-artifacts/QA-013/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** partial on 2026-11-12 in the approved non-production browser. Six
+  guest CSV/TSV exports passed local parsing for formula neutralization,
+  commas/quotes, units, optional task columns, date range, and project scope.
+  Account CSV also neutralized the tested formula. Embedded-newline export
+  remains unverified because the single-line input normalized it to a space.
+  Inspected `qa-artifacts/qa-guest-finish/csv-parse-results.txt` and sanitized
+  export files; account evidence is
+  `qa-artifacts/qa-account-first/account-report.csv`. Exact owned records were
+  removed; guest baseline matched afterward. Do not mark the whole case passed.
 
-### [ ] QA-014 — P1 — Manual focus entry validates time and updates totals
+### [x] QA-014 — P1 — Manual focus entry validates time and updates totals
 
 - **Purpose:** Add and correct focus history without invalid durations.
 - **Prerequisites:** Shared setup above. Guest mode; empty history.
@@ -408,8 +599,13 @@ passed.
   in `qa-artifacts/QA-014/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** Passed on 2026-11-12 in the approved guest tab; source checkout
+  `9bf3224`. Empty title, zero, negative minutes, and reversed 11:00–10:00 times
+  were rejected without records. The valid January 1, 2026 record produced 25
+  minutes, editing produced 30, and confirmed deletion produced zero. Inspected
+  `qa-artifacts/qa-guest-finish/manual-invalid.txt` and `manual-25.txt`,
+  `manual-30.txt`, `manual-0.txt`. Exact owned record was removed and final
+  guest baseline matched.
 
 ### [ ] QA-015 — P0 — OAuth callback rejects forged or replayed state
 
@@ -560,10 +756,13 @@ passed.
   in `qa-artifacts/QA-021/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** pending. Static review at `9bf3224` found a declared dark-theme
+  destructive-text pair of `#dc2626` on Card `#111111`, approximately 3.91:1.
+  This is below 4.5:1 for normal text; computed browser paint remains to be
+  checked. Source and calculation evidence: `docs/qa-design-contract.md`,
+  completion review. Do not treat visual inspection alone as contrast proof.
 
-### [ ] QA-022 — P1 — Offline OpenAPI generation matches frontend calls
+### [x] QA-022 — P1 — Offline OpenAPI generation matches frontend calls
 
 - **Purpose:** Use Rust as the canonical HTTP contract without starting
   services.
@@ -584,9 +783,19 @@ passed.
   in `qa-artifacts/QA-022/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending. The contract-only exporter ran on 2026-11-08 and produced
-  `docs/openapi.json` with 21 schemas and no paths. Frontend type generation and
-  endpoint parity are not implemented or checked.
+- **Status:** passed; evidence reviewed on 2026-11-12 at `9bf3224` with the
+  current Settings layout diff. Contract source, clients, generators, and locks
+  have no diff. The actual prior isolated exporter and generator exited 0. The
+  exporter entrypoint does not load configuration, connect to a database, or
+  start a listener. Its nine paths, ten operations, and 22 schemas match the
+  tracked specification; generated types have no diff. All ten registered router
+  method/path pairs match the spec, and all five typed frontend calls are
+  present. Parent inspected execution logs, inventories, and equality results in
+  `qa-artifacts/qa-all-current/tooling/` and
+  `qa-artifacts/qa-offline-contract-finish/contract-review.txt`. See
+  `docs/qa-offline-contract-finish.md`. No generator was rerun in this review.
+  Runtime response and validation parity remain separate pending cases, not the
+  stated offline acceptance. The earlier no-path export is historical.
 
 ## Backend contract increment
 
@@ -984,7 +1193,7 @@ DTO limits, normalization, and reference checks remain QA-023.
 Workspace-generation rejection maps to QA-035. Existing record-conflict,
 failed-load privacy, and backup cases remain QA-017, QA-028, and QA-029.
 
-### [ ] QA-036 — P1 — Source-owned design-system contracts
+### [x] QA-036 — P1 — Source-owned design-system contracts
 
 - **Purpose:** Remove restricted application styles from UI component `xstyle`
   props. Keep the current lint policy. Do not use imported styles, arrays,
@@ -1013,11 +1222,18 @@ failed-load privacy, and backup cases remain QA-017, QA-028, and QA-029.
 - **Evidence:** Save the caller-to-prop source review and static command output
   under `qa-artifacts/QA-036/`. Inspect each mapped property and command exit.
 - **Cleanup:** No records or services change. Keep sanitized local evidence.
-- **Status:** pending separate QA execution. Component and caller repairs are
-  implemented. Source review found only the allowed timer Stack block margins in
-  application `xstyle` values. Repository lint, formatting, workspace
-  typechecks, and explicit Vite source checks passed after integration. These
-  results do not prove CSS extraction, initial paint, or browser behavior.
+- **Status:** passed static QA on 2026-11-12 at `9bf3224`. All 86 application
+  `xstyle` callers in six files map to allowed layout properties. Reviewed
+  finite-prop implementations, caller history, semantic elements, labels,
+  responsive values, token changes, style escapes, unchanged lint policy, and
+  matching theme configuration. Inspected exact-revision hosted CI and archive
+  check results. Hosted lint explicitly selected tracked sources, including
+  config files, with native Bun type-aware, zero-warning, no-ignore flags; this
+  is the recorded invocation, not a new bare-root run. Evidence:
+  `qa-artifacts/qa-design-contract/` and `docs/qa-design-contract.md`. A
+  separate declared destructive-text contrast concern belongs to QA-021. CSS
+  extraction, initial paint, and browser theme behavior are not proved by this
+  static case.
 
 Coverage: design-system style contracts and source-owned API changes map to
 QA-036. Keyboard, responsive, zoom, and contrast checks remain QA-021. Initial
@@ -1780,7 +1996,14 @@ do not survive a full page reload, which can require a new conflict review.
   secrets.
 - **Cleanup:** Stop only case-started processes and containers. Preserve the
   named volume unless separate destructive-cleanup approval is given.
-- **Status:** pending; service startup and migrations remain unapproved.
+- **Status:** partial on 2026-11-11 at `9bf3224`. After the user stopped the
+  development processes, the recorded owned QA PostgreSQL container was started
+  on loopback port 15432. Its identity, label, database, and mapping were
+  checked. Reviewed migration status reports the persistence migration applied;
+  no migration write was needed. The API uses explicit isolated settings and
+  both health and readiness return 200. Remaining acceptance steps, including
+  requested persistence/restart behavior, are separate. Evidence:
+  `qa-artifacts/qa-all-current/runtime/runtime-status.txt`.
 
 ### [ ] QA-061 — P1 — Keep public metadata separate from personal routes
 
@@ -2163,7 +2386,15 @@ do not survive a full page reload, which can require a new conflict review.
   hashes and the finding review in `qa-artifacts/QA-074/`.
 - **Cleanup:** Remove only owned temporary public advisory payloads. No local
   app data or service changes are needed.
-- **Status:** pending.
+- **Status:** failed on 2026-11-11 at `9bf3224`. Native Bun audit exited 1 for
+  deepmerge 4.3.1 and minimatch 10.2.6 advisories. Public OSV queries for all
+  348 locked Cargo registry versions found libsqlite3-sys 0.30.1 and rsa 0.9.10
+  advisories. Neither had a selected dependency path in the inspected Linux
+  server/migration normal/build graphs. This does not prove safety on other
+  targets, features, binaries, or deployed images. No fix or release approval is
+  claimed. Inspected evidence:
+  `qa-artifacts/qa-all-current/tooling/bun-audit.log`, `rust-advisories.json`,
+  `libsqlite-graph.txt`, and `rsa-graph.txt` in that directory.
 
 ### [ ] QA-075 — P2 — Compact mobile typography
 
@@ -3808,7 +4039,7 @@ not affected by this source-only change.
   the verified artifact. Full Compiler semantics, post-pin browser/container
   acceptance and the complete installed-hook regression set remain unproved.
 
-### [ ] QA-121 — P1 — CI runs lint, format checks and typechecks
+### [x] QA-121 — P1 — CI runs lint, format checks and typechecks
 
 - **Purpose:** Run only the three user-requested check categories after verified
   tool and frozen dependency setup. CI is not full release acceptance.
@@ -3835,10 +4066,14 @@ not affected by this source-only change.
 - **Evidence:** `qa-artifacts/QA-121/`; save exact policy/syntax commands and
   results, tool setup evidence and any separately permitted hosted run URL.
 - **Cleanup:** Remove only owned fixtures and temporary files.
-- **Status:** Pending hosted acceptance. Workflow source contains only setup and
-  the three requested check categories. No hosted workflow has run. Earlier
-  build/audit/drift workflow draft was replaced at the user's request, not
-  presented as a passing audit or complete release gate.
+- **Status:** passed on 2026-11-11 at `9bf3224`. Inspected existing hosted push
+  run `43035888459` for this exact revision. Setup, frozen dependency
+  installation, Typecheck, Lint, and Format check all succeeded. Local workflow
+  policy assertions and `bash -n` checks passed. No push was made for this QA
+  pass. Evidence: `qa-artifacts/qa-resumed-config/hosted-ci.json`,
+  `hosted-ci-log-extract.txt`, and `ci-policy.json`. Hosted run:
+  https://github.com/yopem/pomodoro/actions/runs/43035888459. This result does
+  not resolve advisory findings or runtime acceptance.
 
 ### [ ] QA-122 — P1 — Database process supervision contains orphan failure
 
@@ -4226,7 +4461,14 @@ migration, and new integration checks are not applicable to these changes.
 - **Evidence:** inspect `qa-artifacts/polish/login-{width}-{theme}.png` and
   sanitized redirect results in `qa-artifacts/polish/results.txt`.
 - **Cleanup:** log out of the isolated session and restore browser settings.
-- **Status:** pending; reference inspected, local browser and OAuth QA not run.
+- **Status:** failed login observed on 2026-11-11 at the development runtime
+  before isolation. After Google account selection, the callback returned 400
+  with “The sign-in request is invalid”. It used 127.0.0.1 after the browser had
+  used localhost. Host-only PKCE cookies make this a likely cause; the exact
+  callback rejection branch is not proven. The isolated runtime now uses
+  localhost consistently. A fresh real login and the remaining layout/keyboard
+  cases are pending. Sanitized evidence:
+  `qa-artifacts/qa-all-current/browser/login-error.json`.
 
 Coverage: footer request → QA-135; summary hierarchy and calculations → QA-136;
 login redesign and existing issuer entry → QA-137. No database, migrations, API
@@ -4257,7 +4499,11 @@ contract, cache policy, or account ownership changes are in scope.
 - **Evidence:** inspect sanitized responses and redirects in
   `qa-artifacts/polish/auth-routing.txt`; exclude cookies and OAuth codes.
 - **Cleanup:** remove the isolated session and stop only owned QA processes.
-- **Status:** pending; local routing, issuer, and cache checks have not run.
+- **Status:** partial on 2026-11-11. A real callback returned a safe JSON 400
+  error after Google selection, but successful authorization, cookie, and cache
+  behavior remain unverified. See QA-137 for the observed host mismatch and the
+  corrected isolated runtime. Do not count the failure as a security acceptance
+  pass.
 
 Coverage addition: canonical login URL, proxy routing, OpenAPI, OAuth error and
 security regressions → QA-138.
@@ -4977,7 +5223,7 @@ QA-163 and QA-165; static tooling: QA-166.
 - **Cleanup:** restore normal navigation and close only owned tabs.
 - **Status:** pending.
 
-### [ ] QA-166 — P2 — Static checks for the migrated workflows
+### [x] QA-166 — P2 — Static checks for the migrated workflows
 
 - **Purpose:** check lint, formatting and web types without executing QA.
 - **Prerequisites:** repository root with installed dependencies and Bun canary.
@@ -4992,7 +5238,22 @@ QA-163 and QA-165; static tooling: QA-166.
 - **Evidence:** `qa-artifacts/QA-166-static-checks.txt`; inspect exit status and
   diagnostics. If execution is not requested, record command results separately.
 - **Cleanup:** none; keep sanitized evidence.
-- **Status:** pending.
+- **Status:** passed on 2026-11-12 for the recorded source hashes, including all
+  four changed TSX files and the restored lint policy. Literal root
+  `bun run typecheck`, `bun run lint`, and `bun run format:check` passed in the
+  safe isolated checkout. The first format run selected 86 ignored generated
+  files because the archive lacked Git metadata. A new local index used the
+  actual tracked-file list and existing ignore policy; all root checks then
+  passed without source or rule changes. Both results remain under
+  `qa-artifacts/qa-current-root-static/`. The compatible React Doctor 0.9.22 and
+  Oxlint 1.81.0 comparison covered 101 files with no skips and zero added or
+  removed diagnostic identities for the four-file change. Both scans retain 16
+  compiler lowering errors and 22 warnings. These are not clean scans. The
+  compiler limits, import-map false positive, and 21 export warnings were
+  reviewed. See `docs/qa-doctor-header-update.md`,
+  `docs/qa-doctor-regression-finish.md`, and
+  `qa-artifacts/qa-doctor-header-update/`. These checks did not run tests,
+  deploy, or connect to application services.
 
 ### [ ] QA-167 — P1 — Queued report moves use the current URL
 
@@ -6084,7 +6345,7 @@ dependencies or styling policy are needed.
   were not forced. The final backup matches the baseline byte for byte. No
   runtime authorization pass is claimed.
 
-### [ ] QA-213 — P1 — Task menu keyboard and focus
+### [x] QA-213 — P1 — Task menu keyboard and focus
 
 - **Purpose:** Keep native menu navigation, confirmation focus, touch targets,
   and task visibility controls accessible.
@@ -6108,11 +6369,15 @@ dependencies or styling policy are needed.
   screenshots in `qa-artifacts/QA-213/`.
 - **Cleanup:** Close owned popups; show tasks; restore emulation, theme, and
   viewport. Remove only QA records during shared cleanup.
-- **Status:** pending. Editor/confirmation focus return, disabled keyboard
-  activation, two keyboard hide/show cycles, and native touch beyond the visible
-  40px trigger passed. Source Menu keeps disabled items focusable; Enter does
-  not activate them. Complete the full sequential Tab and task-menu Enter-open
-  run before checking this case.
+- **Status:** passed on 2026-11-12 in the approved guest tab; source checkout
+  `9bf3224`. Parent verified the sequential Tab path, row/list menu Enter and
+  arrow navigation, disabled Enter rejection, editor and destructive-dialog
+  focus, Escape return, and two keyboard hide/show cycles. Dark/light 390px
+  screenshots show visible unclipped focus. A native coarse-pointer touch
+  outside the visible 40px row trigger activated its expanded hit area.
+  Emulation, theme, and viewport were restored. Named cleanup removed only the
+  QA task; a fresh actual UI export matched baseline in every section. Evidence:
+  `qa-artifacts/qa-parent-ui/` and `docs/qa-parent-ui.md`.
 
 Coverage: layout uses QA-211; data and mutation safety use QA-212; keyboard,
 focus, and visibility use QA-213. QA-208 covers default action sizes, and QA-206
@@ -6268,3 +6533,134 @@ QA-194/204. The default List contract and task mutations do not change.
   Finish the task viewport and keyboard matrix, failure/race checks, loading
   comparison, and the permitted font checks. A production build still needs
   approval. Keep the older pending cases and their evidence.
+
+## Settings save action at the page bottom
+
+Task: move Save settings below Workspace backup. Affected files:
+`apps/web/src/features/settings/components/settings-form.tsx`,
+`apps/web/src/routes/settings/index.lazy.tsx`, and
+`apps/web/src/features/settings/components/settings-loading.tsx`. Route:
+`/settings`. Existing guest and signed-in settings contracts stay the same. Use
+the shared setup and approved non-production app. Keep the current account
+signed in. Preserve its settings and timer. Artifacts stay local in ignored
+`qa-artifacts/settings-save-bottom/`. Runtime cases below remain pending until a
+requested QA pass. Native lint, format, and typechecks run by default. No API,
+database, permission, or backup-format change is planned.
+
+### [ ] QA-216 — P1 — Save settings is the final page action
+
+- **Purpose:** Put the preference save action after the backup controls and
+  match the loading layout.
+- **Prerequisites:** Shared setup; web app available at
+  `http://127.0.0.1:13001`; recorded original theme and viewport. Use the
+  current account, or an approved guest workspace. Do not create another browser
+  tab.
+- **Inputs:** `/settings`; 1440×900, 390×844, and 320×800; light/dark themes.
+- **Steps:** 1. Open `/settings` and scroll to the bottom. 2. Locate Download a
+  backup, Restore a backup, and Save settings in document order. 3. Repeat at
+  each width and theme. 4. In an approved throttled load, compare the loading
+  action placeholder with the ready layout. Restore network settings.
+- **Expected results:** Exactly one Save settings button appears below the
+  complete Workspace backup section, not between Automation and Backup. Its
+  status, errors, and Reload settings action stay with it. Loading places the
+  action placeholder after the backup placeholder. Controls do not overlap or
+  cause horizontal overflow.
+- **Evidence:** Save and inspect screenshots and document-order observations
+  under `qa-artifacts/settings-save-bottom/QA-216/`.
+- **Cleanup:** Restore theme, network, viewport, and scroll position. No records
+  need cleanup.
+- **Status:** partial on 2026-11-12. The first 320px run failed because the
+  signed-in header had 314px scroll width versus 305px client width. The
+  existing header row now wraps without changes to control sizes or labels. All
+  six ready width/theme samples then had no overflow, and Backup preceded the
+  single Save action. Before/after evidence remains under
+  `qa-artifacts/settings-save-bottom/QA-216/`. A stale development SSR module
+  still returned the old loading order after hot reload. The user restarted the
+  server. The next SSR response placed Save after all five cards, and a clean
+  reload returned session/workspace 200 with no hydration error. See
+  `ssr-after-user-restart.json` and `fresh-reload-after-restart.json` in the
+  parent artifact directory. A bounded read-delay attempt did not capture the
+  target request and coincided with 503 responses; do not count it as a passed
+  throttled comparison. Complete loading geometry and error/reload-action
+  placement checks remain pending. QA-170 retains the wider header matrix.
+  Current root lint, format, and typechecks passed. Notes:
+  `docs/qa-settings-save-runtime-finish.md`.
+
+### [x] QA-217 — P1 — Bottom save submits the preference form
+
+- **Purpose:** Keep form ownership, validation, feedback, and persistence after
+  moving the submit action outside the preference form element.
+- **Prerequisites:** Shared setup and QA-216 implementation. Export or capture a
+  private baseline through the normal backup control. Record original focus
+  color and durations. No running timer or unresolved account sync is allowed.
+- **Inputs:** Focus color Purple, then its original value; invalid Focus minutes
+  0; existing preference form and bottom Save settings button.
+- **Steps:** 1. Change focus color to Purple. 2. Activate the bottom Save
+  settings button by keyboard, reload, and inspect the saved value. 3. Set Focus
+  minutes to 0 and submit. 4. Inspect the field error, focus, saved settings,
+  and bottom status. 5. Restore the original draft values, submit, and
+  reload. 6. Confirm the native button form owner is the preference form, not
+  the backup restore form.
+- **Expected results:** The valid change persists and reports Settings saved.
+  Invalid values do not persist; existing validation and first-invalid-field
+  focus remain. The bottom button keeps submitting/disabled behavior and live
+  status. It never submits backup restore. Final persisted settings and timer
+  match baseline.
+- **Evidence:** Save sanitized before/after values, form-owner observations,
+  validation/focus results, and cleanup comparison in
+  `qa-artifacts/settings-save-bottom/QA-217/`. Do not save account identity.
+- **Cleanup:** Restore original settings through the normal Save settings
+  action; compare a fresh export with baseline. Do not replace browser storage.
+- **Status:** passed on 2026-11-12. Keyboard save persisted Purple after a
+  reload. Focus minutes 0 showed `Enter a whole number from 1 to 180.`, kept
+  Unsaved changes, and focused that input. The actual DOM has two separate
+  forms; the bottom submit button names `workspace-preferences` as its owner. A
+  normal save recorded native disabled, aria-disabled, and loading attributes
+  for about 76 ms, then Settings saved. Orange/System and focus minutes 25 were
+  restored through Save settings. After a development 503, a normal reload
+  recovered the account view with session/workspace 200. A fresh actual export
+  matched all seven baseline sections, including the unchanged timer. Evidence:
+  `QA-217/submit-attribute-transitions.json`,
+  `QA-218/form-separation-parent.json`, and `cleanup-after-user-restart.json`
+  under the feature artifact directory. The runtime reports retain earlier
+  incomplete stages; these later results cover their missing pending-state and
+  cleanup checks.
+
+### [x] QA-218 — P1 — Backup forms stay separate from preference save
+
+- **Purpose:** Prevent nested forms or cross-submission when placing the backup
+  section before the preference save action.
+- **Prerequisites:** Shared setup and completed save layout; original settings
+  recorded. No backup file is selected for restore.
+- **Inputs:** `/settings`; Choose file and cancel; Export backup; unsaved focus
+  color Purple. Do not select a restore file or confirm replacement.
+- **Steps:** 1. Change focus color without saving. 2. Open Choose file and
+  cancel. 3. Activate Export backup. 4. Inspect the current draft, persisted
+  export, form ownership, notifications, and absence of restore or save
+  calls. 5. Restore the original draft without saving it.
+- **Expected results:** Choosing/canceling a file and exporting do not save
+  preferences or start restore. Export contains the last saved settings, not the
+  unsaved draft. The restore form is not inside the preference form. The bottom
+  save action remains available and owns only preferences.
+- **Evidence:** Save sanitized action results, export value comparison, and
+  form-parent observations under `qa-artifacts/settings-save-bottom/QA-218/`.
+  Keep private export data local.
+- **Cleanup:** Restore the original draft and close any owned file chooser. No
+  records, backup restore, or server changes are needed.
+- **Status:** passed on 2026-11-12 after parent evidence review. The unsaved
+  Purple draft survived file chooser cancellation. Export kept saved settings,
+  not the draft. The request observer recorded zero calls through chooser
+  cancellation and export; no restore was selected or confirmed. Orange was
+  restored as a draft without saving. Parent comparison of the unsaved export
+  and final export confirmed equality with baseline in all seven sections.
+  Actual DOM observations confirm separate preference/restore forms and the
+  external preference submit button. Temporary listeners and Blob wrappers were
+  removed. Reports: `docs/qa-settings-save-runtime-finish.md`; evidence:
+  `QA-218/continuation-results.txt`, `QA-218/form-separation-parent.json`, and
+  the private export comparisons. This checks the UI export Blob, not OS
+  download persistence. Later QA-217 cleanup also matched all baseline sections.
+
+Coverage: final save placement and loading → QA-216; save ownership, validation,
+persistence and feedback → QA-217; backup form isolation → QA-218. Existing
+appearance/account regression coverage remains QA-202. CI, auth, API, and
+database changes are not applicable because these contracts do not change.
