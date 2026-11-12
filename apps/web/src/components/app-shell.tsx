@@ -65,7 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         variant="appHeader"
       >
         <Container variant="navigation">
-          <HStack layout="spread" wrap={false}>
+          <HStack layout="spread">
             <Link
               to="/"
               {...stylex.props(styles.brand)}
