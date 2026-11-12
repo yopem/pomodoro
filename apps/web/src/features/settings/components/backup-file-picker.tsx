@@ -131,8 +131,9 @@ export function BackupRestoreActions({ disabled }: { disabled: boolean }) {
         type="submit"
         value="recover"
         disabled={disabled}
+        aria-label="Recover corrupt workspace"
       >
-        Recover corrupt workspace
+        Recover
       </DialogTrigger>
     </HStack>
   )
