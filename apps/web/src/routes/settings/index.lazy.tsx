@@ -73,12 +73,13 @@ export function SettingsRoute() {
                 <SettingsForm
                   key={`settings-${owner.generation}`}
                   settings={workspace.settings}
-                />
-                <WorkspaceBackup
-                  key={`backup-${owner.generation}`}
-                  workspace={workspace}
-                  identity={identity}
-                />
+                >
+                  <WorkspaceBackup
+                    key={`backup-${owner.generation}`}
+                    workspace={workspace}
+                    identity={identity}
+                  />
+                </SettingsForm>
               </Stack>
             </Grid>
           ) : (

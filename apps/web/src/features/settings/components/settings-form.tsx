@@ -1,4 +1,4 @@
-import type { ChangeEvent, FormEvent } from "react"
+import type { ChangeEvent, FormEvent, ReactNode } from "react"
 
 import { useForm } from "@tanstack/react-form"
 import { useRef, useState } from "react"
@@ -179,277 +179,291 @@ export function useSettingsForm({ settings }: { settings: Settings }) {
   return { form, formRef, events, error, baseline, reloadSettings }
 }
 
-export function SettingsForm({ settings }: { settings: Settings }) {
+export function SettingsForm({
+  settings,
+  children,
+}: {
+  settings: Settings
+  children: ReactNode
+}) {
   const { form, formRef, events, error, baseline, reloadSettings } =
     useSettingsForm({ settings })
 
   const changedElsewhere = JSON.stringify(settings) !== JSON.stringify(baseline)
 
   return (
-    <form ref={formRef} noValidate onSubmit={events.submit}>
-      <Stack spacing="relaxed">
-        {[
-          {
-            title: "Timer",
-            id: "settings-timer",
-            description: "Set the length of your focus sessions and breaks.",
-            fields: numbers.slice(0, 4),
-          },
-          {
-            title: "Sound",
-            id: "settings-sound",
-            description: "Choose session alerts and background audio.",
-            fields: numbers.slice(4, 7),
-          },
-        ].map((group) => (
+    <>
+      <form
+        id="workspace-preferences"
+        ref={formRef}
+        noValidate
+        onSubmit={events.submit}
+      >
+        <Stack spacing="relaxed">
+          {[
+            {
+              title: "Timer",
+              id: "settings-timer",
+              description: "Set the length of your focus sessions and breaks.",
+              fields: numbers.slice(0, 4),
+            },
+            {
+              title: "Sound",
+              id: "settings-sound",
+              description: "Choose session alerts and background audio.",
+              fields: numbers.slice(4, 7),
+            },
+          ].map((group) => (
+            <Card
+              key={group.title}
+              render={
+                <section id={group.id} aria-labelledby={`${group.id}-title`} />
+              }
+            >
+              <CardHeader separator>
+                <Heading
+                  id={`${group.id}-title`}
+                  render={<h2>{group.title}</h2>}
+                />
+                <CardDescription>{group.description}</CardDescription>
+              </CardHeader>
+              <CardPanel>
+                <Grid variant="workspace">
+                  {group.fields.map(({ name, label, min, max }) => (
+                    <form.Field key={name} name={name}>
+                      {(field) => (
+                        <NumberField
+                          name={name}
+                          label={label}
+                          min={min}
+                          max={max}
+                          value={field.state.value}
+                          errors={field.state.meta.errors}
+                          onBlur={field.handleBlur}
+                          onChange={events.changeNumber}
+                        />
+                      )}
+                    </form.Field>
+                  ))}
+                  {group.title === "Sound" && (
+                    <>
+                      <form.Field name="alarm">
+                        {(field) => (
+                          <SettingsSelect
+                            name="alarm"
+                            label="Alarm"
+                            value={field.state.value}
+                            onBlur={field.handleBlur}
+                            onChange={events.changeSelect}
+                          />
+                        )}
+                      </form.Field>
+                      <form.Field name="focus_sound">
+                        {(field) => (
+                          <SettingsSelect
+                            name="focus_sound"
+                            label="Focus sound"
+                            value={field.state.value}
+                            onBlur={field.handleBlur}
+                            onChange={events.changeSelect}
+                          />
+                        )}
+                      </form.Field>
+                    </>
+                  )}
+                </Grid>
+              </CardPanel>
+            </Card>
+          ))}
           <Card
-            key={group.title}
             render={
-              <section id={group.id} aria-labelledby={`${group.id}-title`} />
+              <section
+                id="settings-appearance"
+                aria-labelledby="settings-appearance-title"
+              />
             }
           >
             <CardHeader separator>
               <Heading
-                id={`${group.id}-title`}
-                render={<h2>{group.title}</h2>}
+                id="settings-appearance-title"
+                render={<h2>Appearance &amp; display</h2>}
               />
-              <CardDescription>{group.description}</CardDescription>
+              <CardDescription>
+                Choose colors, theme, and how dates and times appear.
+              </CardDescription>
             </CardHeader>
             <CardPanel>
               <Grid variant="workspace">
-                {group.fields.map(({ name, label, min, max }) => (
+                {colors.map(({ name, label }) => (
                   <form.Field key={name} name={name}>
                     {(field) => (
-                      <NumberField
+                      <SettingsSelect
                         name={name}
                         label={label}
-                        min={min}
-                        max={max}
                         value={field.state.value}
-                        errors={field.state.meta.errors}
                         onBlur={field.handleBlur}
-                        onChange={events.changeNumber}
+                        onChange={events.changeSelect}
                       />
                     )}
                   </form.Field>
                 ))}
-                {group.title === "Sound" && (
-                  <>
-                    <form.Field name="alarm">
-                      {(field) => (
-                        <SettingsSelect
-                          name="alarm"
-                          label="Alarm"
-                          value={field.state.value}
-                          onBlur={field.handleBlur}
-                          onChange={events.changeSelect}
-                        />
-                      )}
-                    </form.Field>
-                    <form.Field name="focus_sound">
-                      {(field) => (
-                        <SettingsSelect
-                          name="focus_sound"
-                          label="Focus sound"
-                          value={field.state.value}
-                          onBlur={field.handleBlur}
-                          onChange={events.changeSelect}
-                        />
-                      )}
-                    </form.Field>
-                  </>
-                )}
-              </Grid>
-            </CardPanel>
-          </Card>
-        ))}
-        <Card
-          render={
-            <section
-              id="settings-appearance"
-              aria-labelledby="settings-appearance-title"
-            />
-          }
-        >
-          <CardHeader separator>
-            <Heading
-              id="settings-appearance-title"
-              render={<h2>Appearance &amp; display</h2>}
-            />
-            <CardDescription>
-              Choose colors, theme, and how dates and times appear.
-            </CardDescription>
-          </CardHeader>
-          <CardPanel>
-            <Grid variant="workspace">
-              {colors.map(({ name, label }) => (
-                <form.Field key={name} name={name}>
+                <form.Field name="theme">
                   {(field) => (
                     <SettingsSelect
-                      name={name}
-                      label={label}
+                      name="theme"
+                      label="Theme"
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={events.changeSelect}
                     />
                   )}
                 </form.Field>
-              ))}
-              <form.Field name="theme">
-                {(field) => (
-                  <SettingsSelect
-                    name="theme"
-                    label="Theme"
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={events.changeSelect}
-                  />
-                )}
-              </form.Field>
-              <form.Field name="week_start">
-                {(field) => (
-                  <SettingsSelect
-                    name="week_start"
-                    label="First day of week"
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={events.changeSelect}
-                  />
-                )}
-              </form.Field>
-              <form.Field name="hour_format">
-                {(field) => (
-                  <SettingsSelect
-                    name="hour_format"
-                    label="Time format"
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={events.changeSelect}
-                  />
-                )}
-              </form.Field>
-            </Grid>
-          </CardPanel>
-        </Card>
-        <Card
-          render={
-            <section
-              id="settings-behavior"
-              aria-labelledby="settings-behavior-title"
-            />
-          }
-        >
-          <CardHeader separator>
-            <Heading
-              id="settings-behavior-title"
-              render={<h2>Automation &amp; reminders</h2>}
-            />
-            <CardDescription>
-              Choose what happens between sessions and when to be notified.
-            </CardDescription>
-          </CardHeader>
-          <CardPanel>
-            <Stack spacing="relaxed">
-              <Grid variant="workspace">
-                {numbers.slice(7).map(({ name, label, min, max }) => (
-                  <form.Field key={name} name={name}>
-                    {(field) => (
-                      <NumberField
-                        name={name}
-                        label={label}
-                        min={min}
-                        max={max}
-                        value={field.state.value}
-                        errors={field.state.meta.errors}
-                        onBlur={field.handleBlur}
-                        onChange={events.changeNumber}
-                      />
-                    )}
-                  </form.Field>
-                ))}
+                <form.Field name="week_start">
+                  {(field) => (
+                    <SettingsSelect
+                      name="week_start"
+                      label="First day of week"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeSelect}
+                    />
+                  )}
+                </form.Field>
+                <form.Field name="hour_format">
+                  {(field) => (
+                    <SettingsSelect
+                      name="hour_format"
+                      label="Time format"
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={events.changeSelect}
+                    />
+                  )}
+                </form.Field>
               </Grid>
-              <Grid>
-                {switches.map(({ name, label }) => (
-                  <form.Field key={name} name={name}>
-                    {(field) => (
-                      <Field layout="switch">
-                        <FieldLabel htmlFor={name}>{label}</FieldLabel>
-                        <Switch
-                          id={name}
-                          checked={field.state.value}
-                          onCheckedChange={field.handleChange}
+            </CardPanel>
+          </Card>
+          <Card
+            render={
+              <section
+                id="settings-behavior"
+                aria-labelledby="settings-behavior-title"
+              />
+            }
+          >
+            <CardHeader separator>
+              <Heading
+                id="settings-behavior-title"
+                render={<h2>Automation &amp; reminders</h2>}
+              />
+              <CardDescription>
+                Choose what happens between sessions and when to be notified.
+              </CardDescription>
+            </CardHeader>
+            <CardPanel>
+              <Stack spacing="relaxed">
+                <Grid variant="workspace">
+                  {numbers.slice(7).map(({ name, label, min, max }) => (
+                    <form.Field key={name} name={name}>
+                      {(field) => (
+                        <NumberField
+                          name={name}
+                          label={label}
+                          min={min}
+                          max={max}
+                          value={field.state.value}
+                          errors={field.state.meta.errors}
                           onBlur={field.handleBlur}
+                          onChange={events.changeNumber}
                         />
-                      </Field>
-                    )}
-                  </form.Field>
-                ))}
-              </Grid>
-              <NotificationPermission />
-            </Stack>
-          </CardPanel>
-        </Card>
-        <Box variant="settingsSave">
-          <Stack spacing="compact">
-            {error && (
-              <Text role="alert" tone="destructive">
-                {error}
-              </Text>
-            )}
-            <form.Subscribe>
-              {(state) => {
-                const hasUnsavedChanges =
-                  JSON.stringify(state.values) !== JSON.stringify(baseline)
+                      )}
+                    </form.Field>
+                  ))}
+                </Grid>
+                <Grid>
+                  {switches.map(({ name, label }) => (
+                    <form.Field key={name} name={name}>
+                      {(field) => (
+                        <Field layout="switch">
+                          <FieldLabel htmlFor={name}>{label}</FieldLabel>
+                          <Switch
+                            id={name}
+                            checked={field.state.value}
+                            onCheckedChange={field.handleChange}
+                            onBlur={field.handleBlur}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                  ))}
+                </Grid>
+                <NotificationPermission />
+              </Stack>
+            </CardPanel>
+          </Card>
+        </Stack>
+      </form>
+      {children}
+      <Box variant="settingsSave">
+        <Stack spacing="compact">
+          {error && (
+            <Text role="alert" tone="destructive">
+              {error}
+            </Text>
+          )}
+          <form.Subscribe>
+            {(state) => {
+              const hasUnsavedChanges =
+                JSON.stringify(state.values) !== JSON.stringify(baseline)
 
-                let message = "Changes apply when you save."
+              let message = "Changes apply when you save."
 
-                if (hasUnsavedChanges) message = "Unsaved changes."
+              if (hasUnsavedChanges) message = "Unsaved changes."
 
-                if (changedElsewhere) message = "Settings changed elsewhere."
+              if (changedElsewhere) message = "Settings changed elsewhere."
 
-                return (
-                  <Stack spacing="compact">
-                    {changedElsewhere && (
-                      <Text>
-                        Reload to use the current settings. Your draft stays
-                        here until you reload.
-                      </Text>
-                    )}
-                    <HStack layout="spread">
-                      <Stack spacing="compact">
-                        <Text variant="label">Workspace preferences</Text>
-                        <output aria-live="polite">{message}</output>
-                      </Stack>
-                      <HStack>
-                        {changedElsewhere && (
-                          <Button
-                            type="button"
-                            variant="outline"
-
-                            onClick={reloadSettings}
-                            disabled={state.isSubmitting}
-                          >
-                            Reload settings
-                          </Button>
-                        )}
+              return (
+                <Stack spacing="compact">
+                  {changedElsewhere && (
+                    <Text>
+                      Reload to use the current settings. Your draft stays here
+                      until you reload.
+                    </Text>
+                  )}
+                  <HStack layout="spread">
+                    <Stack spacing="compact">
+                      <Text variant="label">Workspace preferences</Text>
+                      <output aria-live="polite">{message}</output>
+                    </Stack>
+                    <HStack>
+                      {changedElsewhere && (
                         <Button
-                          type="submit"
+                          type="button"
+                          variant="outline"
 
-                          loading={state.isSubmitting}
-                          disabled={changedElsewhere}
+                          onClick={reloadSettings}
+                          disabled={state.isSubmitting}
                         >
-                          Save settings
+                          Reload settings
                         </Button>
-                      </HStack>
+                      )}
+                      <Button
+                        type="submit"
+                        form="workspace-preferences"
+                        loading={state.isSubmitting}
+                        disabled={changedElsewhere}
+                      >
+                        Save settings
+                      </Button>
                     </HStack>
-                  </Stack>
-                )
-              }}
-            </form.Subscribe>
-          </Stack>
-        </Box>
-      </Stack>
-    </form>
+                  </HStack>
+                </Stack>
+              )
+            }}
+          </form.Subscribe>
+        </Stack>
+      </Box>
+    </>
   )
 }
 

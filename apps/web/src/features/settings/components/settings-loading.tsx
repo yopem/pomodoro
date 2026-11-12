@@ -89,15 +89,6 @@ export function SettingsSkeleton() {
             </Stack>
           </CardPanel>
         </Card>
-        <Box variant="settingsSave">
-          <HStack layout="spread">
-            <Stack spacing="compact" xstyle={styles.saveText}>
-              <Skeleton xstyle={styles.label} />
-              <Skeleton xstyle={styles.description} />
-            </Stack>
-            <Skeleton xstyle={styles.button} />
-          </HStack>
-        </Box>
         <Card>
           <CardHeader separator>
             <Skeleton xstyle={styles.title} />
@@ -133,6 +124,15 @@ export function SettingsSkeleton() {
             </Stack>
           </CardPanel>
         </Card>
+        <Box variant="settingsSave">
+          <HStack layout="spread">
+            <Stack spacing="compact" xstyle={styles.saveText}>
+              <Skeleton xstyle={styles.label} />
+              <Skeleton xstyle={styles.description} />
+            </Stack>
+            <Skeleton xstyle={styles.button} />
+          </HStack>
+        </Box>
       </Stack>
     </Grid>
   )
