@@ -18,7 +18,7 @@ const styles = stylex.create({
     overflowWrap: "anywhere",
   },
   muted: { color: tokens["--muted-foreground"] },
-  destructive: { color: tokens["--destructive"] },
+  destructive: { color: tokens["--destructive-foreground"] },
   success: { color: tokens["--success-foreground"] },
   small: { fontSize: 14 },
   numeric: {
