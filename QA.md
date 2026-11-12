@@ -53,7 +53,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 37 checked sections out of 199, including historical passes. The
+Current total: 39 checked sections out of 200, including historical passes. The
 Settings submit and backup-isolation cases passed; layout QA-216 remains
 pending. Retired cases are removed without renumbering the remaining cases.
 
@@ -4221,19 +4221,40 @@ migration, and new integration checks are not applicable to these changes.
 
 ## Workspace detail polish
 
-### [ ] QA-135 — P2 — Remove the global backup reminder
+### [x] QA-135 — P2 — Remove the global backup reminder
 
 - **Purpose:** remove the footer reminder without removing backup controls.
-- **Prerequisites:** local web app at `http://127.0.0.1:13001`; no API needed.
-- **Inputs:** `/`, `/settings`, `/login`.
-- **Steps:** 1. Open each route. 2. Inspect the footer. 3. Open Settings and
-  inspect the existing backup controls. 4. Check any PWA update notice.
+- **Prerequisites:** local web app at `http://127.0.0.1:13001`. Preserve the
+  current main-browser account and data. Do not start OAuth, install a service
+  worker, force an update, or alter the running services.
+- **Inputs:** `/`, `/settings`, `/auth/login`, and legacy `/login` (404).
+- **Steps:** 1. Open each route. 2. Inspect its footer, or confirm that the
+  login layout has no footer. 3. In Settings, inspect Export backup and Choose
+  file. 4. Check any current PWA update notice and its retained source
+  composition. 5. Return to the original route and confirm the account and data
+  are unchanged.
 - **Expected results:** Export a backup in Settings is absent from the footer;
-  settings backup controls and PWA update notices remain available.
-- **Evidence:** inspect `qa-artifacts/polish/footer.png` and record findings in
-  `qa-artifacts/polish/results.txt`; use the existing ignored artifact root.
-- **Cleanup:** no data changes; restore the viewport if changed.
-- **Status:** pending; runtime QA has not run.
+  settings backup controls and PWA update notices remain available. The current
+  login route does not start OAuth until its button is activated. The legacy
+  route remains 404. Actual service-worker update execution is QA-070.
+- **Evidence:** sanitized route/footer/control results and inspected screenshots
+  in `qa-artifacts/qa-footer-reminder/`. Keep account and backup data private.
+- **Cleanup:** no data changes; restore the original route and viewport. Remove
+  owned request observers. Keep the account signed in.
+- **Status:** passed on 2026-11-12. The root, Settings, and legacy `/login`
+  footers were empty. The current `/auth/login` layout had no footer and served
+  Welcome with HTTP 200. Legacy `/login` returned HTTP 404 and Page not found.
+  Settings export and file selection controls were enabled. Native screenshots
+  were inspected. The PWA footer slot and update source were unchanged; no
+  active prompt or worker was present in development. Update lifecycle remains
+  QA-070. The user confirmed interacting during the first login visit, which
+  included authorize/callback requests. A separate second visit stayed on the
+  login page without another OAuth flow. Do not classify the first interval as
+  exclusive automation or an automatic-login defect. The original subject, all
+  seven workspace sections, route, and viewport were preserved. Owned observers
+  were removed. Existing screenshot-related CSP warnings remain outside this
+  footer acceptance. See `results.json`, `source-preservation.json`, and
+  `review-contact-sheet.png` in the evidence path.
 
 ### [ ] QA-136 — P1 — Daily summary hierarchy and responsive values
 
@@ -6539,3 +6560,61 @@ database changes are not applicable because these contracts do not change.
 
 Coverage: shared destructive alert foreground regression → QA-219. The broader
 keyboard, viewport, screen-reader, and timer-announcement matrix remains QA-021.
+
+### [x] QA-220 — P1 — Unverified account errors expose recovery
+
+- **Purpose:** Do not present Log in as the recovery action when account
+  verification has failed. Show an accessible error and retry the existing
+  account check without sign-in, sign-out, or workspace replacement.
+- **Prerequisites:** Existing main project tab at `http://127.0.0.1:13001/`.
+  Preserve the session, both workspaces, timer, viewport, and servers. Use the
+  naturally observed failed verification state; do not inject a failure.
+- **Inputs:** Actual controller status `error`, unknown user, and message
+  `The account request could not be completed`. Independent authenticated
+  session/workspace reads are 200. Save the current server workspace privately.
+- **Steps:**
+  1. Record that the failed account state currently exposes Log in without an
+     alert or retry. Do not follow Log in or change the displayed guest data.
+  2. After the fix, inspect the same failed state at 1667×1257 and 320×800.
+     Check the alert, Retry account control, keyboard focus, and overflow.
+  3. Activate Retry account by keyboard. Observe its disabled/loading state.
+     Monitor method/path/status without bodies or credentials.
+  4. Confirm Account returns after successful session/workspace reads. Confirm
+     the subject is unchanged, no auth navigation occurs, and no mutation is
+     sent.
+  5. Open Settings and export through the normal UI. Compare all seven sections
+     with the private baseline. Restore viewport and the original root route.
+- **Expected results:** Failed unverified state shows an alert and Retry
+  account, not Log in. Loading shows a disabled Checking account control. Retry
+  uses the existing controller refresh workflow. Successful verification
+  restores the original account and workspace without reload or data change. A
+  verified guest retains its existing Log in branch; signed-in account menu
+  behavior is unchanged. No new retry loop or credential flow is added.
+- **Evidence:** Sanitized state, HTTP metadata, focus/geometry observations,
+  screenshots, and cleanup in `qa-artifacts/qa-account-recovery/`. Keep
+  baseline, subject, and export contents private. Include source review for the
+  unchanged verified-guest branch.
+- **Cleanup:** Remove only owned observers. Do not save, restore, sign out, or
+  change records. Restore media, viewport, and route. Keep the account signed
+  in.
+- **Status:** passed on 2026-11-12 for source commit `44a630d`. Before the fix,
+  failed verification showed Log in without an alert or retry despite
+  authenticated reads returning 200. After the fix, the natural failed state
+  showed an accessible alert, Retry account, visible keyboard focus, and no
+  overflow at 1667 and 320 pixels. A second natural failure exercised the final
+  stable event callback: keyboard Enter showed disabled Checking account, then
+  only GET `/api/session` and GET `/api/workspace`, both 200. Account returned
+  with no alert or login link. No auth flow or mutation occurred during that
+  retry. Source review confirmed the unchanged verified-guest branch and
+  existing controller workflow. Final server and actual UI export matched all
+  seven private baseline sections; subject, idle timer, cycle count, route,
+  viewport, and saved state were retained. Owned observers and capture hooks
+  were removed. Root typecheck, lint, format check, and web build passed. Doctor
+  scanned all 101 files with no skips or new diagnostics; its existing 16 errors
+  and 22 warnings remain. Initial lint failures were fixed without suppression.
+  See `final-natural-error.json`, `final-recovery.json`,
+  `final-section-equality.json`, `final-cleanup.json`, and `checks/` in the
+  evidence path. This does not establish a fix for the transient HTTP 503.
+
+Coverage: failed account verification and recovery affordance → QA-220. Broader
+account action, conflict, and cross-identity coverage remains QA-202.
