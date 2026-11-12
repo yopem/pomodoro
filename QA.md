@@ -21,10 +21,15 @@ removed; evidence remains local. Real account tests still need genuine sign-ins.
 No authenticated identity was fabricated. See `docs/qa-isolated-profiles.md` and
 `qa-artifacts/qa-isolated-setup/guest-profile-cleanup.json`.
 
-The current account pass uses the signed-in main browser only. The extra account
-QA browsers were stopped and removed at the user's request. Do not apply
-controlled failures or restore a workspace in this profile. A second identity is
-still required for cross-account cases.
+The current account pass uses the signed-in main browser. The extra account QA
+browsers were stopped and removed at the user's request. Do not apply controlled
+failures or restore the protected signed-in workspace. The user later approved a
+new, verified-empty guest origin in the same existing tab. Controlled failures
+and backup restores may use only that owned guest origin. Do not copy account
+cookies or data. Do not create another tab, browser, profile, agent, or server.
+The user is asleep and cannot sign in. Do not ask questions, log out, switch
+accounts, or start a login flow. Cross-account cases still need a second real
+identity and remain blocked under these limits.
 
 ## Account-first QA authorization
 
@@ -34,10 +39,10 @@ with cleanup limited to those records. This approval replaces the earlier
 runtime-target blocker below. It does not approve production access, clearing
 existing data, changing credentials, or replacing running servers.
 
-Keep the current servers. Use one browser owner per profile. Preserve account
-and guest records and settings. Complete account cases and cleanup before normal
-UI sign-out and guest cases. Cross-account cases still need a second real
-identity. Record each result only after its evidence is inspected.
+Keep the current servers and one browser owner. Preserve account and guest
+records and settings. Do not sign out. Use the approved separate guest origin
+for guest checks, and keep the protected account session intact. Record each
+result only after its evidence is inspected.
 
 Current reports: `docs/qa-account-first-browser.md` and
 `docs/qa-approved-api.md`. Evidence stays in ignored `qa-artifacts/`.
@@ -53,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 41 checked sections out of 200, including historical passes. The
+Current total: 41 checked sections out of 201, including historical passes. The
 Settings submit and backup-isolation cases passed; layout QA-216 remains
 pending. Retired cases are removed without renumbering the remaining cases.
 
@@ -4778,13 +4783,24 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   hydration outcomes in `qa-artifacts/account-settings/loading-results.json`.
 - **Cleanup:** release held script requests, unregister only the owned handler,
   restore emulation and keep the original tab and user session.
-- **Status:** partial after the backup layout change. The full loading pass at
-  697acd7 remains recorded in loading-results.json. The backup placeholder now
-  matches the stacked export/restore layout; repeat its visual and hydration
-  checks with QA-155 before treating that changed region as passed.
-  placeholders, single announcement, both themes, reduced motion and replacement
-  on hydration pass. Loading screenshots and loading-results.json inspected.
-  Existing inline-style CSP warning remains a separate open issue.
+- **Status:** blocked after a confirmed failure at `4c24fdb` on 2026-11-13. All
+  eight width/theme samples passed DOM structure, breakpoints, overflow,
+  keyboard, reduced motion, and guest hydration. Visual review found blank dark
+  Card shapes: Skeleton and Card both use `#111111`. Source commit `ff997cf`
+  uses the existing secondary token for QA-221. Root typecheck, lint, format,
+  and web build passed; Doctor has no new diagnostics, with its existing 16
+  errors and 22 warnings. The built CSS emits the new secondary class. Live
+  development SSR still serves the old muted class after HMR, while the client
+  expects the new class; hydration reports that difference. A bounded ordinary
+  source refresh did not clear it. Source bytes were restored. Listener
+  processes did not change. Do not restart the servers under current approval.
+  Repeat the visible post-fix matrix when SSR serves current source. Guest and
+  protected account exports matched all seven baselines, and the account remains
+  signed in with cycle 1/4. No record or preference changed. Before images and
+  checks are in the owned same-tab guest run. Preserve the historical `697acd7`
+  result. The exact screenshot stylesheet CSP hash matches the Playwriter
+  relay's nonce-free style, not application CSS. Keep its raw logs. This does
+  not classify the blob-worker warning or resolve transient HTTP 503.
 
 ### [x] QA-154 — P1 — Settings uses Yopem Select
 
@@ -6648,3 +6664,68 @@ keyboard, viewport, screen-reader, and timer-announcement matrix remains QA-021.
 
 Coverage: failed account verification and recovery affordance → QA-220. Broader
 account action, conflict, and cross-identity coverage remains QA-202.
+
+## Visible loading shapes in both themes
+
+Task: keep decorative loading shapes visible on Card and page surfaces. The
+shared source is `apps/web/src/components/ui/skeleton.tsx`. Its direct callers
+are `features/timer/components/timer-loading.tsx`,
+`features/reports/components/reports-loading.tsx`, and
+`features/settings/components/settings-loading.tsx` under `apps/web/src/`. Use
+the existing neutral surface token. Do not change global theme values, component
+dimensions, motion rules, ARIA, or data contracts.
+
+### [ ] QA-221 — P1 — Shared skeleton shapes remain visible
+
+- **Purpose:** Prevent dark placeholders from matching the Card background.
+  Cover all three direct loading renderers and the reduced-motion state.
+- **Prerequisites:** Shared setup and the approved same-tab guest origin. Verify
+  GET `/api/session` returns 200 with `user: null`. The actual UI backup must
+  contain zero tasks, projects, templates, and sessions. Keep the original
+  account cookie and workspace intact. Never sign out or start login.
+- **Inputs:** `/`, `/reports?period=week&page=1`, and `/settings`; 1440×900 and
+  320×900; light/dark schemes; normal/reduced motion. QA-153 also covers
+  Settings at 768 and 390 pixels. The original guest timer stays idle at 25:00.
+- **Steps:** 1. Save the loaded reference for each route, width, and scheme. 2.
+  Hold only its read-only client-entry script response in this tab, with a
+  bounded safety release. 3. Inspect placeholder and Card background colors.
+  Capture the visible shapes. 4. Inspect normal motion, then reduced motion
+  after a real animation frame. 5. Release the response, restore cache behavior,
+  and verify real content replaces the placeholders. 6. Export the guest backup
+  and compare all seven sections with baseline. Restore viewport and media.
+- **Expected results:** Skeleton uses the existing secondary surface token:
+  `#f3f4f6` in light and `#212121` in dark. Shapes remain visible against Card
+  surfaces in both motion modes. Decorative shapes have no contrast threshold
+  for interactive controls. Geometry, hidden-content semantics, loading status,
+  and real controls do not change. Normal shimmer remains 2 seconds and
+  infinite; reduced motion runs once for 0.01 milliseconds. No record, timer,
+  account, or preference change occurs.
+- **Evidence:** Save before/after screenshots, computed colors, geometry,
+  motion, source hashes, hydration results, and baseline equality in the owned
+  `qa-artifacts/qa-same-tab-guest-*/` run. Inspect each visual artifact. Keep
+  raw logs; classify only the exact hash proved in
+  `docs/qa-screenshot-csp-attribution.md` as a screenshot-tool diagnostic.
+- **Cleanup:** Release all held responses and remove only owned listeners and
+  capture hooks. Restore media and viewport. No data fixture is required. Before
+  returning to the protected origin, verify guest baseline equality. Verify the
+  original account owner and its seven baseline sections on return. Do not log
+  out or request credentials.
+- **Status:** blocked on 2026-11-13. The pre-fix dark screenshots are blank
+  inside Cards. Source commit `ff997cf` uses `--secondary` only in Skeleton.
+  Root typecheck, lint, format, and web build passed. Doctor scanned 101 files
+  with no skips or new diagnostics; the existing 16 errors and 22 warnings
+  remain. The built rule is `.x1ut2sa4{background-color:var(--secondary)}`. Live
+  SSR still sends its old muted class while client hydration expects the new
+  secondary class, so the post-fix visible matrix cannot pass on this stale
+  renderer. Ordinary HMR invalidation did not refresh it; no server was stopped
+  or restarted. Both guest and original account matched their seven-section
+  baselines. The original owner, idle 25:00 timer, cycle count, media, viewport,
+  and route were restored. All owned hooks were removed. See `checks/`,
+  `loading-before/`, `loading-after/`, `ssr-content-refresh.json`, and
+  `final-cleanup.json` in the current same-tab guest run. Complete the new
+  three-renderer matrix only when live SSR uses current source.
+
+Coverage: visible shared loading shapes → QA-221. Settings composition and
+breakpoints remain QA-153. Task-list edges remain QA-215. API, database,
+payment, queue, deployment, and authorization changes are not applicable to this
+color fix. Original session preservation still requires the cleanup check above.
