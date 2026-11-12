@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 41 checked sections out of 201, including historical passes. The
+Current total: 42 checked sections out of 201, including historical passes. The
 Settings submit and backup-isolation cases passed; layout QA-216 remains
 pending. Retired cases are removed without renumbering the remaining cases.
 
@@ -1964,7 +1964,7 @@ do not survive a full page reload, which can require a new conflict review.
 - **Cleanup:** Remove delay controls and restore isolated records and sessions.
 - **Status:** pending; browser and endpoint execution remain deferred.
 
-### [ ] QA-057 — P1 — Reject damaged backup encodings
+### [x] QA-057 — P1 — Reject damaged backup encodings
 
 - **Purpose:** Reject invalid UTF-8 before a restore confirmation can silently
   replace damaged bytes with a different valid character.
@@ -1981,10 +1981,26 @@ do not survive a full page reload, which can require a new conflict review.
   UTF-8 produces a read error before confirmation; no replacement character,
   workspace write, account save, or backup deletion occurs. Existing JSON,
   schema, owner, size, and confirmation guards still apply.
-- **Evidence:** Save input hashes, sanitized error screenshots, and before/after
-  workspace summaries in `qa-artifacts/QA-057/`.
+- **Evidence:** Input hashes, error screenshot, confirmation snapshots, durable
+  storage, exports, and assertions are in
+  `qa-artifacts/qa-same-tab-guest-o2moi9vj/backup-encoding/`.
 - **Cleanup:** Restore the baseline and remove only case-created files.
-- **Status:** pending; browser execution remains deferred until features end.
+- **Status:** passed 2026-11-12 UTC at `c950995` in the approved same-tab guest
+  origin. A UI-created task kept exact Japanese and emoji text after explicit
+  restores of the 1,158-byte UTF-8 file and its 1,161-byte BOM copy. The durable
+  workspace and actual UI exports matched the source. The 1,151-byte damaged
+  file showed `Backup must be a UTF-8 JSON file`, opened no confirmation, and
+  left all storage bytes unchanged. No guest HTTP mutation or auth request ran.
+  The original JSON, schema, size, and owner guard modules are unchanged; the
+  separate cross-owner fault matrix remains open in QA-161. Guest data and raw
+  storage matched their baselines after cleanup and reload. The protected
+  account kept the same owner and all seven server/UI baseline sections,
+  including completed focus count 1. The main tab is signed in and idle at 25:00
+  with its original viewport. All owned hooks and observers were removed. The
+  screenshot showed only the exact attributed Playwriter style hash. The
+  existing stale SSR warning remains open in QA-153 and QA-221. See
+  `runtime-assertions.json`, `guest-cleanup.json`, and `final-cleanup.json` in
+  the evidence directory. Private JSON stays mode 0600.
 
 ### [ ] QA-058 — P0 — Do not acknowledge an uncommitted recovery fence
 
