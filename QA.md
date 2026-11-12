@@ -1,10 +1,9 @@
 # Web application QA
 
-Current tooling policy: remove the custom snapshot checker and Bun pinning, not
-Lefthook or Turbo. Keep their requirements in AGENTS.md. QA-062–065, QA-109 and
-QA-120 retain historical evidence only; their former snapshot/pin acceptance
-criteria no longer apply. They are not new passes. QA-121 covers CI's three
-checks; QA-123 covers the requested removal.
+Current tooling policy keeps Lefthook and Turbo. The custom snapshot checker,
+fixed Bun versions, and Bun revision gates must remain removed. QA-121 covers
+CI's three checks. QA-123 covers the removal checks; QA-125 covers the current
+hooks and Turbo tasks.
 
 ## Account-first QA authorization
 
@@ -33,9 +32,9 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 32 checked sections out of 205, including historical passes. The
+Current total: 31 checked sections out of 198, including historical passes. The
 Settings submit and backup-isolation cases passed; layout QA-216 remains
-pending. Six obsolete snapshot/pin cases are not new passes.
+pending. Retired cases are removed without renumbering the remaining cases.
 
 QA-036 static source-contract review passed at `9bf3224`; source-level contrast
 and scanner limitations remain separate findings under QA-021 and QA-166.
@@ -59,7 +58,7 @@ and confirmed a signed-in browser session.
   agent. Browser mutation cases need a safe target and exclusive control.
 - API and browser cases remain unchecked. A signed-in session does not prove
   cross-account, recovery, or persistence behavior. Historical checks remain
-  historical. Obsolete snapshot and exact-pin cases are not new passes.
+  historical.
 
 Inspected safety reports: `docs/qa-resumed-api.md` and
 `docs/qa-resumed-browser.md`. These are ignored local work notes. No source
@@ -95,10 +94,9 @@ Inspected evidence: `qa-artifacts/qa-resumed-config/`,
 reports: `docs/qa-resumed-config.md` and `docs/qa-resumed-tooling.md`. No
 whole-project test suite ran.
 
-Handoff: 202 case sections; 20 checked, including historical results; 176
-applicable cases remain open: 43 P0, 117 P1, and 16 P2. Six obsolete cases
-remain historical, not passes. The exact pending IDs and priorities are in
-`docs/qa-resumed-progress.md` and `docs/qa-resumed-pending.json`. Native
+The earlier handoff recorded 20 checked cases at the stated revision. Current
+counts are at the start of this file. The exact pending IDs and priorities are
+in `docs/qa-resumed-progress.md` and `docs/qa-resumed-pending.json`. Native
 `bun fmt --no-script --check QA.md` and `git diff --check` passed after this
 update. Root source checks were not rerun because no source changed; the
 exact-revision hosted checks passed as recorded under QA-121.
@@ -310,7 +308,6 @@ actual result, and evidence path when a case runs.
 | Requirement or workflow                              | Pending or historical coverage                 |
 | ---------------------------------------------------- | ---------------------------------------------- |
 | Native tooling and required plugin support           | QA-001; historical compatibility result QA-002 |
-| Isolated staged and actual-origin push snapshots     | QA-062, QA-063, QA-064, QA-065                 |
 | UI, StyleX, framework setup and component contracts  | QA-003, QA-021, QA-024, QA-036                 |
 | Timer completion, persistence and fractional timing  | QA-006–008, QA-027, QA-038–043                 |
 | Tasks, ordering, notes and finish estimates          | QA-009, QA-046, QA-050                         |
@@ -2030,116 +2027,6 @@ do not survive a full page reload, which can require a new conflict review.
   processes.
 - **Status:** pending; build, browser, and HTTP execution remain deferred.
 
-### [ ] QA-062 — P1 — Commit checks use only the staged snapshot
-
-- **Purpose:** Make commit checks inspect the exact staged tree and preserve
-  unrelated worktree, index, and untracked content.
-- **Prerequisites:** Pinned tooling and approval for the isolated native check
-  pass. Any deliberate failure fixtures require separate approval. No app,
-  database, browser, build, or test runner is needed.
-- **Inputs:** The actual staged tree ID; tracked configuration and lockfiles;
-  independently recorded index/worktree/untracked hashes. For a later approved
-  isolation regression, use staged and unstaged variants of one local fixture.
-- **Steps:** 1. Inspect `lefthook.yml` and its actual snapshot runner. 2. Record
-  input hashes. 3. Run the documented native staged-snapshot check. 4. Inspect
-  archived source, dependency workspace links, complete owning/dependent type
-  coverage, Rust checks, and cleanup. 5. Compare original hashes. Run deliberate
-  opposing staged/worktree variants only after fixture approval.
-- **Expected results:** Results belong to the staged tree, not dirty worktree
-  sources or borrowed workspace symlinks. Required configuration receives
-  explicit coverage. Native checks do not skip unsupported source silently.
-  Original content remains unchanged and temporary snapshots are removed after
-  success, failure, or ordinary SIGINT/SIGTERM. Owned check process groups stop
-  before cleanup. Hard-kill recovery is not an automatic cleanup guarantee.
-- **Evidence:** Save sanitized tree IDs, logs, dependency-link targets, and hash
-  comparisons in `qa-artifacts/QA-062/`.
-- **Cleanup:** Remove only owned temporary snapshots and approved fixtures.
-- **Status:** pending full acceptance after repair `7c21a64`. Earlier installed
-  SIGINT/SIGTERM runs failed; retain `docs/hook-signals-qa.md` as that evidence.
-  The final immutable-fixture rerun recorded SIGINT exit 1 and no observed owned
-  process/temp entries by 1.401 seconds. SIGTERM outer exit was -15 at 0.037
-  seconds; the surviving owner exited 1 at 1.363 seconds, with cleanup observed
-  by 1.601 seconds. Fixture index/worktree/untracked bytes matched. See
-  `qa-artifacts/QA-109/final-rerun/signal-evidence/` and
-  `docs/final-hook-owner-qa.md`. Original script hashes match the repair;
-  fixtures used recorded HEAD plus those overlays. Exact ordering between
-  process samples and SIGINT owner status remain unproven, so this case is not
-  checked off. Later actual project commits passed normal isolated gates.
-
-### [ ] QA-063 — P1 — Push checks cover each actual origin tip
-
-- **Purpose:** Check distinct commit tips sent to the configured origin,
-  including new branches and tags, instead of checking the working tree.
-- **Prerequisites:** Pinned tooling. Explicit approval for disposable Git
-  remotes and transport fixtures before executing push-behavior regressions. No
-  real remote write or application service is authorized by this case.
-- **Inputs:** Actual pre-push remote/ref input; two distinct commit tips;
-  duplicate tips; a new branch; an annotated tag; a deletion; and an unsupported
-  input.
-- **Steps:** 1. Inspect the installed hook's real stdin/remote argument
-  mapping. 2. Confirm the runner resolves the configured origin and dereferences
-  commit tips without using a guessed branch or current HEAD. 3. After fixture
-  approval, exercise the listed inputs against only disposable local remotes. 4.
-  Inspect full snapshot coverage per unique tip, rejected unsupported inputs,
-  and unchanged original workspace hashes.
-- **Expected results:** Every distinct pushed origin commit gets a complete
-  isolated native gate, including new branches and tags. Duplicate commit tips
-  need one gate; deletions do not check a nonexistent tree. Ambiguous inputs and
-  unsupported coverage fail closed. No real origin is modified during QA.
-- **Evidence:** Save sanitized ref inputs, resolved commit/tree IDs, gate logs,
-  and unchanged input hashes in `qa-artifacts/QA-063/`.
-- **Cleanup:** Remove only approved local transport fixtures and snapshots.
-- **Status:** pending; snapshot source and the installed manager handoff are
-  present. Transport fixtures remain unapproved. Source review is not proof of
-  real multi-ref, tag, deletion, or interruption behavior.
-
-### [ ] QA-064 — P0 — Push metadata does not enter shell text or logs
-
-- **Purpose:** Keep remote credentials and shell syntax out of hook command
-  expansion and verbose tracing.
-- **Prerequisites:** Explicit approval for a disposable local hook-transport
-  fixture. Use the pinned manager and installed rc handoff. Never use a real
-  remote credential or perform a real network push for this case.
-- **Inputs:** `LEFTHOOK_VERBOSE=1`; raw remote name `origin`; the fake URL
-  `https://qa064:qa064-marker@example.invalid/$(printf qa064-evaluated)`; valid
-  ref stdin from the fixture's isolated commit. These marker values are not
-  credentials. Do not connect to this URL.
-- **Steps:** 1. Record the local fixture's files and sanitized marker. 2. Invoke
-  its installed pre-push hook with the synthetic raw arguments and ref stdin,
-  not a real transport. 3. Inspect hook output and generated child command
-  arguments, not the original Git protocol input. 4. Confirm the marker was
-  neither evaluated nor echoed and the intended origin commit still received the
-  complete snapshot gate.
-- **Expected results:** The rc stops tracing before exporting raw arguments,
-  clears those original positional arguments before Lefthook, and passes only
-  constant script arguments. No synthetic credential appears in hook logs or
-  command text; shell punctuation has no executable effect. Missing capture
-  fails closed rather than silently passing origin checks.
-- **Evidence:** Save redacted output, argument observations, and unchanged file
-  hashes in `qa-artifacts/QA-064/`.
-- **Cleanup:** Remove only the approved disposable fixture and its artifacts.
-- **Status:** pending; source guards are implemented, but no transport fixture
-  or credential-logging experiment has run.
-
-### [ ] QA-065 — P1 — Snapshot export never replaces a tracked file
-
-- **Purpose:** Fail closed when a tracked source file uses the reserved policy
-  path. Never validate replacement bytes that differ from the Git tree.
-- **Prerequisites:** Explicit fixture approval and a disposable local repository
-  with the real pinned tools. Do not add fixture files to this application.
-- **Inputs:** A staged root `.snapshot-policy.toml` containing
-  `sentinel = "qa065"`. Record its Git blob and worktree digest.
-- **Steps:** 1. Add the sentinel only in the approved disposable repository. 2.
-  Invoke its installed pre-commit gate. 3. Inspect the exit status, sentinel
-  digests, and temporary-directory cleanup.
-- **Expected results:** Exclusive file creation rejects the collision. The gate
-  fails rather than replacing the source with its derived policy. The original
-  staged and worktree contents remain unchanged. No success result is issued.
-- **Evidence:** Save sanitized output, object IDs, file hashes, and cleanup
-  observations under `qa-artifacts/QA-065/`.
-- **Cleanup:** Remove only the approved disposable fixture and artifacts.
-- **Status:** pending; no collision fixture has run.
-
 ### [ ] QA-066 — P1 — StyleX styles load under the development CSP
 
 - **Purpose:** Repair the observed browser-default interface without replacing
@@ -3412,63 +3299,6 @@ library or backend endpoint is authorized or needed for this feature.
     five synthetic database-only users and their dependents were removed;
     `qa-artifacts/QA-105/aggregate-cleanup.txt` records zero owned rows.
 
-### QA-109 — Private snapshot-owner channel fails closed
-
-- [ ] **P1 — Pending.** A worker must not start snapshot work without its live
-      owner and a valid invocation; loss of ownership must stop its owned work.
-  - **Purpose:** Cover the proposed surviving-process repair for QA-062,
-    including the startup interval before ordinary signal handlers can help.
-  - **Prerequisites:** Pinned Bun and installed Lefthook in an owned disposable
-    repository. Record hashes of the complete runner, worker, rc, and config.
-    Use the existing local hook fixture tools, no real remotes or user tree.
-    Inspect the final IPC protocol and cleanup grace before running the case.
-  - **Inputs:** Direct private-worker invocation without IPC; a dropped channel
-    before startup and before invocation; an invalid start message; a valid
-    staged invocation followed by ownership loss; and closed stdout/stderr while
-    a check is active. No credentials or real project input are needed.
-  - **Steps:**
-    1. Record the original fixture index/worktree/untracked byte hashes and the
-       owned temporary root. Start each input in its own fixture/process owner.
-    2. For rejected startup inputs inspect the exit code and temporary root. For
-       active ownership loss inspect the owner, command process groups, their
-       descendants, and snapshot paths before and after cleanup.
-    3. Close each output stream in separate runs. Preserve exit/output evidence
-       before removing only owned leftovers. Run actual installed SIGINT and
-       SIGTERM scenarios under QA-062 after these protocol checks.
-    4. Repeat normal staged/committed operation and QA-063–065 transport,
-       secret-output, and path-collision checks with the same runner hashes.
-  - **Expected results:** Invalid or lost startup ownership starts no gate or
-    snapshot. Active ownership or output loss fails the check and runs cleanup.
-    Owned command groups stop before temporary data is removed; no unrelated
-    process is signalled through a saved or reused PID. The owner keeps the
-    required lifetime until cleanup completes. The outer killed Lefthook may
-    return earlier; record that interval rather than claiming it waits. No raw
-    environment, remote URL, or invocation values enter diagnostics. Normal
-    success requires completed checks and cleanup, not an IPC disconnect.
-    Original bytes and actual origin-tip coverage remain unchanged.
-  - **Evidence:** Save sanitized protocol/exit/timing records, process identity
-    observations, protected byte hashes, and cleanup results under
-    `qa-artifacts/QA-109/`; reference QA-062–065 for installed-hook coverage.
-  - **Cleanup:** Stop only verified fixture-owned processes, remove their
-    disposable repositories and temporary roots, and retain inspected evidence.
-    Leave real project hooks, index, remotes, and services untouched by
-    fixtures.
-  - **Coverage:** Owner handshake → no orphan startup; IPC/output loss → failed
-    cleanup path; installed signals → actual lifecycle; ordinary execution → no
-    check bypass or content change.
-  - **Status:** Pending full acceptance. The surviving owner is implemented.
-    Earlier installed-hook SIGINT evidence found copied-index cleanup before an
-    owned group had stopped. The group-drain repair keeps detached group IDs
-    until signal-0 probes return `ESRCH`; it sends no further signals from
-    retained IDs. Probe errors or the five-second limit fail the check and
-    retain all temporary directories. Immutable ordinary, SIGINT and SIGTERM
-    fixtures passed the observed subcases in
-    `qa-artifacts/QA-109/group-drain-final/`. No sampled live group remained
-    after a temporary directory disappeared. Sampling does not prove the exact
-    syscall order. Probe-error injection, output-loss causality and
-    final-completion races remain pending. Zombie-only groups can cause safe
-    timeout and retained temporary files.
-
 ## Import marker ordering and recovery
 
 Task: preserve the original import journal until cache replacement, verified
@@ -3945,19 +3775,6 @@ not affected by this source-only change.
   emulation was cleared. Evidence: `qa-artifacts/QA-073/current-authenticated/`.
   Other dialog forms, keyboard combinations and viewport cases remain pending.
 
-## Installed-hook cleanup ordering regression
-
-- QA-062 and QA-109 remain failed for full acceptance. Immutable e03cb575
-  installed-hook SIGINT observation found the copied-index temp removed while
-  the recorded owned check process group was still live. The group later exited,
-  all observed resources cleaned up and protected bytes matched.
-- Evidence: `qa-artifacts/QA-109/current-causal/` and ignored report
-  `docs/hook-output-final-qa.md`. The native Bun process itself was not proven
-  live at that sample; the owned group-exit-before-any-temp-removal contract
-  nevertheless failed. A source repair and fresh causal rerun are required.
-- Output-write causality, worker SIGINT status and final-completion race were
-  not established. Prior partial signal successes do not override this failure.
-
 ### [x] QA-119 — P1 — Simultaneous new tasks converge across account tabs
 
 - **Purpose:** Investigate the observed uncertain-save review after two
@@ -3998,46 +3815,6 @@ not affected by this source-only change.
   the temporary peer was closed. Evidence is under
   `qa-artifacts/QA-119/current-authenticated/`. This does not establish the
   separately held-active-request QA-090 or every uncertainty branch.
-
-### [ ] QA-120 — P1 — Official project Bun revision is reproducible
-
-- **Purpose:** Resolve the mismatch between the declared official Bun package
-  and the revision of the previously tested host binary. The user approved a
-  project-only revision update on 2026-11-09, conditional on successful checks.
-- **Prerequisites:** Leave global Bun, shell profiles and system tools
-  unchanged. Use a new owned private cache and a clean committed archive. Read
-  registry integrity metadata and exact platform package before selecting bytes.
-- **Inputs:** Declared `bun@1.4.4-canary.20261104.1` and corresponding official
-  Linux x64 platform package. The observed published binary revision differs
-  from `a8fcd319b`; discover and record the full actual revision/checksums.
-- **Steps:**
-  1. Record the current global executable path, checksum, version and revision.
-  2. Verify the official package bytes against published integrity, extract only
-     into the private cache and run its version/revision commands.
-  3. With only subprocess PATH changed, execute the actual configured native
-     lint, format and workspace types, explicit ignored-config coverage, route
-     generation, production web build and required Rust static gates.
-  4. Recheck the global executable and profiles. Only after compatibility
-     passes, align the project pin, packaging recipe and documented bootstrap.
-  5. Rebuild from the committed pin and rerun relevant browser and installed
-     hook regressions; identify earlier evidence tested with the old runtime.
-- **Expected results:** The declared artifact installs exact verified bytes
-  reproducibly. No rules, hook checks or type safety are weakened. The global
-  installation and unrelated files remain unchanged. All required checks succeed
-  without warnings before adopting the candidate.
-- **Evidence:** `qa-artifacts/QA-120/`; record registry URLs/integrity, binary
-  checksums, exact revisions, sanitized gates and protected-file comparisons.
-- **Cleanup:** Retain the verified cache for approved project commands; remove
-  only disposable compatibility archives and owned failed candidates.
-- **Status:** Pending post-pin acceptance. Official registry/SRI, archive and
-  executable checks passed for b9f2ec363. Fresh source archive 5f78d042 with no
-  copied node_modules passed frozen installation, the real snapshot gate,
-  representative allowed/rejected policies and a production web build. Global
-  Bun and profile hashes stayed unchanged. Exact README bootstrap checks also
-  passed. Evidence: `qa-artifacts/QA-120/fresh-install-policy/` and
-  `docs/official-bun-clean-policy.md`. Project pin/container consumers now use
-  the verified artifact. Full Compiler semantics, post-pin browser/container
-  acceptance and the complete installed-hook regression set remain unproved.
 
 ### [x] QA-121 — P1 — CI runs lint, format checks and typechecks
 
@@ -4116,72 +3893,43 @@ not affected by this source-only change.
   and a supervised control have not run. Do not label this an OOM or an issuer
   failure without evidence.
 
-### [x] QA-123 — P1 — Remove snapshot hooks and Bun version locks
+### [ ] QA-123 — P1 — Keep snapshot helpers and Bun pins removed
 
-- **Purpose:** Follow the user's request: no custom snapshot system, Bun version
-  pin or revision gate; retain only lint, format checks and typechecks in CI.
-- **Prerequisites:** Clean initial Git status; installed native-capable canary.
-  Preserve global Bun, app processes, browser, data and user-managed Git hooks.
-- **Inputs:** Current installed canary, existing Bun lockfile and the official
-  setup-bun action with `bun-version: canary`. Do not install a global runtime.
+- **Purpose:** Keep the custom snapshot checker, fixed Bun version, and Bun
+  revision gate removed. Preserve Lefthook, Turbo, and the required static
+  checks.
+- **Prerequisites:** Record the source revision and Git status. Use the
+  installed native-capable Bun canary. Preserve global tools, running services,
+  user hooks, and all staged, unstaged, and untracked content.
+- **Inputs:** Root and workspace scripts, Bun configuration, Turbo tasks,
+  Lefthook configuration, the existing CI workflow, and container setup.
 - **Steps:**
-  1. Inspect and back up only this task's generated Lefthook pre-commit/pre-push
-     files, then remove them. Preserve any unrelated or custom hooks.
-  2. Remove the snapshot scripts/config/dependencies and script-only TS project.
-     Remove Bun metadata/package-manager pin and hardcoded container checks.
-  3. Verify native Bun workspace dispatch needs no version declaration; all four
-     existing workspace typechecks must still run.
-  4. Parse CI YAML and shell blocks. Inspect that setup selects canary and the
-     only check steps are Typecheck, Lint and Format check. Preserve strict
-     rules, zero-warning lint, nonwriting formats and Rust checks.
-  5. Run available static checks with the unchanged installed Bun. Search
-     maintained source/config/docs for active snapshot and Bun-pin references.
-     Do not push, start services, or run browser/database/build QA.
-- **Expected results:** Local commits/pushes no longer invoke the custom helper;
-  no fixed Bun version/revision is required. CI's quality rules remain intact.
-  No user files/data or global tools change; no new hook framework is added.
-- **Evidence:** `qa-artifacts/QA-123/`; preserve managed-hook backup, source
-  inspection, shell/YAML results and static command outputs. No credentials.
-- **Cleanup:** No app/data cleanup. Preserve user hooks and running services.
-- **Status:** Passed for the requested static-only removal on 2026-11-10.
-  Installed global a8 canary passed all four workspace lint, format and
-  typecheck scripts, explicit type-aware zero-warning source lint, full format,
-  CI YAML/shell assertions and synthetic-env Compose config. The global Bun hash
-  matches its original value. No running app, browser, data or service was
-  changed. The supported Turbo opt-out still recursed; native workspace dispatch
-  replaced it rather than restoring a version declaration. An initial
-  unsupported Compose CLI option was corrected before successful rendering.
-  Historical snapshot/pin evidence is not a pass for this configuration. Hosted
-  CI and dev/build launch remain unrun; see QA-121 and QA-124.
-
-User clarification supersedes the hook-removal/native-dispatch parts of this
-historical run. Retain Lefthook and Turbo; only fixed Bun settings and the
-custom snapshot checker should remain removed. See QA-125.
-
-### [ ] QA-124 — P1 — Native workspace development and build dispatch
-
-- **Purpose:** Preserve dev/build entrypoints after removing Turbo's runtime
-  declaration dependency. Static checks must still cover all four workspaces.
-- **Prerequisites:** Requested later launch/build approval; stop or reuse
-  existing owned development services first. Preserve the user's current manual
-  session.
-- **Inputs:** Existing root scripts, the installed Bun and the four workspaces.
-- **Steps:**
-  1. Inspect that dev uses native parallel workspace dispatch and build uses
-     native workspace dispatch, skipping only workspaces without those scripts.
-  2. In a separately approved run, use `bun run dev` from the repository root;
-     verify web/API start on their configured ports and stop cleanly together.
-  3. In a separately approved build run, use `bun run build`; verify both
-     existing application builds finish and their outputs remain usable.
-- **Expected results:** Existing names and leaf commands remain unchanged, with
-  no recursive root task, version gate, added helper or project Git hooks.
-- **Evidence:** `qa-artifacts/QA-124/`; command logs, artifact revision and
-  owned process cleanup. Current static-only run must not be reported as launch
-  proof.
-- **Cleanup:** Stop only processes explicitly started for the approved case.
-- **Status:** Superseded. The user requires Turbo; native root task dispatch was
-  an overly broad change and is restored under QA-125. No dev/build launch is
-  needed to accept removal of exact Bun pins.
+  1. Inspect that Lefthook remains installed and calls the required native lint,
+     nonwriting format, typecheck, and Rust checks. Do not remove its hooks.
+  2. Inspect that custom snapshot scripts, configuration, dependencies, and the
+     script-only TypeScript project remain absent. Confirm no exact Bun version
+     or revision gate is required by scripts, hooks, CI, or containers.
+  3. Inspect that root scripts retain Turbo and all four owning workspaces keep
+     native leaf checks. Confirm that no leaf calls its root task recursively.
+  4. Parse the existing CI YAML and shell blocks. Confirm canary setup and only
+     lint, format checks, and typechecks after setup. Keep type-aware
+     zero-warning lint, strict types, nonwriting formats, and Rust checks.
+  5. Run the existing static checks. Record exact commands and results without
+     starting services, changing global tools, pushing, or running a deployment.
+- **Expected results:** The custom snapshot helper and exact Bun gate stay
+  absent. Lefthook and Turbo remain. Required check coverage and failure
+  behavior remain intact. No user content, app data, credentials, or running
+  service changes.
+- **Evidence:** Keep sanitized source inspection, YAML/shell results, command
+  outputs, and protected-file comparisons under `qa-artifacts/QA-123/`.
+- **Cleanup:** No app or data cleanup. Preserve user hooks and running services.
+- **Status:** reopened on 2026-11-12 for the current retained-Lefthook/Turbo
+  policy. The 2026-11-10 result remains historical evidence for removing the
+  snapshot helper and exact Bun pin. Its hook-removal and native-root-dispatch
+  instructions are retired, not current acceptance. Recent root checks and four
+  commits passed their applicable hooks, but complete current-policy inspection
+  must be recorded before checking this case again. QA-125 covers the related
+  hook and Turbo regression checks.
 
 ### [x] QA-125 — P1 — Retain Turbo and Lefthook without Bun pins
 
