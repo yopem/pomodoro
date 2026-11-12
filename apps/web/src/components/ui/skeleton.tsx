@@ -18,7 +18,7 @@ const styles = stylex.create({
     animationName: skeleton,
     animationTimingFunction: "linear",
     backgroundAttachment: "fixed",
-    backgroundColor: tokens["--muted"],
+    backgroundColor: tokens["--secondary"],
     backgroundImage:
       "linear-gradient(120deg, transparent 40%, color-mix(in oklab, var(--foreground) 4%, transparent), transparent 60%)",
     backgroundPosition: "0 0",
