@@ -53,7 +53,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 39 checked sections out of 200, including historical passes. The
+Current total: 40 checked sections out of 200, including historical passes. The
 Settings submit and backup-isolation cases passed; layout QA-216 remains
 pending. Retired cases are removed without renumbering the remaining cases.
 
@@ -4804,7 +4804,7 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   PUT 200 and remote read. Evidence: select-results.json and
   select-320-final/light.png.
 
-### [ ] QA-155 — P1 — Backup file selection panel
+### [x] QA-155 — P1 — Backup file selection panel
 
 - **Purpose:** replace the raw file input with a clear, accessible selection
   panel. Keep preflight checks and the separate restore confirmation.
@@ -4829,10 +4829,31 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   `qa-artifacts/account-settings/upload-results.json`.
 - **Cleanup:** remove the selected file, close only the owned confirmation,
   restore emulation and keep the original session and workspace unchanged.
-- **Status:** pending. Final production build passes with no warnings or errors.
-  Source review, scoped lint, format and all web typechecks pass. Native picker
-  cancellation needs user observation if Chrome automation cannot inspect the
-  operating-system picker.
+- **Status:** passed on 2026-11-12 for `fec5fe8` and `675d1a9`. Source hashes
+  and checked artifacts are in the report. Evidence is in
+  `qa-artifacts/account-settings/qa155-main-mfk434er/`. At `50c7d65`, Remove
+  focused the chooser before a select update disabled it and caused blur. The
+  working-tree fix waits for the empty, enabled chooser. Correlated before/after
+  traces and repeated desktop/320px removals prove focus return without
+  initial-mount or normal-selection focus theft. The old 246px recovery button
+  also exceeded its panel at 320px. The visible label is now Recover; its full
+  accessible name, handler, guard, and confirmation stay the same. Inspected
+  light/dark screenshots and geometry show no document, panel, or filename
+  overflow. Valid review/Cancel, malformed JSON rejection, same-file selection,
+  labels, size/help text, single-file JSON constraints, and all six pending
+  disabled controls passed. No replacement was confirmed and no workspace write
+  ran. The user reported OS pointer Cancel/keyboard Escape and focus return, but
+  DOM events did not record those manual actions. Separate documented page-level
+  Chrome cancellation tests produced trusted cancel events for pointer/Enter
+  activation, retained chooser focus, and changed no selection. Do not describe
+  these protocol tests as automation of the OS dialog buttons. Final server and
+  actual UI exports equal the private baseline in all seven sections. Same
+  subject, idle timer/cycle, settings, viewport, media, route, title, and hooks
+  were preserved or restored; interception was disabled. Targeted type-aware
+  lint and full current root typecheck, lint, format, and web build passed.
+  Doctor scanned 101 files with no skips or new diagnostics; the existing 16
+  errors and 22 warnings remain. This is not a clean scan. Both source commits
+  passed the enabled pre-commit checks.
 
 ## Select and calendar replacement
 
