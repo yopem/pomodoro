@@ -435,7 +435,7 @@ export function SettingsForm({
                       <Text variant="label">Workspace preferences</Text>
                       <output aria-live="polite">{message}</output>
                     </Stack>
-                    <HStack>
+                    <HStack layout="actions">
                       {changedElsewhere && (
                         <Button
                           type="button"
