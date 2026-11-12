@@ -53,7 +53,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 40 checked sections out of 200, including historical passes. The
+Current total: 41 checked sections out of 200, including historical passes. The
 Settings submit and backup-isolation cases passed; layout QA-216 remains
 pending. Retired cases are removed without renumbering the remaining cases.
 
@@ -4652,7 +4652,7 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   original focus value and signed-in account. Valid replacement and owner-race
   tests remain QA-144.
 
-### [ ] QA-149 — P1 — Numeric Settings draft boundaries
+### [x] QA-149 — P1 — Numeric Settings draft boundaries
 
 - **Purpose:** finish numeric validation checks without writing preferences.
 - **Prerequisites:** existing Settings tab; record the original focus value.
@@ -4665,9 +4665,18 @@ skill gate, screen-reader pass or destructive backup/conflict run is claimed.
   show errors. Invalid submits do not write. Every error is connected through
   aria-describedby; the first invalid field receives focus.
 - **Evidence:** sanitized validation flags/errors, focused control IDs and
-  no-write count in `qa-artifacts/account-settings/numeric-results.json`.
-- **Cleanup:** restore original draft, reload and remove the response listener.
-- **Status:** pending. This case does not submit valid boundary changes.
+  no-write count in
+  `qa-artifacts/account-settings/qa149-main-bwfw4sj_/results.json`.
+- **Cleanup:** restore original draft, reload and remove the owned request
+  listener.
+- **Status:** passed on 2026-11-12 at `1643e8a`. Values 1 and 180 stayed valid;
+  0, 181, empty and 1.5 showed the linked error. All four invalid button submits
+  returned focus to Focus minutes with zero workspace writes. Valid values were
+  never submitted. The original 25 was restored without saving. Reload hit the
+  existing intermittent 503; Retry account recovered the same owner and
+  persisted 25. Fresh server and actual UI exports equal baseline in all seven
+  sections. Original route/viewport and idle timer are intact; hooks and the
+  request listener are removed. Prior numeric evidence is unchanged.
 
 ### [x] QA-150 — P1 — Valid backup review and cancellation
 
