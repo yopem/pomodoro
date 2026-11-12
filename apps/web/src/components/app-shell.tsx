@@ -136,6 +136,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </HStack>
         </Container>
       </Box>
+      {state.user === null && state.error && state.error !== snapshot.error && (
+        <Container variant="navigation">
+          <Text role="alert" tone="destructive">
+            {state.error}
+          </Text>
+        </Container>
+      )}
       {snapshot.error && <Text role="alert">{snapshot.error}</Text>}
       {snapshot.storageWarning && (
         <Box render={<output>{snapshot.storageWarning}</output>} />

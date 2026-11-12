@@ -120,7 +120,24 @@ export function AccountControls({
 }) {
   const focus = useFocusSnapshot((value) => value)
 
-  if (state.user === null || focus.owner.identity === null) {
+  const retryAccount = useEventCallback(() => {
+    void controller.refresh()
+  })
+
+  const accountReady =
+    state.user !== null && state.user.id === focus.owner.identity
+
+  const checking = state.status === "loading"
+
+  if (state.status !== "guest" && (!accountReady || checking)) {
+    return (
+      <Button variant="outline" loading={checking} onClick={retryAccount}>
+        {checking ? "Checking account" : "Retry account"}
+      </Button>
+    )
+  }
+
+  if (!accountReady) {
     return (
       <Button variant="outline" render={<Link to="/auth/login" />}>
         Log in
