@@ -21,6 +21,11 @@ removed; evidence remains local. Real account tests still need genuine sign-ins.
 No authenticated identity was fabricated. See `docs/qa-isolated-profiles.md` and
 `qa-artifacts/qa-isolated-setup/guest-profile-cleanup.json`.
 
+The current account pass uses the signed-in main browser only. The extra account
+QA browsers were stopped and removed at the user's request. Do not apply
+controlled failures or restore a workspace in this profile. A second identity is
+still required for cross-account cases.
+
 ## Account-first QA authorization
 
 The user requested signed-in account QA first, then guest QA. The user confirmed
@@ -48,7 +53,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 36 checked sections out of 198, including historical passes. The
+Current total: 37 checked sections out of 199, including historical passes. The
 Settings submit and backup-isolation cases passed; layout QA-216 remains
 pending. Retired cases are removed without renumbering the remaining cases.
 
@@ -802,11 +807,15 @@ passed.
   in `qa-artifacts/QA-021/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending. Static review at `9bf3224` found a declared dark-theme
-  destructive-text pair of `#dc2626` on Card `#111111`, approximately 3.91:1.
-  This is below 4.5:1 for normal text; computed browser paint remains to be
-  checked. Source and calculation evidence: `docs/qa-design-contract.md`,
-  completion review. Do not treat visual inspection alone as contrast proof.
+- **Status:** partial. The dark destructive-text concern was reproduced in the
+  main browser on 2026-11-12. The invalid-backup alert had computed
+  `rgb(220, 38, 38)` on Card `rgb(17, 17, 17)`, or 3.91:1. The shared Text tone
+  now uses the existing destructive foreground token. QA-219 records 9.95:1 dark
+  and 6.47:1 light contrast, inspected screenshots, and unchanged account data.
+  The full keyboard, screen-reader, viewport, zoom, motion, and
+  timer-announcement matrix remains pending. Earlier source review remains in
+  `docs/qa-design-contract.md`; new evidence is under
+  `qa-artifacts/qa-main-settings-finish/`.
 
 ### [x] QA-022 — P1 — Offline OpenAPI generation matches frontend calls
 
@@ -6383,10 +6392,19 @@ database, permission, or backup-format change is planned.
   `ssr-after-user-restart.json` and `fresh-reload-after-restart.json` in the
   parent artifact directory. A bounded read-delay attempt did not capture the
   target request and coincided with 503 responses; do not count it as a passed
-  throttled comparison. Complete loading geometry and error/reload-action
-  placement checks remain pending. QA-170 retains the wider header matrix.
-  Current root lint, format, and typechecks passed. Notes:
-  `docs/qa-settings-save-runtime-finish.md`.
+  throttled comparison. A later real client-entry HTTP response was held through
+  CDP Fetch at 1440×900. The actual SSR skeleton had five Cards before Save.
+  Backup ended at y=1042; Save began at y=1066. Both were 976px wide, and the
+  page had no horizontal overflow. The bottom screenshot was inspected. The
+  response was released, cache bypass and the listener were removed, and
+  signed-in Settings returned. This closes the held-loading geometry gap. Full
+  save-error placement remains pending; do not inject failures in the protected
+  main profile. Earlier conflict/Reload settings placement remains partial
+  evidence. One inline-style CSP message between capture and resume has no
+  confirmed source. QA-170 retains the wider header matrix. New evidence:
+  `qa-artifacts/qa-main-settings-finish/held-loading-1440.json` and
+  `held-loading-bottom.png`. Root lint, format, typechecks, and the web build
+  passed after the Text contrast fix. Notes: `docs/qa-main-settings-finish.md`.
 
 ### [x] QA-217 — P1 — Bottom save submits the preference form
 
@@ -6466,3 +6484,58 @@ Coverage: final save placement and loading → QA-216; save ownership, validatio
 persistence and feedback → QA-217; backup form isolation → QA-218. Existing
 appearance/account regression coverage remains QA-202. CI, auth, API, and
 database changes are not applicable because these contracts do not change.
+
+### [x] QA-219 — P1 — Destructive alert text has readable contrast
+
+- **Purpose:** Cover the shared destructive Text tone used by account, task,
+  timer, project, template, report, settings, and confirmation errors. Use the
+  existing destructive foreground token, not the destructive background token.
+- **Prerequisites:** Signed-in main browser at
+  `http://127.0.0.1:13001/settings`. Save a private baseline through Export
+  backup. Keep the current servers and account unchanged. The saved theme is
+  System. No save or restore is needed.
+- **Inputs:** A local file named `invalid-json.json` with the exact text
+  `{invalid`; light and dark system-color emulation; 1440×900 viewport.
+- **Steps:**
+  1. Record computed alert and Card colors before the fix. Choose the invalid
+     file with Choose file, then select Import backup. Do not confirm a restore.
+  2. Confirm `Backup is not valid JSON` appears as an alert. Record its font
+     size, weight, opacity, color, and the Card background with browser tools.
+  3. After the fix, repeat the color check in light and dark system-color
+     emulation. Calculate WCAG contrast from the computed RGB values.
+  4. Confirm keyboard access to the alert's nearby controls. Inspect a focused
+     screenshot. Check that no mutating API request occurs.
+  5. Reload to clear the local file selection. Export again and compare every
+     baseline section. Restore system-color emulation, viewport, and route.
+- **Expected results:** The 16px normal-weight alert has at least 4.5:1 contrast
+  against its Card in both themes. It retains its alert role and error text. The
+  invalid input produces no confirmation dialog, workspace write, or saved
+  preference change. All seven final backup sections equal the baseline.
+- **Evidence:** `qa-artifacts/qa-main-settings-finish/contrast-*.json`,
+  inspected screenshots, contrast calculations, request counts, and cleanup
+  comparison. Keep backup contents private and uncommitted.
+- **Cleanup:** Clear the file selection by normal navigation or reload. Remove
+  only this case's listeners and capture wrappers. Do not save, restore, sign
+  out, or change existing records. Restore viewport and media emulation.
+- **Status:** passed on 2026-11-12 for the source in commit `dc4c51d`. Before
+  the fix, the actual alert measured 3.91:1 in dark mode. After the fix, it
+  measured 9.9491:1 dark and 6.4700:1 light. The browser reported 16px normal
+  text at full opacity. Inspected screenshot glyph colors match computed
+  foreground colors. Tab reached the next backup control with a visible focus
+  ring. The alert role and text remained intact. No confirmation dialog opened
+  and no mutating API request occurred. The local selection and validation draft
+  were cleared. A normal reload recovered from an initial transient 503/guest
+  presentation; session and workspace then returned 200 and Account was visible.
+  The fresh final export matched all seven baseline sections, including the
+  existing idle timer and completed count of 1. Media, viewport 1667×1257, and
+  the original root route were restored. Owned listeners and Blob wrappers were
+  removed. Root lint, formatting, and all four workspace typechecks passed in
+  the hash-matched safe snapshot. The web production build passed. Doctor
+  scanned all 101 files with no skips and no new diagnostics; its existing 16
+  errors and 22 warnings remain, not a clean scan. Evidence:
+  `contrast-calculations.json`, `contrast-alert-*-after.json`, inspected
+  `contrast-*-after.png`, `contrast-keyboard-focus.txt`, `cleanup.json`, and
+  `checks/` under the artifact directory above.
+
+Coverage: shared destructive alert foreground regression → QA-219. The broader
+keyboard, viewport, screen-reader, and timer-announcement matrix remains QA-021.
