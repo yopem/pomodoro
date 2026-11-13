@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 49 checked sections out of 202, including historical passes.
+Current total: 52 checked sections out of 202, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -5223,7 +5223,7 @@ contracts, payments, migrations, and external integrations are unchanged.
 - **Cleanup:** Delete only isolated QA tasks, templates, and projects.
 - **Status:** pending.
 
-### [ ] QA-157 — P1 — Report filters and local date
+### [x] QA-157 — P1 — Report filters and local date
 
 - **Purpose:** Preserve report project and local date filtering and URL state.
 - **Prerequisites:** Current same-tab reports batch with its verified projects
@@ -5248,9 +5248,21 @@ contracts, payments, migrations, and external integrations are unchanged.
   screenshots in the batch path and `qa-artifacts/QA-157-filters.png`.
 - **Cleanup:** Use shared batch cleanup, then verify guest raw/UI and protected
   original-owner server/UI equality. Restore original page state.
-- **Status:** pending; fixture and expected totals are defined, not executed.
+- **Status:** passed on 2026-11-13 UTC at `1e41fbf`. Twelve actual
+  project/period states matched fixture IDs, local date ranges, controls, URL,
+  totals, active days, progress bars and paging. February 29 Day showed All 48,
+  QA green 11 and No project 37 minutes; All Week/Month/Year showed 69/60/69.
+  Actual calendar selection, March 1 navigation, reload and guarded browser
+  Back/Forward retained the expected state without a submit button. Whole raw
+  storage stayed byte-identical. All ten native-resolution review sheets were
+  inspected. See `qa157-project-period-matrix-assertions.json` and
+  `qa164-navigation-runtime-assertions.json` in
+  `qa-artifacts/qa-reports-dates/guest-6pmn8brb/`. Final guest UI/raw and
+  original protected-owner server/fresh-UI equality passed in all seven
+  sections; observers and helper redirection are removed. Existing skeleton
+  hydration differences remain separate under QA-153/QA-221.
 
-### [ ] QA-158 — P1 — Focus record date and project
+### [x] QA-158 — P1 — Focus record date and project
 
 - **Purpose:** Preserve focus record create and edit validation and assignment.
 - **Prerequisites:** Current same-tab reports batch; active QA green project.
@@ -5276,7 +5288,24 @@ contracts, payments, migrations, and external integrations are unchanged.
   `qa-artifacts/QA-158-session.png`.
 - **Cleanup:** Keep only the verified owned record for later batch cases, then
   run shared cleanup and protected original-owner return checks.
-- **Status:** pending; no valid or invalid create/edit run is claimed yet.
+- **Status:** passed on 2026-11-13 UTC at `1e41fbf`. The actual calendar and
+  form created the leap-day 25-minute QA green record. Clearing Date and
+  submitting retained the draft and exact raw storage, with zero observed
+  setItem calls. One `Invalid ISO date` node is linked by `aria-describedby`;
+  focus moves to the invalid Date button and its accessibility description
+  exposes that feedback. This is programmatic feedback evidence, not a spoken
+  screen-reader, alert or live-region claim. Real calendar Tab, Shift+PageUp and
+  PageUp navigation selected February 29 again. The valid No project edit
+  changed only project fields on the same ID. Actual reload retained all four
+  records and exact raw bytes, with no duplicate. Error and persisted-row
+  screenshots were inspected. The initial calendar focus guard sent no key from
+  the Previous Month button; its adapter correction is retained. See
+  `qa158-*-assertions.json` under
+  `qa-artifacts/qa-reports-dates/guest-6pmn8brb/`. Final original guest UI/raw
+  and protected original-owner server/fresh-UI equality passed in all seven
+  sections. Native Storage is restored, and all owned observers, timers and
+  helper redirection are removed. Known skeleton hydration differences and the
+  exact attributed tool screenshot CSP hash remain separate.
 
 ### [ ] QA-159 — P1 — CSV date range and options
 
@@ -5307,7 +5336,24 @@ contracts, payments, migrations, and external integrations are unchanged.
   `qa-artifacts/QA-159-export.csv` and `qa-artifacts/QA-159-validation.png`.
 - **Cleanup:** Remove export observers/wrappers and run shared guest/raw and
   protected-owner cleanup. Keep sanitized owned download evidence only.
-- **Status:** pending; new range/invalid-download runs have not started.
+- **Status:** partial on 2026-11-13 UTC at `1e41fbf`; keep unchecked. The actual
+  Hours/Tab/task-name UI export produced one native download event and a
+  1325-byte BOM-prefixed Blob. Strict parsing matched all 25 source rows, both
+  range endpoints, project/task/hour values, total 53/60 hours and the
+  apostrophe-neutralized formula title. All out-of-range records were absent.
+  Reversed, empty From and empty Through submissions each focused the exact
+  invalid control with linked visible feedback and produced zero new downloads
+  or Blob URLs. Cancel restored Download report focus; all raw data stayed
+  byte-identical. Feedback screenshots were inspected. See
+  `qa159-inclusive-tsv-assertions.json` and
+  `qa159-range-validation-assertions.json` under
+  `qa-artifacts/qa-reports-dates/guest-6pmn8brb/`. The root CSV artifact is
+  explicitly a UI Blob copy, not an OS download copy. Scoped owned-file probes
+  found no fresh OS file to byte-match, so step 2 remains unproven; no
+  application download defect or successful OS persistence is claimed. Do not
+  change global download settings or protections. Final original guest UI/raw
+  and protected-owner server/fresh-UI baseline equality passed; all export and
+  request observers, wrappers and helper redirection are removed.
 
 ### [ ] QA-160 — P2 — Popup interaction and responsive layout
 
@@ -5409,7 +5455,7 @@ QA-163 and QA-165; static tooling: QA-166.
 - **Cleanup:** remove isolated inputs and selection; keep sanitized evidence.
 - **Status:** pending.
 
-### [ ] QA-164 — P1 — Report filters synchronize with URL navigation
+### [x] QA-164 — P1 — Report filters synchronize with URL navigation
 
 - **Purpose:** Preserve immediately applied report filters, paging reset, and
   Back/Forward and direct-link synchronization.
@@ -5438,8 +5484,20 @@ QA-163 and QA-165; static tooling: QA-166.
   `qa-artifacts/QA-164-report-filters.{txt,png}`.
 - **Cleanup:** Run shared guest/raw and protected original-owner cleanup. Do not
   close the existing tab or change authentication.
-- **Status:** pending; real pagination fixture and exact expectations are
-  defined, but no new navigation run has started.
+- **Status:** passed on 2026-11-13 UTC at `1e41fbf`. Sixteen actual navigation
+  states matched source IDs, date/project/period controls, URL, totals, paging
+  and whole raw storage. February 29 covered all 24 unique records exactly once
+  as 20 plus 4, with correct disabled Previous/Next states. Independently
+  returning to page 2 before project, period and date changes confirmed each
+  accepted change resets page 1. Actual leap-boundary controls, reload, guarded
+  native Back/Forward and a captured QA-green Week direct link restored exact
+  state. The twelve project/period states also passed under QA-157. All ten
+  native-resolution review sheets were inspected. See
+  `qa164-navigation-runtime-assertions.json` and the representative root
+  artifacts. Final guest raw/UI and protected original-owner server/fresh-UI
+  equality passed in all seven sections, with no HTTP mutations or browser
+  authentication actions. All owned hooks and helper redirection are removed;
+  existing skeleton hydration differences remain QA-153/QA-221.
 
 ### [ ] QA-165 — P1 — Report filter keyboard and failure handling
 
