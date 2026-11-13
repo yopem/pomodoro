@@ -58,11 +58,11 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 46 checked sections out of 201, including historical passes.
+Current total: 47 checked sections out of 201, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
-and stale SSR class checks remain open under QA-153/QA-221. Of the 41 open P0
-cases, 39 need permissions or fixtures outside the current scope; QA-202 and
-QA-212 remain candidates for safe checks. Blocked cases stay unchecked. Retired
+and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
+need permissions or fixtures outside the current scope. The safe QA-202 and
+QA-212 checks passed with full cleanup. Blocked cases stay unchecked. Retired
 cases are removed without renumbering the remaining cases.
 
 QA-036 static source-contract review passed at `9bf3224`; source-level contrast
@@ -6004,31 +6004,91 @@ change does not alter them. Existing behavior cases remain applicable.
   existing user storage.
 - **Status:** pending.
 
-### [ ] QA-202 — P0 — Settings and account controls
+### [x] QA-202 — P0 — Settings and account controls
 
-- **Purpose:** Check the style refresh and regression behavior for /settings and
-  /auth/login.
-- **Prerequisites:** Shared refresh setup; preserve existing local data with an
-  existing backup before using an isolated workspace. Populated reports need a
-  completed isolated focus session. Account checks need an approved test
-  account; otherwise mark that part blocked.
-- **Inputs:** /settings and /auth/login; light and dark themes; safe example
-  records stated in the steps.
-- **Steps:** 1. Record the starting route, theme, viewport, and workspace. 2.
-  Record current settings. Change the focus color and theme, save, and reload.
-  Open backup import and cancel without choosing a file. Open account controls
-  and sign-in; do not exchange or replace workspace data. 3. Inspect browser
-  errors and save sanitized evidence.
+- **Purpose:** Check the style refresh and regression behavior for `/settings`
+  and `/auth/login`. Keep existing account and workspace data unchanged.
+- **Prerequisites:** Shared current setup; the same existing project tab; the
+  approved protected account and verified-empty owned guest origin. Use an
+  existing actual UI backup plus fresh session/workspace reads to confirm the
+  protected starting state. Keep its saved System theme unchanged. Stop if the
+  owner or data is unexpected. Capture a fresh guest UI/raw baseline before
+  changes. No populated report or timer completion is required for this case.
+- **Inputs:** `/settings`, `/`, and `/auth/login`; light/dark; guest viewports
+  1440×900 and 390×844. Guest defaults are focus Orange, short break Green, long
+  break Blue, theme System, and dark-while-running off. Set only focus color
+  Purple and theme Light, then Dark. Keep phase durations and other preferences
+  unchanged. Do not create records or start the timer.
+- **Steps:**
+  1. Record the starting route, title, viewport, media, settings, workspace,
+     runtime versions, and source revision. Privately verify the original
+     protected owner and seven baseline sections. Observe HTTP method/path
+     metadata without recording cookies, headers, or private query values.
+  2. On the protected origin, open only Account and Account details. Inspect
+     statuses and action labels in light/dark with temporary media emulation; do
+     not save an account preference. Mask the known name/ID before saving
+     snapshots. Save only action/status screenshot crops without private text.
+     Never activate Log out, sync, import, or account data actions. Close the
+     popups, restore media, and inspect unchanged settings and stored theme.
+  3. In the same tab, verify guest session 200 with `user: null` and no records.
+     Save fresh UI/raw baselines. Change focus to Purple and theme to Light,
+     save, reload, and inspect actual UI and durable preferences. Repeat with
+     Dark. Keep short Green and long Blue and inspect the three distinct phase
+     colors in Settings and idle timer views. Return to Focus without Start.
+  4. With no backup selected, open Choose file and cancel. Use the checked
+     QA-155 trusted protocol-cancel method, not an untrusted file-input change.
+     Inspect focus, no selection, and unchanged data. Record that suppressed
+     protocol cancellation is not OS Cancel-button automation. Always remove
+     interception, its bounded safety timer, and event listeners.
+  5. Open the guest `/auth/login` page in both themes and viewports. Inspect
+     Welcome, the readable login control, keyboard reachability, and overflow.
+     Do not activate Log in with Yopem or visit `/auth/authorize`, callback, or
+     logout endpoints. This opens the sign-in page only; actual OAuth exchange
+     remains in the separate blocked authentication cases.
+  6. Inspect browser errors and sanitized evidence. Use checked QA-220 for
+     natural unverified-account error/retry behavior and QA-219 for both-theme
+     error contrast, with current source hashes checked. Do not induce a fault
+     on the protected account. Preserve known SSR diagnostics separately.
 - **Expected results:** Saved preferences remain after reload. Phase colors
   remain distinct. Cancel does not change data. Account errors and actions stay
-  readable; no private data enters evidence.
-- **Evidence:** Save screenshots and action/result notes in
-  `qa-artifacts/QA-202/`. Inspect each result and record revision, environment,
-  and date before marking passed.
-- **Cleanup:** Remove only isolated records, restore recorded settings and
-  network controls, and stop only processes started for this case. Do not clear
-  existing user storage.
-- **Status:** pending.
+  readable. Login-page checks do not start authentication or exchange data. No
+  private name, subject, credential, or callback value enters shareable
+  evidence. No protected preference, workspace, or authentication is changed.
+- **Evidence:** Save and inspect sanitized snapshots, action/status crops,
+  settings/login screenshots, saved-value assertions, and method/path metadata
+  in `qa-artifacts/QA-202/`. Record revision, environment, date, and the reused
+  error/chooser evidence before marking passed. Keep private baseline files
+  local with mode 0600; never publish their account fields.
+- **Cleanup:** Restore guest preferences through the UI and the idle Focus
+  phase. Compare fresh actual UI export with all seven baseline sections before
+  exact raw cleanup. Remove only owned keys absent at baseline and verify UI/raw
+  equality after reload. Remove every scoped hook, observer, and interception.
+  Return to the protected original owner and verify server/UI seven-section
+  equality, count 1, idle timer, route, title, viewport, and original media. Do
+  not clear existing user storage, log out, or restart any process.
+- **Status:** passed on 2026-11-13 UTC at checkout `0062803`, Chrome 157, in the
+  shared current environment. Eight protected action/status crops in both themes
+  met 4.5:1 contrast; the minimum was 5.6844:1. Private name/ID text was masked,
+  and no private header screenshot was saved. Guest Purple and Light/Dark
+  preferences survived Save and reload with exact UI/durable equality. Short
+  Green and long Blue stayed unchanged. Twelve idle phase samples at both
+  widths/themes showed distinct colors, correct times, no overflow, and no timer
+  start or completion. Four login-page samples retained enabled keyboard-focused
+  controls without activation; login text met 16.2867:1 and focus indicators met
+  5.1686:1. Pointer and Enter produced trusted CDP-suppressed cancellation,
+  retained Choose file focus, and left selection and raw storage unchanged. This
+  is not OS Cancel-button automation. QA-219/QA-220 error evidence was reused
+  with exact source hashes checked. Known stale SSR diagnostics remain under
+  QA-153/QA-221; no clean SSR claim or server-binary revision claim is made.
+  Guest UI/raw baselines and protected original-owner server/UI seven-section
+  baselines matched after cleanup. Protected revision, count 1, idle 25:00, root
+  route, title, 1667×1257 viewport, media, and stored System theme stayed
+  unchanged. All scoped observers, hooks, chooser interception, and its safety
+  timer were removed. Private files have mode 0600; shareable text has no known
+  private name/subject. No HTTP mutation, authorize/callback/logout request,
+  account fault, sign-in, or backup replacement occurred. Evidence:
+  `qa-artifacts/QA-202/settings-account-f1g3em95/{runtime-assertions,final-cleanup,source-and-reused-checks}.json`
+  and its inspected `review/` sheets. Other authentication cases stay blocked.
 
 ### [ ] QA-203 — P1 — Keyboard and overlay presentation
 
