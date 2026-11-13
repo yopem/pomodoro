@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 45 checked sections out of 201, including historical passes.
+Current total: 46 checked sections out of 201, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. Of the 41 open P0
 cases, 39 need permissions or fixtures outside the current scope; QA-202 and
@@ -6398,38 +6398,94 @@ dependencies or styling policy are needed.
   were exercised. Complete the remaining 320/1440px task and theme matrix.
   QA-212 also remains unchecked.
 
-### [ ] QA-212 — P0 — Task menu safety and existing mutations
+### [x] QA-212 — P0 — Task menu safety and existing mutations
 
 - **Purpose:** Keep edit, completion, selection, move, delete, and cleanup
   safeguards while moving actions into menus.
 - **Prerequisites:** Shared browser setup and backup; only explicitly named QA
   tasks may be mutated. Before a bulk confirmation, inspect the full task list
   and stop if unrelated tasks are present.
-- **Inputs:** `QA-208 Timer probe — café`; a second isolated task named
-  `QA-212 Reorder probe`; a completed QA task; zero actual counts.
+- **Inputs:** `QA-208 Timer probe — café` and `QA-212 Reorder probe`, each with
+  estimate 1 and actual 0. Edit the first title to
+  `QA-208 Timer probe — café edited` and its note to `QA-212 editable note`. Add
+  the manual focus record `QA-212 Retained history`, 1 minute, no project, with
+  blank start/end times. Record the Date picker's default local date in the
+  input manifest before Save focus record; stop if it cannot be read. Complete
+  one QA task. Use the unrelated guest key `qa:task-menu:sentinel` with value
+  `QA212 keep this value`.
 - **Steps:**
-  1. Open the row menu and edit the QA task. Move the two QA tasks up/down and
-     inspect order. Toggle completion and selection on an isolated task.
-  2. Open task deletion, cancel, and inspect the unchanged task and history.
-  3. Open list cleanup actions. Check that unavailable completed/count cleanup
-     items are disabled. Open an available completed cleanup and cancel. Open
-     Clear all tasks and cancel.
-  4. Delete only an isolated task through confirmation. Inspect the list and
-     reports. Retain the existing owner and expected-workspace guard path.
+  1. Verify the exact approved guest origin and session 200 with `user: null`.
+     Save a fresh actual UI backup and exact raw-storage baseline. Require zero
+     existing records and an idle timer. Add the two tasks and use Reports → Add
+     focus time for the one-minute manual record. Do not start the timer.
+  2. Open the row menu and edit the first task. Move the two QA tasks up/down
+     and inspect IDs and order. Toggle completion and selection. Keep actual
+     counts zero and inspect the retained history after each action.
+  3. Open task deletion, cancel, and inspect the unchanged task and history.
+     Open list cleanup actions. Check that unavailable completed/count cleanup
+     items are disabled and keyboard activation makes no change. Complete one QA
+     task, open completed cleanup, and cancel. Inspect the full task list before
+     opening Clear all tasks, then cancel. Stop if any unrelated task is
+     present.
+  4. Prepare row deletion. On this disposable guest origin only, change the
+     captured task's persisted note to `QA-212 newer note` without a storage
+     event. Confirm and inspect the stale-target error and retained data. This
+     is an injected same-tab storage race, not a peer-tab or owner-switch test.
+     Reload only after saving its evidence.
+  5. Prepare deletion again. Deny only the guest primary localStorage write with
+     a bounded quota failure. Confirm, inspect visible failure feedback and
+     unchanged durable tasks/history, then restore the native API and remove its
+     safety timer. Reload and confirm a fresh deletion without the fault.
+     Inspect the exact removed ID, other task, history, timer, and unrelated
+     sentinel.
+  6. Keep source-owner checks intact. Record that cross-owner runtime cases
+     QA-034/QA-144/QA-161 remain blocked; do not forge identity state.
 - **Expected results:** Actions call the existing guarded workflows. Cancel does
   not change data. Disabled actions do not run. Reorder keeps all task records.
   A confirmed delete affects only its intended task. Task cleanup does not
-  remove focus history. Failed mutations keep their error feedback and do not
-  silently discard data.
+  remove focus history. A stale target is rejected before replacement. Failed
+  mutations keep readable feedback and durable data; a fresh retry works after
+  fault removal. No account mutation, authentication request, timer completion,
+  or unrelated storage change occurs.
 - **Evidence:** Save and inspect before/after snapshots, confirmations, and
   report counts in `qa-artifacts/QA-212/`. Record any guard check not run.
-- **Cleanup:** Remove only named QA tasks. Compare the final workspace with the
-  baseline; do not restore by replacing user storage.
-- **Status:** pending. Normal guest edit, reorder, selection, completion,
-  cancel, disabled cleanup, and confirmed single-task deletion checks passed.
-  Source review found unchanged action and guard logic. Error and race paths
-  were not forced. The final backup matches the baseline byte for byte. No
-  runtime authorization pass is claimed.
+- **Cleanup:** Delete only named QA tasks and the owned manual history record
+  through their UI confirmations. Compare a fresh actual UI export with all
+  seven baseline sections before raw cleanup; do not use a backup replacement to
+  hide a mutation result. Remove only this case's sentinel and generated guest
+  keys that were absent at baseline, then compare exact raw storage after
+  reload. Remove all scoped faults, routing, and observers. Return to the
+  original account origin and verify the original owner, seven-section server
+  and UI equality, idle timer, route, viewport, and media. Never log out.
+- **Status:** passed on 2026-11-13 at `eebad24` in the approved same-tab
+  disposable guest. Edit, both reorder directions, completion and selection kept
+  all seven expected sections, IDs, actual counts, idle timer, and the
+  one-minute history record. Row, completed-cleanup, and clear-all cancellation
+  kept exact raw storage; both disabled cleanup items rejected keyboard Enter.
+  The persisted-note race emitted no storage event. Confirming deletion showed
+  `Task changed. Review it before retrying.` and kept the newer durable data. A
+  separate primary-write quota fault blocked exactly one write and showed
+  readable feedback without data loss. The native API was restored, and the
+  safety timer was removed. Reload kept the same data. Fresh deletion removed
+  only the captured ID, kept the other task, and left one report record with 1m
+  focus. The remaining owned task and manual record were individually deleted
+  through their UI confirmations. Fresh UI export matched the empty
+  seven-section baseline before raw cleanup. Only the generated primary and
+  sentinel keys were then removed; UI export and exact raw storage still matched
+  baseline after reload. The original signed-in owner and all seven server/UI
+  sections were preserved. The timer stayed idle at 25:00 with completed
+  count 1. The original route, title, viewport, and media were preserved. All
+  scoped hooks, faults, timers, and observers were removed. No timer start, HTTP
+  mutation, `/auth/*` flow, or backup replacement occurred. All 165 other
+  tracked paths match the successful static snapshot; no application code
+  changed. Existing SSR hydration diagnostics remain recorded; QA-153/QA-221
+  remain open. Cross-owner QA-034/QA-144/QA-161 remain blocked, not passed. Row
+  disabled-key coverage also uses checked QA-213; confirmed completed-task
+  retention uses checked QA-030. Evidence:
+  `qa-artifacts/QA-212/guest-menu-gzx445fh/`, especially
+  `runtime-assertions.json`, `quota-reload-assertions.json`,
+  `reports-after-delete-assertions.json`, `guest-final-cleanup.json`,
+  `protected-final-equality.json`, and `final-cleanup.json`.
 
 ### [x] QA-213 — P1 — Task menu keyboard and focus
 
