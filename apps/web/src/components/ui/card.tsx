@@ -37,6 +37,7 @@ const styles = stylex.create({
     color: tokens["--card-foreground"],
     display: "flex",
     flexDirection: "column",
+    isolation: "isolate",
     position: "relative",
     "::before": {
       backgroundColor: tokens["--muted"],
@@ -50,6 +51,7 @@ const styles = stylex.create({
       inset: 0,
       pointerEvents: "none",
       position: "absolute",
+      zIndex: -1,
     },
     overflow: {
       default: null,
