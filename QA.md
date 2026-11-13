@@ -60,8 +60,10 @@ guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
 Current total: 45 checked sections out of 201, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
-and stale SSR class checks remain open under QA-153/QA-221. Retired cases are
-removed without renumbering the remaining cases.
+and stale SSR class checks remain open under QA-153/QA-221. Of the 41 open P0
+cases, 39 need permissions or fixtures outside the current scope; QA-202 and
+QA-212 remain candidates for safe checks. Blocked cases stay unchecked. Retired
+cases are removed without renumbering the remaining cases.
 
 QA-036 static source-contract review passed at `9bf3224`; source-level contrast
 and scanner limitations remain separate findings under QA-021 and QA-166.
@@ -684,8 +686,10 @@ passed.
   in `qa-artifacts/QA-015/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. A valid
+  login challenge and replay require starting OAuth with a disposable account.
+  Login and account switching are not permitted. Resume with an approved
+  disposable identity and OAuth flow. No new runtime pass is claimed.
 
 ### [ ] QA-016 — P0 — Account sync denies another user workspace
 
@@ -705,8 +709,10 @@ passed.
   in `qa-artifacts/QA-016/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. Two real
+  test identities and account switching are unavailable. Anonymous 401 responses
+  do not prove cross-user safety. Resume with two permitted identities and
+  isolated records. No new runtime pass is claimed.
 
 ### [ ] QA-017 — P0 — Concurrent sync does not overwrite newer work
 
@@ -726,8 +732,11 @@ passed.
   in `qa-artifacts/QA-017/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  needs two signed-in clients and real stale account writes. Extra tabs and
+  controlled failures against the protected account are not permitted. Resume on
+  disposable account data with two approved clients. No new runtime pass is
+  claimed.
 
 ### [ ] QA-018 — P0 — Guest import is explicit and idempotent
 
@@ -746,8 +755,10 @@ passed.
   in `qa-artifacts/QA-018/`; inspect actual state, errors and stored effects.
 - **Cleanup:** Remove only this case’s isolated records and browser profile.
   Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  starts login and interrupts a real guest-to-account import. Neither login nor
+  replacement/import faults on the protected account are permitted. Resume with
+  a disposable authenticated workspace. No new runtime pass is claimed.
 
 ### [ ] QA-019 — P1 — Audio and notification settings honor user permission
 
@@ -1051,7 +1062,10 @@ Timer pause precision and numeric backup compatibility map to QA-027.
   under `qa-artifacts/QA-028/`. Inspect every named screen and both keys.
 - **Cleanup:** Restore the saved isolated guest value and remove only the named
   fixture. Sign out of isolated accounts. Keep original evidence local.
-- **Status:** Pending. Requires the completed auth runtime and separate QA pass.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  requires sign-out, account switching, and corrupt account partitions. Logout
+  and faults against the protected account are forbidden. Resume with disposable
+  identities and approved switching. No new runtime pass is claimed.
 
 ### [ ] QA-029 — P0 — Backup confirmation cannot cross identities
 
@@ -1082,7 +1096,10 @@ Timer pause precision and numeric backup compatibility map to QA-027.
   partitions; a visible error alone does not prove isolation.
 - **Cleanup:** Cancel open dialogs, restore isolated fixture data, and close
   only tabs created for the case.
-- **Status:** Pending. Requires completed account switching and separate QA.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  requires another tab, verified owner switching, and stale account restore
+  confirmation. None is permitted. Resume with two approved test owners and a
+  peer tab. No new runtime pass is claimed.
 
 Partition load privacy maps to QA-028. Restore identity and stale-render races
 map to QA-029. Existing ordinary stale-write coverage remains QA-009 and QA-017.
@@ -1281,8 +1298,11 @@ DTO limits, normalization, and reference checks remain QA-023.
   `qa-artifacts/qa-034/`. Inspect the records, not only promise resolution.
 - **Cleanup:** Remove the retained debugger references and isolated records.
   Restore the initial account and settings. Keep production data unchanged.
-- **Status:** Pending. Account switching and a documented command-capture
-  procedure are execution prerequisites. No command has run.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  requires two real identities, a peer tab, and retained commands across
+  verified ownership changes. Fake identity state is not a substitute. Resume
+  with approved real identities and debugger capture. No new runtime pass is
+  claimed.
 
 ### [ ] QA-035 — P1 — Returning to an owner does not revive an old command
 
@@ -1397,8 +1417,11 @@ QA-024. Browser and build checks remain pending and need approval.
   different request nonces, working controls, and the blocked probe.
 - **Cleanup:** Close only this case's tabs and stop only its local processes.
   Remove its isolated browser profile; keep sanitized evidence.
-- **Status:** pending; build and browser execution need approval. Installed
-  source tracing and static checks are not runtime proof.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The
+  production build passed, but the case requires concurrent browser tabs and an
+  approved production-like runtime. Extra tabs and servers are not permitted.
+  Development nonce samples do not satisfy this case. No new runtime pass is
+  claimed.
 
 Coverage: the early router nonce boundary and streamed CSP integration map to
 QA-037. Theme preference and initial-paint behavior remain QA-024; source-owned
@@ -1645,7 +1668,10 @@ behavior. QA-038 through QA-043 remain unchecked and pending browser approval.
   effects.
 - **Cleanup:** Remove isolated fixtures through the approved workflow and stop
   only case processes. Keep sanitized evidence; no credentials in artifacts.
-- **Status:** pending; requires completed backend/client and runtime approval.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  requires two real cookie identities and a logout request. Account switching
+  and logout are forbidden. Resume with two disposable users; retain the
+  required real 409 and no-mutation checks. No new runtime pass is claimed.
 
 ### [ ] QA-046 — P2 — Old modal completion cannot dismiss a new opening
 
@@ -1944,7 +1970,11 @@ do not survive a full page reload, which can require a new conflict review.
   headers, screenshots, and query state in `qa-artifacts/QA-053/`.
 - **Cleanup:** Restore both isolated workspaces and sessions; remove delay
   controls and close only case-created tabs.
-- **Status:** pending; run only within the approved isolated QA scope.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  requires two real identities, two tabs, and delayed account operations across
+  login changes. Only one existing tab is permitted, and authentication changes
+  are forbidden. Resume with an isolated two-owner setup. No new runtime pass is
+  claimed.
 
 ### [ ] QA-054 — P0 — Recover a lost save after reload
 
@@ -1967,8 +1997,11 @@ do not survive a full page reload, which can require a new conflict review.
 - **Evidence:** Save sanitized hashes, revisions, operation order, primary
   workspace hashes and final notes in `qa-artifacts/QA-054/`.
 - **Cleanup:** Restore isolated task notes and remove interception/listeners.
-- **Status:** pending; approved isolated QA is available, but a permitted live
-  identity and final journal implementation remain prerequisites.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission.
+  Lost-response recovery requires real account writes and failure injection.
+  Failures are authorized only on the disposable guest origin, not the protected
+  account. Resume with a disposable authenticated workspace. No new runtime pass
+  is claimed.
 
 ### [ ] QA-055 — P0 — Retain original import facts after reload
 
@@ -1995,8 +2028,10 @@ do not survive a full page reload, which can require a new conflict review.
 - **Evidence:** Save sanitized request IDs/hashes/revisions, journal tokens,
   local/remote summaries and the reloaded conflict in `qa-artifacts/QA-055/`.
 - **Cleanup:** Restore isolated guest/account backups and remove interception.
-- **Status:** pending; permitted live identity and final journal implementation
-  remain prerequisites. Do not bypass authentication to execute this case.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  requires real account import receipts, account failure injection, and a second
+  tab. Those operations are not permitted. Resume with a disposable account and
+  approved peer-tab controls. No new runtime pass is claimed.
 
 ### [ ] QA-056 — P1 — Account requests have a bounded browser lifetime
 
@@ -2080,7 +2115,11 @@ do not survive a full page reload, which can require a new conflict review.
 - **Evidence:** Save sanitized hashes, revisions, request ordering, and pending
   recovery state in `qa-artifacts/QA-058/`.
 - **Cleanup:** Remove response controls and restore isolated workspaces.
-- **Status:** pending; runtime execution remains deferred.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. Uncertain
+  account writes and rejected replacement fences require account fault
+  injection. That is not permitted on the protected workspace. Resume with a
+  disposable authenticated workspace and real CAS responses. No new runtime pass
+  is claimed.
 
 ### [ ] QA-059 — P0 — Recheck cache readiness before dispatch
 
@@ -2102,7 +2141,11 @@ do not survive a full page reload, which can require a new conflict review.
 - **Evidence:** Save sanitized readiness/error states and request counts in
   `qa-artifacts/QA-059/`.
 - **Cleanup:** Restore the original cache and remove queued-request controls.
-- **Status:** pending; browser execution remains deferred.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  corrupts an account cache and queues account save/import/logout through a
+  second tab. Account corruption, extra tabs, and logout are forbidden. Resume
+  with isolated account storage and approved clients. No new runtime pass is
+  claimed.
 
 ### [ ] QA-060 — P1 — Set up an isolated local account database
 
@@ -2316,11 +2359,17 @@ do not survive a full page reload, which can require a new conflict review.
   values. Inspect results for both client addresses and direct access.
 - **Cleanup:** do not follow issuer redirects. Keep the owned database for
   remaining QA; temporary challenges expire. Stop only owned QA processes.
-- **Status:** pending. Trusted-proxy source repair is complete. The isolated
-  runtime pass in `qa-artifacts/QA-071/` covers forwarding-header rejection,
-  independent limits, forged-header resistance and edge rewriting. Empty and
-  invalid startup configuration and the final committed artifact still need
-  acceptance. The pass found missing documented 400 responses on public paths.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. A newly
+  owned API with controlled trusted-peer and startup settings is required. The
+  current servers must remain running and unchanged; no new server or port is
+  permitted. Resume with an approved isolated API configuration; retain the
+  prior partial results below. No new runtime pass is claimed.
+- **Prior partial evidence:** pending. Trusted-proxy source repair is complete.
+  The isolated runtime pass in `qa-artifacts/QA-071/` covers forwarding-header
+  rejection, independent limits, forged-header resistance and edge rewriting.
+  Empty and invalid startup configuration and the final committed artifact still
+  need acceptance. The pass found missing documented 400 responses on public
+  paths.
 
 ### [ ] QA-072 — P1 — Separate pinned API and web containers
 
@@ -2515,7 +2564,11 @@ do not survive a full page reload, which can require a new conflict review.
   details, storage comparisons, and logs under `qa-artifacts/QA-077/`.
 - **Cleanup:** Remove only target-local interception, close case notifications,
   and restore original permission. Preserve all other browser state.
-- **Status:** pending; approved live identity prerequisites remain external.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. Two
+  verified identities, owner-generation changes, and notification permission
+  controls are required. Account switching is forbidden and no second test
+  identity is available. Resume with approved real owners and scoped
+  notification controls. No new runtime pass is claimed.
 
 ### [ ] QA-078 — P1 — Notification opens the timer without losing a form
 
@@ -2689,7 +2742,11 @@ do not survive a full page reload, which can require a new conflict review.
 - **Evidence:** Save owner/context lifecycle, native call counts, current
   status, storage comparisons and logs under `qa-artifacts/QA-084/`.
 - **Cleanup:** Remove interception and restore only case resources and settings.
-- **Status:** pending; live identity verification is an external prerequisite.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The
+  retained audio callback must cross real verified A/B generations.
+  Authentication changes and a second test identity are unavailable. Resume with
+  approved real owners and target-local audio controls. No new runtime pass is
+  claimed.
 
 ### [ ] QA-085 — P1 — Audio failure does not block a timer
 
@@ -2890,12 +2947,17 @@ library or backend endpoint is authorized or needed for this feature.
   `qa-artifacts/QA-090/two-tab-lock.txt`.
 - **Cleanup:** Release held requests, remove listeners and close only the extra
   QA tab.
-- **Status:** Pending full acceptance. Built f25b09c5 held A’s real successful
-  PUT response with its original save journal present. B added its own task
-  while A held the operation lock; no B PUT occurred, and the exact journal
-  stayed unchanged through 27.9 seconds. Closing only the queued owned peer
-  cancelled that tab’s wait. After A was released, it acknowledged revision 23
-  and saved the later local task at revision 24. Both titles existed once,
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The
+  remaining acceptance needs a second signed-in tab and controlled real account
+  responses. Extra tabs and protected-account faults are forbidden. Retain the
+  prior partial run below; resume with two approved account clients. No new
+  runtime pass is claimed.
+- **Prior partial evidence:** Pending full acceptance. Built f25b09c5 held A’s
+  real successful PUT response with its original save journal present. B added
+  its own task while A held the operation lock; no B PUT occurred, and the exact
+  journal stayed unchanged through 27.9 seconds. Closing only the queued owned
+  peer cancelled that tab’s wait. After A was released, it acknowledged revision
+  23 and saved the later local task at revision 24. Both titles existed once,
   history stayed at two, and journal count was zero; interaction logs were
   empty. Evidence is under `qa-artifacts/QA-090/current-authenticated/`.
   Accessible queued/busy feedback was not inspected, so the full case remains
@@ -2920,8 +2982,10 @@ library or backend endpoint is authorized or needed for this feature.
   hashes, UI feedback and the asserted result in
   `qa-artifacts/QA-091/stale-storage-event.txt`.
 - **Cleanup:** Restore storage-event delivery and isolated notes.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  needs two account tabs and delayed storage events on account data. Extra tabs
+  and protected-account faults are forbidden. Resume with a disposable
+  authenticated workspace and two clients. No new runtime pass is claimed.
 
 ### [ ] QA-092 — P0 — Server choice fences a delayed original save
 
@@ -2942,8 +3006,10 @@ library or backend endpoint is authorized or needed for this feature.
   hashes, UI feedback and the asserted result in
   `qa-artifacts/QA-092/late-save-fence.txt`.
 - **Cleanup:** Remove interception and restore isolated account data.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  delays a real account PUT and commits a replacement fence. Such account
+  failure injection and replacement are not permitted. Resume with disposable
+  account data and approved request controls. No new runtime pass is claimed.
 
 ### [ ] QA-093 — P0 — Server choice fences a delayed original import
 
@@ -2963,8 +3029,11 @@ library or backend endpoint is authorized or needed for this feature.
   hashes, UI feedback and the asserted result in
   `qa-artifacts/QA-093/late-import-fence.txt`.
 - **Cleanup:** Release interception and restore both isolated backups.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  delays a real account import and commits a CAS fence. Account
+  import/replacement faults are not permitted. Resume with disposable
+  guest/account data and approved request controls. No new runtime pass is
+  claimed.
 
 ### [ ] QA-094 — P0 — Uncertain replacement fences retain original facts
 
@@ -2985,8 +3054,11 @@ library or backend endpoint is authorized or needed for this feature.
   `qa-artifacts/QA-094/replacement-fence.txt`.
 - **Cleanup:** Release all held requests, remove interception and restore the
   isolated workspace.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  makes real account resolution writes uncertain and replaces their journal
+  slot. Protected-account faults are not permitted. Resume with a disposable
+  authenticated workspace and real CAS responses. No new runtime pass is
+  claimed.
 
 ### [ ] QA-095 — P0 — Interrupted local replacement preserves later edits
 
@@ -3008,8 +3080,10 @@ library or backend endpoint is authorized or needed for this feature.
   hashes, UI feedback and the asserted result in
   `qa-artifacts/QA-095/replacement-crash.txt`.
 - **Cleanup:** Restore pause controls and isolated data.
-- **Status:** pending; the candidate and live-identity prerequisites must be
-  established before execution. No result is claimed from this plan.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  interrupts account-cache replacement and journal retirement. Faults against
+  the protected account are forbidden. Guest-only local restores cannot prove
+  this authenticated journal contract. No new runtime pass is claimed.
 
 ### [ ] QA-096 — P1 — Pending import stays discoverable after metadata writes
 
@@ -3113,7 +3187,10 @@ library or backend endpoint is authorized or needed for this feature.
   hashes in `qa-artifacts/QA-099/`; omit cookie values.
 - **Cleanup:** Restore native APIs and exact isolated primary/journal backups;
   sign in again only through the permitted issuer workflow if needed.
-- **Status:** pending; verified live identity remains a prerequisite.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  must corrupt account storage and complete a real logout. Both are forbidden.
+  Resume with a disposable authenticated identity, a peer tab, and explicit
+  logout permission. No new runtime pass is claimed.
 
 ### [ ] QA-100 — P0 — Confirmed logout ignores later cache errors
 
@@ -3136,7 +3213,10 @@ library or backend endpoint is authorized or needed for this feature.
   preserved raw hashes in `qa-artifacts/QA-100/`; omit cookie values.
 - **Cleanup:** Release interception and restore exact isolated backups. Close
   only the extra case tab and keep unrelated browser state intact.
-- **Status:** pending; no authenticated runtime result is claimed.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+  must complete logout while a peer tab corrupts the account cache. Logout,
+  extra tabs, and protected-account corruption are forbidden. Resume with a
+  disposable authenticated setup. No new runtime pass is claimed.
 
 ### [ ] QA-101 — P1 — Unready workspace cancels sound work
 
@@ -3166,7 +3246,7 @@ library or backend endpoint is authorized or needed for this feature.
 
 ### QA-102 — Sign out after session verification fails
 
-- [ ] **P0 — Pending.** Sign out of the displayed account after a failed session
+- [ ] **P0 — Blocked.** Sign out of the displayed account after a failed session
       check without using cached data as authorization.
   - **Purpose:** Cover logout when a new session check fails. Session failure
     must not prevent a server-verified logout of the previously displayed
@@ -3205,11 +3285,15 @@ library or backend endpoint is authorized or needed for this feature.
   - **Coverage:** Failed session verification → session-only logout guards;
     captured-user server authorization → real 204; stale callback → no account
     restoration; primary/journal retention → unchanged digests.
-  - **Status:** Pending. No runtime result is recorded.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The
+    expected result is a real 204 logout and anonymous session after a failed
+    check. Logout is explicitly forbidden. Resume only with an approved
+    disposable identity and logout permission; do not synthesize success. No new
+    runtime pass is claimed.
 
 ### QA-103 — Missing primary data cannot retire a pending save
 
-- [ ] **P0 — Pending.** A confirmed server write and a saved request must not
+- [ ] **P0 — Blocked.** A confirmed server write and a saved request must not
       turn a missing local cache into an automatic empty account overwrite.
   - **Purpose:** Preserve account data when primary local storage is removed
     while an uncertain save remains in IndexedDB.
@@ -3245,11 +3329,15 @@ library or backend endpoint is authorized or needed for this feature.
     isolated backup before deleting the case's data.
   - **Coverage:** Journal recovery and final dispatch → missing primary is not
     an intentional empty edit; explicit account choice → restored cache.
-  - **Status:** Pending. No runtime result is recorded.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+    removes account primary data while retaining a real uncertain save and uses
+    another tab. Protected-account faults and extra tabs are forbidden. Resume
+    with a disposable authenticated workspace and real journal data. No new
+    runtime pass is claimed.
 
 ### QA-104 — Restore a missing cache from the account
 
-- [ ] **P0 — Pending.** Restore a missing primary cache when a valid old sync
+- [ ] **P0 — Blocked.** Restore a missing primary cache when a valid old sync
       stamp remains but no request is pending.
   - **Purpose:** Prevent an old stamp from making an absent cache look like a
     new empty edit.
@@ -3276,7 +3364,11 @@ library or backend endpoint is authorized or needed for this feature.
     evidence. Do not remove other account or guest storage.
   - **Coverage:** Empty local cache plus retained stamp → account pull rather
     than autosave; normal rollback protections → unchanged.
-  - **Status:** Pending. No runtime result is recorded.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+    removes a nonempty account cache and tests recovery against its retained
+    stamp. Account-cache faults are forbidden. Resume with a disposable
+    authenticated workspace; guest recovery is not a substitute. No new runtime
+    pass is claimed.
 
 ### QA-105 — Reject a merged workspace above the client budget
 
@@ -3473,7 +3565,7 @@ not affected by this source-only change.
 
 ### QA-110 — Import finalization before marker
 
-- [ ] **P0 — Pending.**
+- [ ] **P0 — Blocked.**
   - **Purpose:** An unsuccessful cache replacement or acknowledgment must not
     create a new import marker or retire the original request.
   - **Prerequisites:** Shared marker setup; A has no marker for H and no pending
@@ -3492,11 +3584,15 @@ not affected by this source-only change.
     primary and marker hashes, journal token and UI state in
     `qa-artifacts/QA-110/`.
   - **Cleanup:** Use the shared marker cleanup.
-  - **Status:** Pending; authenticated runtime QA has not run.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The
+    shared marker setup needs real isolated identities and interrupted account
+    finalization. Only the protected account is signed in and its storage may
+    not be faulted. Resume with approved disposable authenticated data and
+    marker controls. No new runtime pass is claimed.
 
 ### QA-111 — Exact receipt retry after marker and before retirement
 
-- [ ] **P0 — Pending.**
+- [ ] **P0 — Blocked.**
   - **Purpose:** Retry a committed original import without changing its ID,
     request data, or captured baseline after finalization stops.
   - **Prerequisites:** Shared marker setup and a way to stop after H is written
@@ -3517,11 +3613,15 @@ not affected by this source-only change.
   - **Evidence:** Save sanitized request IDs, revisions, digests, journal token,
     task IDs and UI state in `qa-artifacts/QA-111/`.
   - **Cleanup:** Use the shared marker cleanup.
-  - **Status:** Pending; real receipt and identity are required.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+    needs a real retained import receipt, account finalization interruption, and
+    a guest peer tab. Extra tabs and protected-account faults are forbidden.
+    Resume with the full shared isolated marker setup. No new runtime pass is
+    claimed.
 
 ### QA-112 — Resolve interrupted import to local work
 
-- [ ] **P0 — Pending.**
+- [ ] **P0 — Blocked.**
   - **Purpose:** An old matching marker must not hide guest data after an
     explicit local choice replaces the imported result.
   - **Prerequisites:** Shared marker setup; create a real committed import with
@@ -3537,11 +3637,14 @@ not affected by this source-only change.
   - **Evidence:** Save sanitized CAS status/revision, marker and token ordering,
     task summaries and screenshots in `qa-artifacts/QA-112/`.
   - **Cleanup:** Use the shared marker cleanup.
-  - **Status:** Pending; no authenticated scenario has run.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+    requires a real interrupted import and an account-replacement CAS choice.
+    Protected-account replacement/faults are forbidden. Resume with disposable
+    authenticated import and journal data. No new runtime pass is claimed.
 
 ### QA-113 — Resolve interrupted import to account work
 
-- [ ] **P0 — Pending.**
+- [ ] **P0 — Blocked.**
   - **Purpose:** A server-choice fence is not proof that the original guest
     snapshot is still present; conservatively reoffer the guest.
   - **Prerequisites:** Shared marker setup; retained original import journal and
@@ -3560,11 +3663,15 @@ not affected by this source-only change.
   - **Evidence:** Save sanitized CAS/import status, stable IDs, item counts,
     conflict details and marker/journal order in `qa-artifacts/QA-113/`.
   - **Cleanup:** Use the shared marker cleanup.
-  - **Status:** Pending; real isolated accounts and controllable records needed.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+    requires real account fences, repeated guest imports, and ID collisions.
+    These replacement/fault operations are not permitted on the protected
+    account. Resume with disposable authenticated marker fixtures. No new
+    runtime pass is claimed.
 
 ### QA-114 — Preserve absent or different import marker
 
-- [ ] **P0 — Pending.**
+- [ ] **P0 — Blocked.**
   - **Purpose:** Resolution must not remove an absent, malformed, stale or newer
     marker that does not match the original digest.
   - **Prerequisites:** Shared marker setup; create separate real retained import
@@ -3583,11 +3690,15 @@ not affected by this source-only change.
   - **Evidence:** Save sanitized before/after marker values, current guest
     digest, token and UI state in `qa-artifacts/QA-114/`.
   - **Cleanup:** Use the shared marker cleanup.
-  - **Status:** Pending; controlled owned storage is required.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The
+    marker must belong to a real retained account-import resolution. Such
+    account storage faults and replacement are not permitted. Resume with the
+    approved shared marker setup; do not invent a journal or session. No new
+    runtime pass is claimed.
 
 ### QA-115 — Marker and journal failure recovery
 
-- [ ] **P0 — Pending.**
+- [ ] **P0 — Blocked.**
   - **Purpose:** A failed marker read, removal, write or journal retirement must
     not lose durable recovery facts; cleanup must precede retirement.
   - **Prerequisites:** Shared marker setup; real committed responses, matching
@@ -3607,11 +3718,15 @@ not affected by this source-only change.
   - **Evidence:** Save sanitized fault boundary, error state, marker and journal
     tokens before/after reload and retry in `qa-artifacts/QA-115/`.
   - **Cleanup:** Use the shared marker cleanup.
-  - **Status:** Pending; fault injection and real identity must be available.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+    faults account marker and IndexedDB finalization around real committed
+    responses. Faults are permitted only for guest data, not the protected
+    account. Resume with disposable authenticated journal fixtures. No new
+    runtime pass is claimed.
 
 ### QA-116 — Owner changes and concurrent account operations
 
-- [ ] **P0 — Pending.**
+- [ ] **P0 — Blocked.**
   - **Purpose:** Stale owner continuations cannot change markers or retire a
     journal, and cooperating same-account tabs cannot bypass the operation lock.
   - **Prerequisites:** Shared marker setup; real isolated verified A and B, two
@@ -3630,7 +3745,10 @@ not affected by this source-only change.
   - **Evidence:** Save sanitized owner IDs, lock order, markers, journal tokens,
     request order and UI results in `qa-artifacts/QA-116/`.
   - **Cleanup:** Use the shared marker cleanup and close only owned extra tabs.
-  - **Status:** Pending; both real identities remain external prerequisites.
+  - **Status:** Blocked on 2026-11-13 UTC under the current permission. The case
+    requires two real identities and two cooperating account tabs.
+    Authentication changes and extra tabs are forbidden. Resume with the
+    approved shared multi-owner marker setup. No new runtime pass is claimed.
 
 ## Current release evidence — 2026-11-09
 
@@ -4290,7 +4408,11 @@ containers are required by these page changes.
 - **Evidence:** sanitized cache path list and response content types in
   `qa-artifacts/error-pages/cache-exclusions.txt`; inspect every entry.
 - **Cleanup:** restore connectivity and log out of the isolated session.
-- **Status:** pending; service-worker security QA has not run.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. No
+  permitted isolated signed-in installed-worker fixture is available.
+  Offline/cache faults on the protected account and its cleanup logout are not
+  permitted. Resume with an approved authenticated production-like worker
+  origin. No new runtime pass is claimed.
 
 Coverage: 404 → QA-131; global error recovery → QA-132; offline fallback,
 reconnect, metadata, layout, and accessibility → QA-133; private/API/auth cache
@@ -4409,11 +4531,16 @@ contract, cache policy, or account ownership changes are in scope.
 - **Evidence:** inspect sanitized responses and redirects in
   `qa-artifacts/polish/auth-routing.txt`; exclude cookies and OAuth codes.
 - **Cleanup:** remove the isolated session and stop only owned QA processes.
-- **Status:** partial on 2026-11-11. A real callback returned a safe JSON 400
-  error after Google selection, but successful authorization, cookie, and cache
-  behavior remain unverified. See QA-137 for the observed host mismatch and the
-  corrected isolated runtime. Do not count the failure as a security acceptance
-  pass.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. Full
+  acceptance starts OAuth, changes issuer availability, and uses
+  deployment-proxy/installed-worker fixtures. Login and server configuration
+  changes are forbidden, and those fixtures are unavailable. Retain the prior
+  partial routing result below. No new runtime pass is claimed.
+- **Prior partial evidence:** partial on 2026-11-11. A real callback returned a
+  safe JSON 400 error after Google selection, but successful authorization,
+  cookie, and cache behavior remain unverified. See QA-137 for the observed host
+  mismatch and the corrected isolated runtime. Do not count the failure as a
+  security acceptance pass.
 
 Coverage addition: canonical login URL, proxy routing, OpenAPI, OAuth error and
 security regressions → QA-138.
@@ -4605,12 +4732,17 @@ workspace records. Record unknown fixture prerequisites instead of guessing.
 - **Evidence:** sanitized outcomes in
   `qa-artifacts/account-settings/confirmation-results.json`.
 - **Cleanup:** remove only isolated fixtures; preserve the current user session.
-- **Status:** partial on 2026-11-10. Logout opens from the native-button menu
-  trigger. Cancel leaves the session intact and returns focus to Log out; Escape
-  then returns focus to Account. Capture and duplicate-submit code is unchanged.
-  Cross-owner, repeated-submit and destructive default-trigger scenarios need
-  isolated fixtures. Evidence and tested source hashes:
-  `qa-artifacts/account-settings/menu-results.json`.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. Full
+  stale-owner confirmation acceptance needs two real test owners. Authentication
+  changes are forbidden. Safe cancel and guest-only delete/error checks remain
+  partial; resume with approved isolated ownership changes. No new runtime pass
+  is claimed.
+- **Prior partial evidence:** partial on 2026-11-10. Logout opens from the
+  native-button menu trigger. Cancel leaves the session intact and returns focus
+  to Log out; Escape then returns focus to Account. Capture and duplicate-submit
+  code is unchanged. Cross-owner, repeated-submit and destructive
+  default-trigger scenarios need isolated fixtures. Evidence and tested source
+  hashes: `qa-artifacts/account-settings/menu-results.json`.
 
 Coverage: menu/navigation/focus → QA-142; settings/save/backup/validation →
 QA-143; shared confirmation safety → QA-144. No backend schema, authentication
@@ -5091,7 +5223,10 @@ QA-163 and QA-165; static tooling: QA-166.
 - **Evidence:** `qa-artifacts/QA-161-restore-guard.txt`, sanitized owner-change,
   alert, and before/after data checks; inspect for absence of a write.
 - **Cleanup:** close owned dialogs and tabs; remove only isolated fixtures.
-- **Status:** pending.
+- **Status:** Blocked on 2026-11-13 UTC under the current permission. The stated
+  restore race requires an isolated second tab and safe owner/workspace
+  switching. Extra tabs and account switching are forbidden. A same-tab injected
+  write cannot be reported as this peer-tab run. No new runtime pass is claimed.
 
 ### [ ] QA-162 — P1 — Backup selection and confirmation lifecycle
 
