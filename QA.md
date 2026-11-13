@@ -58,9 +58,10 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 42 checked sections out of 201, including historical passes. The
-Settings submit and backup-isolation cases passed; layout QA-216 remains
-pending. Retired cases are removed without renumbering the remaining cases.
+Current total: 45 checked sections out of 201, including historical passes.
+Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
+and stale SSR class checks remain open under QA-153/QA-221. Retired cases are
+removed without renumbering the remaining cases.
 
 QA-036 static source-contract review passed at `9bf3224`; source-level contrast
 and scanner limitations remain separate findings under QA-021 and QA-166.
@@ -1086,7 +1087,7 @@ Timer pause precision and numeric backup compatibility map to QA-027.
 Partition load privacy maps to QA-028. Restore identity and stale-render races
 map to QA-029. Existing ordinary stale-write coverage remains QA-009 and QA-017.
 
-### [ ] QA-030 — P1 — Automatic backup storage stays bounded
+### [x] QA-030 — P1 — Automatic backup storage stays bounded
 
 - **Scope:** `apps/web/src/features/focus/store.ts`; task clearing, conflict
   replacement, and backup restore; isolated guest browser storage.
@@ -1095,11 +1096,21 @@ map to QA-029. Existing ordinary stale-write coverage remains QA-009 and QA-017.
 - **Prerequisites:** Shared setup, an isolated empty guest workspace, no active
   timer, and browser QA approval. Save original project storage first.
 - **Inputs:** Five tasks named `QA-backup-1` through `QA-backup-5`, estimate 1.
-  The ordinary recovery key is `pomodoro:workspace:guest:backup`.
-- **Steps:** 1. Add the first task. 2. Mark it Complete. 3. Click Clear
-  completed, then Remove tasks. 4. Repeat for the other four tasks. 5. Inspect
-  the guest workspace and all keys with its backup prefix. 6. Repeat an approved
-  backup restore twice using the same isolated file.
+  The ordinary recovery key is `pomodoro:workspace:guest:backup`. Keep one real
+  60-second focus record for the first task. Disable sounds, notifications, and
+  automatic starts. Use sentinel key `qa:backup-retention:unrelated` with value
+  `QA keep this value`. Use marker tasks `QA-backup-restore-1` and
+  `QA-backup-restore-2` for the two restore runs.
+- **Steps:** 1. Save the original backup and raw storage. Set guest focus to one
+  minute and save. Add the first task, select it, and let one focus finish on
+  the real clock. Leave the break idle. 2. Mark the task Complete. 3. Click
+  Clear completed, then Remove tasks. Save the resulting history-only UI export
+  as the restore input. 4. Repeat task completion and clearing for the other
+  four tasks. Compare history before and after each clear. 5. Inspect the guest
+  workspace, sentinel, and all keys with the backup prefix. 6. Add the first
+  restore marker, then restore the history-only file through confirmation.
+  Repeat with the second marker and the same file. Compare primary and backup
+  values with each pre-replacement snapshot.
 - **Expected results:** New writes use one ordinary backup key per partition,
   not a UUID-named copy for each action. Its value is the last workspace before
   replacement. The primary workspace contains the requested result. Existing
@@ -1109,9 +1120,26 @@ map to QA-029. Existing ordinary stale-write coverage remains QA-009 and QA-017.
   `qa-artifacts/QA-030/`. Inspect the last task copy and replacement result.
 - **Cleanup:** Restore the saved isolated workspace and recovery keys. Remove
   only keys and records created for this case.
-- **Status:** Pending. No browser operations have run.
+- **Status:** Passed on 2026-11-12 UTC at `50586d9` (code unchanged since
+  `ff997cf`) on the approved disposable guest origin. A real focus completed
+  after 63,848ms observation time and added one linked 60-second record. Five
+  clearing cycles each kept one backup equal to the committed pre-clear data.
+  Two history-only restores each kept one backup equal to the immediate prior
+  marker workspace. History and the unrelated sentinel stayed unchanged.
+  Independent raw-snapshot checks passed; Reports showed `QA-backup-1` and `1m`.
+  Preserve the initial premature cycle-2 sample and schema-version comparison
+  notes as corrected test issues, not app failures. Evidence:
+  `docs/qa030-current-artifact-path`, including `runtime-assertions.json`,
+  `reports-history.txt`, and both restore proofs. Final guest raw storage and
+  all seven exported sections equal the original empty baseline. Protected
+  session/workspace returned 200 for the original owner; fresh server/UI exports
+  match all seven baseline sections, with count 1 unchanged. Main is
+  authenticated at its original root and viewport. All owned hooks, faults,
+  timers, and observers are removed. Known stale SSR loading-class warnings
+  remain in QA-153/QA-221. Current root lint, format, typecheck, and web build
+  passed; Doctor has no new diagnostics, not a clean scan.
 
-### [ ] QA-031 — P1 — Corrupt recovery keeps one retained copy
+### [x] QA-031 — P1 — Corrupt recovery keeps one retained copy
 
 - **Scope:** Focus store and Settings backup recovery; route `/settings`;
   isolated guest browser storage. No database is needed.
@@ -1119,12 +1147,25 @@ map to QA-029. Existing ordinary stale-write coverage remains QA-009 and QA-017.
   when the user repeats an explicit recovery.
 - **Prerequisites:** Shared setup, approved browser QA, a valid isolated backup
   file, and the original guest storage saved outside browser storage.
-- **Inputs:** Malformed guest value `{"schema_version":`; recovery key
-  `pomodoro:workspace:guest:corrupt`.
-- **Steps:** 1. Put the malformed value in the isolated guest key and reload. 2.
-  In Settings, select the valid backup and explicitly choose corrupt-data
-  recovery. 3. Confirm replacement. 4. Repeat the corruption and recovery. 5.
-  Inspect the primary value and all guest corrupt-recovery keys.
+- **Inputs:** First malformed guest value `{"schema_version":`; second value
+  `{"schema_version":2,`; recovery key `pomodoro:workspace:guest:corrupt`. Use a
+  valid UI backup from the same isolated guest. In this run, use QA-030's
+  history-only backup with one real focus record. Keep its unrelated sentinel.
+  Inject `QuotaExceededError` only for guest `Storage.setItem` writes to the
+  corrupt key, then separately to the primary key. Restore the method after each
+  attempt. Do not inject faults on the protected origin.
+- **Steps:** 1. Save the current guest raw storage. Put the first malformed
+  value in the isolated guest key and reload. 2. In Settings, select the valid
+  backup. Attempt ordinary Import backup and confirm its normal review. Verify
+  that the final write is rejected with
+  `Confirm recovery of the corrupt workspace`, with no primary change or corrupt
+  copy. A review can open; it must not bypass the final recovery guard. 3.
+  Cancel that review. Choose explicit corrupt-data recovery. Confirm once with
+  corrupt-key writes denied, then once with primary-key writes denied. Verify
+  the visible error and unchanged raw primary after each failure. Remove each
+  fault before the next attempt. 4. Confirm recovery without a fault. 5. Repeat
+  corruption and successful recovery with the distinct second value. 6. Inspect
+  the primary, ordinary backup, sentinel, and all guest corrupt-recovery keys.
 - **Expected results:** One corrupt-recovery key holds the most recent raw
   malformed value. The primary value is the validated restored workspace.
   Ordinary restore cannot bypass corrupt recovery confirmation. Existing
@@ -1132,7 +1173,23 @@ map to QA-029. Existing ordinary stale-write coverage remains QA-009 and QA-017.
 - **Evidence:** Save sanitized key counts, recovery text, and restored backup
   under `qa-artifacts/QA-031/`. Inspect the exact malformed text and result.
 - **Cleanup:** Restore the original isolated values. Remove only case keys.
-- **Status:** Pending. No browser operations have run.
+- **Status:** Passed on 2026-11-12 UTC at `50586d9` (code unchanged since
+  `ff997cf`) on the approved disposable guest origin. Ordinary Import could open
+  review, but its final confirmation failed with
+  `Confirm recovery of the corrupt workspace` and kept the malformed primary
+  with no corrupt copy. Denying the corrupt-key write kept the raw primary and
+  no copy. Denying the primary write kept the raw primary and exact corrupt
+  copy. Both quota alerts appeared and both overrides/timers were removed. Two
+  explicit recoveries restored the validated file; the sole corrupt key then
+  held the second raw value. Ordinary backup and unrelated storage stayed
+  unchanged. Raw snapshots and a fresh UI export passed independent checks.
+  Evidence: `docs/qa031-current-artifact-path`, including ordinary rejection
+  JSON/text, both quota proofs, both recovery snapshots, and
+  `runtime-assertions.json`. The owned corrupt key was removed and case storage
+  matched its baseline. Combined guest cleanup and protected-owner/server/UI
+  equality passed as recorded in QA-030. No logout or protected write occurred.
+  Source checks and the unchanged Doctor regression passed; known stale SSR
+  remains separate.
 
 Bounded local backup retention maps to QA-030 and QA-031. Quota failure and
 no-erasure behavior remain covered by QA-005.
@@ -6441,7 +6498,7 @@ signed in. Preserve its settings and timer. Artifacts stay local in ignored
 requested QA pass. Native lint, format, and typechecks run by default. No API,
 database, permission, or backup-format change is planned.
 
-### [ ] QA-216 — P1 — Save settings is the final page action
+### [x] QA-216 — P1 — Save settings is the final page action
 
 - **Purpose:** Put the preference save action after the backup controls and
   match the loading layout.
@@ -6453,7 +6510,16 @@ database, permission, or backup-format change is planned.
 - **Steps:** 1. Open `/settings` and scroll to the bottom. 2. Locate Download a
   backup, Restore a backup, and Save settings in document order. 3. Repeat at
   each width and theme. 4. In an approved throttled load, compare the loading
-  action placeholder with the ready layout. Restore network settings.
+  action placeholder with the ready layout. Restore network settings. 5. In the
+  approved guest, use a backup restore with different saved settings to show
+  Reload settings. Repeat the width/theme matrix. Reload those settings. Use a
+  guest-only copy of that UI backup with `focus_minutes: 3` to repeat the
+  conflict after the fix; keep all other fields unchanged. 6. Change guest focus
+  from 1 to 2. Deny only guest primary localStorage writes with
+  `QuotaExceededError`, then Save settings. Restore the storage method. Check
+  the visible save error at all six width/theme combinations. Verify that the
+  saved focus remains 1 and the draft remains 2. Discard the draft and restore
+  the original guest backup, raw keys, media, and viewport.
 - **Expected results:** Exactly one Save settings button appears below the
   complete Workspace backup section, not between Automation and Backup. Its
   status, errors, and Reload settings action stay with it. Loading places the
@@ -6463,8 +6529,33 @@ database, permission, or backup-format change is planned.
   under `qa-artifacts/settings-save-bottom/QA-216/`.
 - **Cleanup:** Restore theme, network, viewport, and scroll position. No records
   need cleanup.
-- **Status:** partial on 2026-11-12. The first 320px run failed because the
-  signed-in header had 314px scroll width versus 305px client width. The
+- **Status:** Passed on 2026-11-12 UTC after `c7f6c9b`. All 12 post-fix
+  Reload/error captures at 1440/390/320 in both themes keep one Save, status,
+  local error, and conditional Reload after Backup. Buttons stay within client
+  width without overlap; all pages have no horizontal overflow. Both contact
+  sheets were inspected. The controlled guest quota failure retained draft 2,
+  saved focus 1, and history 1. A guest-only focus-3 backup produced the Reload
+  state. Both prototypes/timers were removed. Earlier held SSR samples prove
+  Backup-before-Save loading geometry; loading color/class acceptance remains
+  open in QA-153/QA-221. Guest raw/UI baseline and original protected owner plus
+  all seven server/UI sections were restored and checked. Main remains signed in
+  at its original root/viewport, idle 25:00/count 1, with no owned hooks. Root
+  lint, format, typecheck, and web build passed. Doctor scanned 101 files with
+  no added/removed findings; existing 16 errors/22 warnings remain. Evidence:
+  `docs/qa216-current-artifact-path`, including `after/` captures,
+  `geometry-assertions.json`, inspected sheets, checks, and source commit proof.
+  Cleanup is in QA-030's `final-cleanup.json`. Exact screenshot-tool CSP hash
+  `5Fb1NtvkZxZvQbJmv83yfbUoqFf2x0p6Ih/uv9js1Qo=` is attributed separately.
+
+  Before the fix at `ff997cf`, both 320px Reload samples had 359px scroll width
+  with 305px client width. The nested button HStack did not wrap. Save extended
+  beyond its card. The existing app-local `layout="actions"` variant fixes it;
+  live CSS uses wrapping, end alignment, and an 8px gap. Before artifacts remain
+  intact. HMR cleared the draft/error, so both matrices were recreated after the
+  change rather than reused.
+
+  Earlier evidence: partial on 2026-11-12. The first 320px run failed because
+  the signed-in header had 314px scroll width versus 305px client width. The
   existing header row now wraps without changes to control sizes or labels. All
   six ready width/theme samples then had no overflow, and Backup preceded the
   single Save action. Before/after evidence remains under
