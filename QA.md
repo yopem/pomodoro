@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 53 checked sections out of 203, including historical passes.
+Current total: 54 checked sections out of 203, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -5435,25 +5435,91 @@ QA-163 and QA-165; static tooling: QA-166.
 - **Cleanup:** restore only the isolated workspace backup and close owned tabs.
 - **Status:** pending.
 
-### [ ] QA-163 — P1 — Invalid backups do not reach confirmation
+### [x] QA-163 — P1 — Invalid backups do not reach confirmation
 
 - **Purpose:** preserve boundary validation, pending state and accessible error
-  feedback for the migrated file field.
-- **Prerequisites:** shared isolated setup and a guest workspace with a known
-  task; prepare local files in ignored `qa-artifacts/`.
-- **Inputs:** invalid JSON `{`, valid JSON `{}`, invalid UTF-8 bytes, and a file
-  larger than 10 MiB; also cancel the file chooser without selecting.
-- **Steps:** 1. Choose each invalid file on `/settings#settings-backup` and
-  activate Import backup. 2. Observe alerts, dialog state, and workspace. 3.
-  During file reading check that selection and action controls are disabled. 4.
-  Use keyboard to choose and remove a file and inspect focus and labels.
-- **Expected results:** each invalid file produces the existing relevant error,
-  no confirmation or workspace write; cancellation does not import; pending
-  controls are disabled, accessible labels and focus behavior remain intact.
+  feedback for the migrated file field. Cover read failure and both size-limit
+  boundaries without committing a backup replacement during the cases.
+- **Prerequisites:** current same-tab owned guest authorization. First verify
+  original protected owner and unchanged baseline with read-only requests. Then
+  verify the exact owned guest origin, session 200/user null and fresh empty
+  UI/raw baselines. Create only `QA-163 retained cafe` by UI, estimate 1/actual
+  0, notes `QA-163 unchanged notes`. Export its UI/raw fixture baseline. No
+  timer, account change, extra tab/browser/agent, service restart or direct
+  database.
+- **Inputs:** owned `invalid-json.json` containing `{`, `schema-empty.json`
+  containing `{}`, `empty.json` with zero bytes, and `invalid-utf8.json` with
+  bytes C3 28. Pad the actual fixture JSON with whitespace to 10,485,760 and
+  10,485,761 bytes. Also cancel the chooser without selecting. Keep inputs and
+  baseline exports private with mode `0600` in the QA-163 batch.
+- **Steps:**
+  1. Select each invalid file on `/settings#settings-backup` through the
+     existing file input. Activate Import backup with native keyboard/pointer
+     input. Record alert, confirmation count, focus and unchanged raw/UI data.
+  2. Hold only the selected owned file's native `arrayBuffer` Promise once to
+     inspect all six disabled backup controls. Use an exact guest/file guard,
+     original-method preservation, a 45-second safety release and finally
+     cleanup. Release into the real schema check. Exercise one controlled read
+     rejection and recovery as well. Do not override schema or owner checks.
+  3. Import the exact-limit valid file, inspect review and Cancel without
+     replacement. Import the over-limit file and confirm rejection before any
+     file read. Compare all raw keys and all seven UI sections after each case.
+  4. Open the chooser with real pointer/Enter under trusted protocol
+     cancellation. This is not actual OS Cancel-button automation. Use the
+     existing file input API for selection, then keyboard Remove. Inspect
+     labels, enabled focus, cleared selection and zero import/write effects.
+- **Expected results:** `{` and zero bytes report `Backup is not valid JSON`;
+  `{}` reports `Backup does not contain a valid workspace`; C3 28 reports
+  `Backup must be a UTF-8 JSON file`; 10,485,761 bytes report
+  `Backup must be 10 MB or smaller`. Invalid/read-failure cases never open
+  confirmation or write workspace data. The exact-limit valid file may reach
+  review, but Cancel preserves data. Pending backup controls are native-disabled
+  and recover after reading. Labels and keyboard focus remain usable; chooser
+  cancellation does not import. File/schema/storage methods and timers return to
+  their original state.
 - **Evidence:** `qa-artifacts/QA-163-backup-errors.txt` and
   `qa-artifacts/QA-163-backup-errors.png`; inspect errors and unchanged data.
-- **Cleanup:** remove isolated inputs and selection; keep sanitized evidence.
-- **Status:** pending.
+  Keep input recipes/hashes, native events, size/read counts, pending snapshots,
+  exact data comparisons and privacy/cleanup proofs in the batch named by
+  `docs/qa163-current-artifact-path`. Read simulation is not a hardware failure.
+- **Cleanup:** clear selection and all owned reader/protocol/request hooks and
+  timers. Remove only owned input files after exact hash checks; keep recipes,
+  manifests and evidence. Remove only the QA task through UI, or restore the
+  original guest baseline through reviewed UI. Remove only owned generated
+  storage keys under exact guards. Reload and compare fresh guest UI/raw with
+  originals. Restore the helper directory. Return to the protected original
+  owner and workspace revision. Compare fresh server/UI data in all seven
+  sections. Restore the original page, viewport, media and idle timer. Never log
+  out or replace protected workspace data.
+- **Status:** passed on 2026-11-13 UTC (2026-11-14 Asia/Jakarta), at source
+  `240d8fc`. Independent assertions passed all six negative inputs with exact
+  errors, no review, no workspace write and unchanged raw/fresh UI data. The
+  over-limit input made zero `arrayBuffer` calls; the others made one. All six
+  backup controls were native-disabled during the held read and recovered on
+  release. The exact 10,485,760-byte input reached review. Cancel preserved data
+  and restored Import focus. Native Enter rejected malformed JSON. Its next Tab
+  reached Recover, which was not activated. Shift+Tab reached Import and Remove;
+  Enter on Remove cleared the file/error and restored enabled, visible Choose
+  file focus. Pointer/Enter chooser cancellation produced trusted cancel events
+  and preserved data/focus under CDP suppression, not actual OS Cancel-button
+  automation. File transfer used `setInputFiles` with untrusted change events.
+  Read rejection was a bounded simulation, not a hardware failure. All
+  successful probes restored native methods and removed timers/listeners without
+  safety expiry. The expired early observer pilot is preserved but excluded from
+  call-count evidence. All 10 raw and nine UI fixture comparisons passed. Error,
+  held-state and review screenshots were inspected. The owned task was deleted
+  through UI. Guest raw/UI baselines and protected
+  original-owner/server/fresh-UI data are exactly restored. Workspace revision,
+  completed count 1, idle timer, page, title, viewport and media are preserved.
+  All hooks/observers were removed. Across 868 observed requests, no HTTP
+  mutation or browser auth route occurred. Seven owned input files were removed
+  after ownership/hash checks; reproducible recipes and evidence remain. Private
+  files have mode `0600`; no known private fields matched in shared evidence.
+  Initial known SSR class mismatches remain recorded; final logs were empty. No
+  application source changed. All 165 code/config hashes match prior full
+  static/build checks, reused not rerun. Doctor still has 16 errors/22 warnings,
+  not a clean scan. See the batch `runtime-assertions.json`,
+  `static-reuse-proof.json` and `final-cleanup.json`.
 
 ### [x] QA-164 — P1 — Report filters synchronize with URL navigation
 
