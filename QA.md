@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 52 checked sections out of 202, including historical passes.
+Current total: 53 checked sections out of 203, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -5503,8 +5503,14 @@ QA-163 and QA-165; static tooling: QA-166.
 
 - **Purpose:** retain keyboard interaction, pending controls and safe handling
   of invalid or failed navigation without stale values.
-- **Prerequisites:** shared setup; a way to simulate navigation failure without
-  production changes. If unavailable, mark the failure subcase blocked.
+- **Prerequisites:** Current same-tab verified-empty guest authorization. Reuse
+  only the owned 30-record report fixture through normal reviewed guest restore.
+  Preserve original guest raw/UI and protected-owner baselines. The installed
+  Router exposes `window.__TSR_ROUTER__`; its `useNavigate` reads
+  `router.navigate` at call time. A bounded guest-only pass-through wrapper may
+  hold or reject one report navigation. Restore the original method in finally
+  and with a safety timer. Never wrap protected-origin navigation. If this
+  boundary is unavailable, mark the failure subcase blocked.
 - **Inputs:** an invalid date in a direct URL; keyboard Tab, arrows, Enter and
   Escape; rapid date/project/period changes.
 - **Steps:** 1. Use keyboard on date and project controls on `/reports/`. 2.
@@ -5519,8 +5525,31 @@ QA-163 and QA-165; static tooling: QA-166.
   queued navigation regression.
 - **Evidence:** `qa-artifacts/QA-165-filter-errors.txt` and
   `qa-artifacts/QA-165-filter-focus.png`; inspect URL, alert and focus.
-- **Cleanup:** restore normal navigation and close only owned tabs.
-- **Status:** pending.
+- **Cleanup:** Restore the exact original navigation method and remove owned
+  observers and timers. Restore original guest UI/raw baselines and return the
+  existing tab to the protected original owner with fresh server/UI equality. Do
+  not open or close tabs, change authentication or restart services.
+- **Status:** partial; the queued two-action subcase remains blocked. The
+  Date/Project focus defects at `dd148cac` are fixed in `a4760583`; QA-223
+  passed the complete focus regression. In the owned same-tab guest, 40 held
+  native actions and 40 one-shot Router failures followed by 40 real retries
+  passed across both widths, themes and motion settings. All eight controls were
+  native-disabled while pending; a physical disabled-control hit sent no second
+  navigation. Each simulated failure kept the old URL/data, exposed one safe
+  alert, restored enabled focus and recovered through the original Router. The
+  invalid `2024-02-30` URL rejected filter rendering with SearchParamError logs
+  and safe recovery UI; keyboard Return to timer preserved all raw data. Native
+  zero-delay Next/Previous pairs each accepted two serial actions and crossed
+  leap day correctly. Faster native CDP pairs accepted one and blocked the
+  second. Neither method accepted two before the first disable; this does not
+  prove queued-action handling and does not waive QA-167. All 288 captured raw
+  maps stayed byte-identical. Original guest UI/raw and protected-owner
+  server/fresh-UI baselines were restored, with no observed mutation/auth-route
+  requests or owned hooks left. Keep the versioned evidence under
+  `qa-artifacts/QA-165-167/navigation-2cxypzct/`. These Router failures are
+  controlled guest-only simulations, not real upstream outages. Known stale
+  Skeleton diagnostics, exact attributed screenshot CSP and an intermittent
+  final session 503 followed by verified 200 recovery are retained.
 
 ### [x] QA-166 — P2 — Static checks for the migrated workflows
 
@@ -5558,8 +5587,9 @@ QA-163 and QA-165; static tooling: QA-166.
 
 - **Purpose:** prevent two accepted period actions from using the same starting
   date and verify navigation across a month boundary.
-- **Prerequisites:** shared isolated setup; an owned Playwriter tab in the
-  project tab group; web app at `http://localhost:13001`; no production data.
+- **Prerequisites:** Current same-tab disposable guest setup in the existing
+  project tab group. Use the approved guest origin and owned report fixture;
+  preserve original guest/protected baselines. No extra tab or account action.
 - **Inputs:** `/reports/?period=day&date=2024-02-28&page=2`; two rapid Next
   actions and two rapid Previous actions.
 - **Steps:** 1. Open the input URL. 2. Use Playwriter to click Next twice as
@@ -5574,8 +5604,25 @@ QA-163 and QA-165; static tooling: QA-166.
   be accepted before the control disables, mark the two-action subcase blocked.
 - **Evidence:** `qa-artifacts/QA-167-report-moves.txt`; save sanitized action
   counts, URLs, headings, and browser errors. Inspect each result.
-- **Cleanup:** close only tabs opened for this case. No data cleanup is needed.
-- **Status:** pending.
+- **Cleanup:** Remove only owned passive activation/pending observers. Use
+  shared guest UI/raw cleanup and protected original-owner server/UI equality;
+  restore the original page, viewport and media without opening or closing tabs.
+- **Status:** partial; queued-before-disabled coverage remains blocked. Native
+  zero-delay locator double-clicks accepted two trusted enabled Next actions
+  from February 28/page 2 to March 1/page 1, then two Previous actions returned
+  to February 28. Each second click occurred after the first navigation finished
+  and the control became enabled again, so these are serial actions, not proof
+  of a queued pair. Faster parallel native CDP double-clicks in each direction
+  accepted one action and blocked the second at the native disabled control. No
+  handler invocation, synthetic DOM event or disabled-state bypass was used.
+  Independent call/input/attribute traces confirm one Gregorian day per accepted
+  action and page reset. Guarded real Back/Forward restored February 28/29 with
+  matching Date, heading, records and totals. Raw storage stayed byte-identical;
+  all passive wrappers/listeners/timers and guest fixtures are removed. Original
+  guest and protected-owner server/UI baselines are restored. Evidence:
+  `native-rapid-history-assertions.json` in the QA-165/QA-167 batch. Keep this
+  case unchecked until two genuinely queued enabled activations can be tested
+  under approved conditions; do not weaken the pending gate to create them.
 
 ## Header navigation redesign and theme switch
 
@@ -7374,3 +7421,92 @@ Coverage: loaded history body/footer paint → QA-222; known aggregation and
 boundaries → QA-012; report table and pagination → QA-158/QA-159/QA-164; shared
 loading visibility and stale SSR → QA-221. Authorization and API changes are not
 applicable to this CSS layer fix.
+
+### [x] QA-223 — P1 — Report navigation returns control focus
+
+- **Task/files:** correct lost control focus during report navigation in
+  `apps/web/src/features/reports/components/report-filters.tsx`. Keep native
+  disabled controls and the existing DatePicker, Select and navigation APIs.
+  Related requirements are QA-165 keyboard/pending feedback and QA-167 action
+  ordering. No authentication or persistence contract changes are planned.
+- **Purpose:** keep the selected filter trigger available to keyboard users when
+  its popup closes before navigation enables the trigger again. Also preserve
+  focus after period and previous/next actions. Do not move focus from a
+  different control that the user selected.
+- **Prerequisites:** use the current same-tab guest setup. Verify the exact
+  owned guest origin and session status 200 with user null. Save fresh UI/raw
+  baselines before loading the owned 30-record fixture. Keep the protected
+  account, app servers and other origins unchanged. Use the existing public
+  Router method only for a bounded guest-only navigation hold with a safety
+  release and exact method restoration. Do not change a clock or send protected
+  mutation/auth-route requests. Use protected session/workspace GETs only for
+  baseline and return owner checks.
+- **Inputs:** All projects, Day, February 28 and February 29, 2024; QA green;
+  Day/Week; real Previous/Next controls. Use 1440 and 320 CSS-pixel widths in
+  light/dark media and normal/reduced motion. Use the same fixture and UUIDs as
+  QA-165. No new timer run or record edit is required.
+- **Steps:**
+  1. Observe a fresh report render before activation. Record focus without
+     moving it. Open Date by pointer, press Escape, then open it with Enter. Tab
+     to the selected day, move by ArrowRight and select with Enter.
+  2. Repeat under a bounded hold that keeps navigation pending until the
+     calendar has closed. Record disabled attributes and native focus events.
+     Release navigation and inspect Date focus after it becomes enabled.
+  3. Use native keyboard input to change Project. Activate a period and each
+     previous/next control. Observe pending and completed states for each
+     action. Compare the URL, labels and raw storage after each action.
+  4. Repeat the focus check at both widths, in both themes and both motion
+     settings. Inspect focus-ring screenshots and the absence of overflow.
+  5. During a separate held action, use real Tab or Shift+Tab to move to a
+     different enabled control. Release navigation. Verify that focus stays on
+     that control. Do not activate any login or account action.
+  6. Restore the Router method and remove owned timers/listeners. Restore and
+     reload the original guest UI/raw baselines. Return to the protected
+     original origin and verify its original owner, revision and fresh server/UI
+     equality in all seven sections. Restore its page, viewport, title, media
+     and idle timer.
+- **Expected results:** initial rendering does not move focus. Escape returns to
+  Date without navigation. Date and Project selections return focus to their
+  enabled triggers. Period and previous/next controls retain usable focus after
+  completion. Pending controls stay disabled and cannot dispatch a second
+  action. Focus inside a portal does not replace the saved filter trigger.
+  Completion does not move focus from another enabled control. Focus remains
+  visible at each width/theme/motion setting. URL, report and selected values
+  agree. Raw data stays byte-identical during these read-only actions.
+- **Evidence:** keep native focus/attribute events, snapshots, focus-ring
+  screenshots, exact raw comparisons and aggregate results under
+  `qa-artifacts/QA-165-167/navigation-2cxypzct/`. Keep baseline and workspace
+  files private with mode `0600`. Retain the pre-fix body-focus failure and any
+  known hydration or exact attributed screenshot-tool CSP diagnostic.
+- **Cleanup:** follow step 6. Do not log out, create a tab/browser/profile,
+  restart a server, or alter unrelated storage. Remove only owned fixture keys
+  after the original guest baseline has been restored through the UI.
+- **Status:** passed on 2026-11-13 UTC for `a4760583`. The stable event
+  functions remember a filter control, ignore portal focus and use a post-commit
+  microtask to restore a connected control only from the document body. Source
+  tracing proved why the earlier immediate callback failed Project: Select had
+  not yet enabled its trigger. Temporary logging is removed. All 40 native
+  held-action checks passed for Date, Project, Week and both arrows across
+  1440/320 pixels, light/dark and normal/reduced motion. Initial renders did not
+  take focus; popups closed, all eight controls stayed disabled while held, and
+  completion restored enabled visible focus with matching Gregorian URL, rows,
+  totals and chart values. All eight no-focus-steal cases kept Download report
+  focused after 16 real Shift+Tabs and navigation release. Another 40 controlled
+  failures, 40 original-Router retries and 16 popup Escape returns passed. The
+  native focus/error sheets were inspected without rescaling. All 288 raw
+  snapshots matched the original fixture bytes. Guest UI/raw baselines were
+  restored and reloaded; original protected owner, revision 49 and all seven
+  server/fresh-UI sections matched. Original page/title/viewport/media and idle
+  25:00/counter 1 remain; owned observers, timers and Blob hooks are removed.
+  Full root typecheck, type-aware zero-warning lint, format check and web
+  production build passed on the exact final source. Doctor scanned 101 files
+  without skips and had the same 16 errors/22 warnings as baseline, not a clean
+  scan. Enabled commit hooks also passed. Retain the pre-fix failures, Select
+  timing and week-anchor/locator adapter corrections. Known stale Skeleton
+  hydration and exact attributed screenshot CSP diagnostics remain separate; a
+  final session 503 recovered to verified same-owner 200 without login/logout.
+  QA-165/QA-167 queued-action coverage is still blocked, not claimed here.
+
+Coverage: report popup/control focus → QA-223; report pending/error and invalid
+URL recovery → QA-165; native rapid-action ordering → QA-167. Shared manual
+session and export DatePicker implementations stay unchanged.
