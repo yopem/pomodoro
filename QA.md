@@ -186,33 +186,34 @@ database, and migration crates. HTTP handlers, authentication, persistence, and
 account controls are implemented in source. Their compilation does not prove
 that services, issuer integration, or browser workflows work at runtime.
 
-Current authenticated browser QA uses `http://localhost:13001` in the existing
-project-group Chrome tab. The edge routes backend requests to the owned API at
-`127.0.0.1:18001` and other requests to the copied standalone SSR artifact at
-`127.0.0.2:13001`. The API uses isolated development configuration for this
-loopback origin; do not report it as production HTTPS acceptance. The user
-completed real issuer login on this origin. The previous HTTPS hostname was
-rejected by the issuer and its certificate is not trusted by this browser. Do
-not bypass TLS validation or change issuer or Google configuration.
-
-Use existing connected project-group tabs first. Do not launch another browser,
-create a profile, restart Chrome, install trust, clear user storage, or use
-another project's tabs. A temporary peer tab in the same project group is
-permitted only for a required two-tab scenario; close only that owned peer.
-These restrictions supersede older profile suggestions in individual cases. Read
-`qa-artifacts/runtime/context.json` and current progress notes before using any
-process. Do not print private environment values. Check listeners before
-starting a service. Do not start a second web server or change project ports.
-Use only identified QA fixtures and guarded record-specific cleanup.
-
-The existing PostgreSQL listener on 5432 belongs to another project. Do not
-connect to it, stop it, or use its volumes. Database QA requires a new local
-Podman instance with a unique name, fresh credentials and a confirmed free
-loopback port. Record that owned target before connecting or applying reviewed
-migrations. Never use the root `.env` database URL. Do not run root
-`bun run dev` or migration scripts with inherited credentials. Construct an
-explicit isolated environment and preserve all unrelated processes and data.
-
+The protected browser origin is `http://127.0.0.1:13001`. Use the existing
+project-group Chrome tab. The user confirmed that the current database is
+non-production. This does not prove process isolation or authorize direct access
+to that database. Use same-origin application endpoints and preserve all
+existing records, preferences, cookies, and authentication. The user approved
+controlled failures and backup restores only on the owned, verified-empty guest
+origin in this same tab. Read the current authorization and origin from
+`docs/qa-same-tab-guest-authorization.md` and the current progress notes. Verify
+session 200 with `user: null`, save fresh UI and raw baselines, and stop if
+unrelated data is present. Never copy account cookies or records into the guest
+workspace. Restore the guest baselines and return to the protected origin.
+Verify the original owner and all seven server/UI sections. The user is asleep
+and cannot sign in. Do not ask questions, log out, start sign-in, switch
+accounts, create peer tabs, browsers, profiles or agents, or restart an
+application service. Do not start another service or change ports. Do not use
+another project's tabs or processes. These limits supersede older profile,
+peer-tab, and service-setup suggestions in individual cases. Older evidence used
+`localhost`, another HTTPS hostname, process aliases, and copied SSR artifacts.
+Keep each result tied to its recorded origin and runtime; do not treat those
+layouts as the current setup. The earlier HTTPS certificate and issuer rejection
+do not authorize TLS, CSP, or issuer changes. The current runtime is not proof
+of production HTTPS or an isolated database configuration. The PostgreSQL
+listener on 5432 belongs to another project. Do not connect to it, stop it, or
+use its volumes. Direct database, new container, service startup, and
+multi-client checks remain blocked until their isolated setup is approved. Do
+not read or print root `.env` values or use inherited credentials for tools,
+migrations, or development startup. Read current progress notes before using any
+process. Use only named QA fixtures and guarded, record-specific cleanup.
 Runtime: use the installed Bun canary; record its version with each run. Earlier
 tooling evidence used `1.4.4-canary.1+a8fcd319b`. No exact Bun pin or
 `bun-toolchain.json` is required. Rust `1.97.1` remains pinned by
