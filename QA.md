@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 47 checked sections out of 201, including historical passes.
+Current total: 49 checked sections out of 202, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -232,6 +232,70 @@ Use isolated temporary directories for tooling probes. Keep sanitized evidence
 under ignored `qa-artifacts/`. Execute P0 before P1, then P2. Every new case is
 pending until its evidence is inspected. Record revision, date, environment,
 actual result, and evidence path when a case runs.
+
+## Same-tab reports and local date batch
+
+QA-012, QA-026, QA-157, QA-158, QA-159, and QA-164 use the current same-tab
+limits above. Start from a fresh verified-empty owned guest origin. Save a fresh
+UI backup and raw storage baseline in private mode-0600 files. Record the
+browser timezone and saved Monday week start. Keep the clock unchanged. Save
+protected original-owner context privately before leaving its origin.
+
+Create green projects `Study` and `QA green` through `/projects`. Create the
+following manual records through Add focus time in `/reports`. Leave optional
+start/end times empty. Use a valid report URL to set the initial calendar month,
+then select the stated date with the calendar. Do not inject form state.
+
+| Task name           | Local date | Minutes | Project                             |
+| ------------------- | ---------- | ------- | ----------------------------------- |
+| Read                | 2026-01-01 | 25      | Study                               |
+| Review              | 2026-01-02 | 50      | Study                               |
+| Historical focus    | 0099-12-31 | 1       | No project                          |
+| QA focus            | 2024-02-29 | 25      | QA green; then No project in QA-158 |
+| =1+1                | 2024-02-29 | 1       | No project                          |
+| QA-159 Range start  | 2024-02-28 | 5       | No project                          |
+| QA-159 Before range | 2024-02-27 | 7       | No project                          |
+| QA-159 After range  | 2024-03-01 | 9       | No project                          |
+
+Run QA-012 and QA-026 before the pagination fixture. Finish QA-158 before
+creating pagination data. For QA-157/QA-164, add 22 records named
+`QA-164 Page 01` through `QA-164 Page 22`, each 1 minute on 2024-02-29. Odd
+numbers use QA green; even numbers use No project. To create these safely,
+export the actual guest UI backup and clone its actual one-minute record in a
+private local backup. Use a new platform UUID for each ID. Keep valid timing
+fields from that record and change only its ID, title, and project. Restore
+through the guest Backup UI and review. Do not invent DTO fields or write raw
+storage to seed records. Verify a fresh export against the fixture before use.
+
+The current history page holds 20 records. After setup, 2024-02-29 has 24
+records and 48 minutes: QA green has 11 minutes and No project has 37. February
+2024 has 60 minutes; its Monday week containing February 29 and year 2024 each
+have 69. The inclusive February 28–29 export has 25 rows and 53 minutes. Study
+has 75 minutes in January and year 2026. Keep each case's extra records outside
+its stated filter and compute expected rows from the saved fixture.
+
+Use the existing report search contract: `period=day|week|month|year`, ISO
+`date`, optional project UUID or `project=none`, and positive integer `page`.
+For year 0099, a direct `/reports?period=day&date=0099-12-31&page=1` URL starts
+in the required month. Use the existing tab for direct URLs, reload, Back, and
+Forward. Do not open or close another tab. Do not activate sign-in or logout.
+
+Keep setup, input hashes, selected controls, URLs, totals, rows, browser logs,
+and inspected screenshots/downloads under ignored
+`qa-artifacts/qa-reports-dates/`. Each case records its exact batch path. Save
+CSV bytes from the UI Blob and inspect a fresh matching OS download before
+claiming download persistence. Keep private files mode 0600. Separate the known
+SSR hydration diagnostic and exact attributed screenshot-tool CSP hash from new
+errors; do not describe those logs as clean.
+
+After all case evidence is checked, remove only these owned records/projects or
+restore the exact original empty guest backup through its normal review. Compare
+all seven UI backup sections, then remove only owned keys absent from the raw
+baseline. Reload and verify exact UI/raw equality. Remove all scoped observers,
+wrappers, and interception. Return to the protected original owner; verify
+session/workspace status 200, unchanged server/UI seven-section data, count 1,
+idle 25:00, original route/title/viewport/media and stored theme. Never change
+the protected workspace or stop/restart a service.
 
 ## Setup cases
 
@@ -585,28 +649,46 @@ passed.
   `qa-artifacts/qa-guest-finish/template-owned.json` and template snapshots.
   Only owned tasks/templates were deleted; guest baseline matched afterward.
 
-### [ ] QA-012 — P1 — Reports aggregate known focus records
+### [x] QA-012 — P1 — Reports aggregate known focus records
 
 - **Purpose:** Compute daily, weekly, monthly and yearly totals from stored
   focus.
-- **Prerequisites:** Shared setup above. Guest mode; use manual history entry to
-  create isolated records after that form exists.
-- **Inputs:** Read: 25 minutes on 2026-01-01; Review: 50 minutes on 2026-01-02;
-  both under Study.
+- **Prerequisites:** Current shared setup and same-tab reports batch above.
+  Verify guest identity and an empty starting workspace. Record browser timezone
+  and saved Monday week start; no database access is needed.
+- **Inputs:** Study project; Read, 25 minutes on 2026-01-01; Review, 50 minutes
+  on 2026-01-02. No optional start/end times or timer runs.
 - **Steps:**
-  1. Confirm the stated isolated starting state.
-  2. Navigate report periods to January 2026 and year 2026. Filter Study.
-     Inspect project and activity totals.
-  3. Save the observable result and inspect the evidence.
-- **Expected results:** The year and month show 75 minutes for Study. Empty
-  periods show zero, not fabricated data. Boundaries follow the documented
-  timezone and week-start rule.
-- **Evidence:** `qa-artifacts/QA-012.txt` and relevant screenshots or downloads
-  in `qa-artifacts/QA-012/`; inspect actual state, errors and stored effects.
-- **Cleanup:** Remove only this case’s isolated records and browser profile.
-  Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+  1. Create Study and both manual records through their normal UI forms. Verify
+     IDs, project, local dates, durations, and zero task/timer changes.
+  2. Filter Study. Inspect Day for January 1, January 2, and January 3; Week
+     containing January 1; Month January 2026; and Year 2026.
+  3. Inspect Month February 2026 and December 2025. Compare displayed ranges,
+     totals, chart/project values, and history rows with the stored records.
+- **Expected results:** Days show 25, 50, and 0 minutes. The Monday week
+  December 29, 2025–January 4, 2026, January month, and year 2026 show 75
+  minutes for Study. Empty months show zero without fabricated rows. Local dates
+  and boundaries follow the recorded timezone and week-start rule.
+- **Evidence:** Save selected controls/URLs, actual UI/durable record data,
+  totals, chart/history screenshots and assertions in the reports batch path and
+  `qa-artifacts/QA-012.txt`. Inspect each result before checking the case.
+- **Cleanup:** Use the shared batch cleanup. Remove only owned records/project
+  data, restore guest raw/UI baselines, and verify the protected owner return.
+  Do not close the existing tab or delete a browser profile.
+- **Status:** passed on 2026-11-13 UTC. All eight range, total, chart, history,
+  selected-control and raw-storage checks passed for the two UI-made Study
+  records. Both visual sheets were inspected. QA-222 then fixed the hidden
+  empty-history message and page count at source commit `d1d2dd2`. Its eight
+  loaded-frame samples passed with unchanged report data and visible text in
+  both themes and widths. The aggregation code did not change. Root typecheck,
+  lint, format and web build passed. The full Doctor scan had no new
+  diagnostics, but retains 16 errors and 22 warnings. Fresh guest UI and raw
+  storage equal their original empty baselines. The original protected owner,
+  server and fresh UI match all seven baseline sections. The timer, viewport,
+  media and title are restored. No HTTP mutation or auth request occurred. See
+  `qa012-aggregation-assertions.json`, `card-frame-layering/`,
+  `protected-final-equality.json` and `final-cleanup.json` in the batch path.
+  The original blank screenshots remain in the evidence.
 
 ### [x] QA-013 — P0 — CSV export is scoped and formula-safe
 
@@ -982,22 +1064,46 @@ cache and offline coverage: QA-020. Build and browser checks require approval.
 
 - **Purpose:** Reports must not change years 0000–0099 to 1900–1999 when they
   create local day, week, month, or year boundaries.
-- **Prerequisites:** Shared setup above. Use an isolated guest workspace.
-  Browser execution requires the separate QA approval. No database is needed.
+- **Prerequisites:** Current shared setup and same-tab reports batch. Use only
+  the verified owned guest origin; keep the real clock/timezone unchanged. No
+  database or separate profile is needed.
 - **Inputs:** Manual record title `Historical focus`, date `0099-12-31`, 1
   minute, no project, and no optional start or end time.
-- **Steps:** 1. Open `/reports` and add the input record. 2. Select date
-  `0099-12-31`. 3. Select Day, Week, Month, then Year. 4. Select Day and date
-  `0100-01-01`. 5. Export the selected historical day after restoring date
-  `0099-12-31`.
-- **Expected results:** Each range that contains the record reports exactly 1
-  minute and shows `Historical focus`. Year 0099 stays year 0099. Day
-  `0100-01-01` excludes the record. The exported date is `0099-12-31`.
-- **Evidence:** Save filter states and the sanitized CSV under
-  `qa-artifacts/QA-026/`. Inspect the selected year, total, and CSV date.
-- **Cleanup:** Delete only `Historical focus` from the isolated workspace.
-- **Status:** Pending. Source lint, format, and typechecks do not prove this
-  browser scenario.
+- **Steps:**
+  1. Open `/reports?period=day&date=0099-12-31&page=1` in the existing tab. Use
+     the calendar and Add focus time form to save the input record.
+  2. Inspect its persisted local year and selected date. Select Day, Week,
+     Month, then Year; inspect matching totals, ranges, and history rows.
+  3. Return to Day. Use Next period to reach `0100-01-01`; inspect exclusion.
+     Return to `0099-12-31` and Download report for that day.
+  4. Inspect actual CSV bytes, header, row count, date and minute value, and
+     match the fresh OS file to the UI Blob. Inspect logs without hiding known
+     SSR diagnostics.
+- **Expected results:** Each containing range reports exactly 1 minute and shows
+  Historical focus. The selected URL, calendar, stored record, range and export
+  retain year 0099 rather than 1999. Day `0100-01-01` has no matching record.
+  CSV contains exactly this record with date `0099-12-31`.
+- **Evidence:** Save controls, URLs, persisted date, range/row assertions,
+  screenshots and matched CSV in the batch path and `qa-artifacts/QA-026/`.
+- **Cleanup:** Use shared batch cleanup; remove only the owned historical record
+  and restore guest/protected baselines without logout or a new tab.
+- **Status:** partial on 2026-11-13 UTC. The actual calendar preserved
+  `0099-12-31`. The saved one-minute record has native local year 99 at noon in
+  Asia/Jakarta, not 1999. All four range totals, rows, chart values and selected
+  controls passed. The cross-year week ends on January 3, 100. Actual Next and
+  Previous controls excluded the record on `0100-01-01` and returned to the
+  padded year-0099 date. All eight control/history screenshots were inspected.
+  The actual 60-byte UTF-8 BOM CSV has exactly one data row, `0099-12-31`, the
+  correct title, an empty project cell and one minute. The native download event
+  reports the correct filename, but a saved OS file was not found in the
+  expected Downloads or declared artifact path. The first download completion
+  wait timed out. A bounded repeat captured the UI Blob and event without that
+  wait. Do not infer an app failure or saved-file proof from these results. No
+  download setting or protection was changed. Both capture hooks are removed.
+  Guest UI/raw and protected owner/server/UI cleanup passed in all seven
+  sections. See `qa026-range-assertions.json`, `qa026-csv-ui-assertions.json`,
+  the download observations and `final-cleanup.json` in the batch path. Keep
+  unchecked until the fresh OS file matches the UI Blob.
 
 Historical calendar-range coverage maps to QA-026. Other aggregation and CSV
 cases remain QA-012 and QA-013.
@@ -5120,52 +5226,88 @@ contracts, payments, migrations, and external integrations are unchanged.
 ### [ ] QA-157 — P1 — Report filters and local date
 
 - **Purpose:** Preserve report project and local date filtering and URL state.
-- **Prerequisites:** Shared setup; guest project and dated focus records.
-- **Inputs:** 2024-02-29; all projects; no project; `QA green`.
-- **Steps:** 1. Open `/reports`; select 2024-02-29 in the date calendar. 2.
-  Select each project filter and move between periods. 3. Reload and use back
-  and forward navigation.
-- **Expected results:** Selected date and project appear in the controls and
-  URL, relevant records and totals update, and navigation restores state. A
-  local date does not shift to an adjacent day.
-- **Evidence:** `qa-artifacts/QA-157-filters.png`; inspect date, filter, URL,
-  and matching report results.
-- **Cleanup:** Remove only isolated focus records and projects.
-- **Status:** pending.
+- **Prerequisites:** Current same-tab reports batch with its verified projects
+  and dated records, including all 22 pagination records. Keep timezone and
+  Monday week start unchanged; no authentication action is allowed.
+- **Inputs:** 2024-02-29; All projects, No project, and QA green; Day, Week,
+  Month, and Year. Use the exact batch fixture and its saved IDs.
+- **Steps:**
+  1. Open `/reports?period=day&date=2024-02-28&page=1`; select February 29
+     through the calendar and inspect the resulting local date and URL.
+  2. Select each project filter and each period. Inspect controls, URL, matching
+     history IDs, and time totals without a submit button.
+  3. In Day/All projects, move to March 1 and back to February 29 with the
+     period controls. Reload, then use Back and Forward between two known
+     distinct report filter states. Keep every action in the existing tab.
+- **Expected results:** Day February 29 shows All 48 minutes, QA green 11, and
+  No project 37. All-project Week/Month/Year show 69/60/69 minutes. March 1 Day
+  shows 9 minutes. Controls, URL, rows and totals agree after each action and
+  reload/history movement. The local date does not shift unintentionally, and
+  records/settings/timer remain unchanged.
+- **Evidence:** Save filter-state/URL/row/total assertions and inspected
+  screenshots in the batch path and `qa-artifacts/QA-157-filters.png`.
+- **Cleanup:** Use shared batch cleanup, then verify guest raw/UI and protected
+  original-owner server/UI equality. Restore original page state.
+- **Status:** pending; fixture and expected totals are defined, not executed.
 
 ### [ ] QA-158 — P1 — Focus record date and project
 
 - **Purpose:** Preserve focus record create and edit validation and assignment.
-- **Prerequisites:** Shared setup; isolated guest workspace and active project.
-- **Inputs:** 2024-02-29, task `QA focus`, 25 minutes, no project and QA green.
-- **Steps:** 1. Open `/reports` and add focus time with the specified date and
-  project. 2. Edit it and choose no project. 3. Open the date picker, choose
-  Clear date, and submit. 4. Set the date again, save, and reload the report.
-- **Expected results:** Saved date and project are correct after reload. Invalid
-  required dates do not save, validation is announced, and focus reaches the
-  invalid control. Editing does not create a duplicate record.
-- **Evidence:** `qa-artifacts/QA-158-session.png`; inspect form feedback and
-  saved report row.
-- **Cleanup:** Delete the isolated record and project.
-- **Status:** pending.
+- **Prerequisites:** Current same-tab reports batch; active QA green project.
+  Execute before pagination setup so one owned record can be checked exactly.
+- **Inputs:** 2024-02-29, Task name `QA focus`, 25 minutes, QA green then No
+  project; blank optional times and a cleared required date.
+- **Steps:**
+  1. Open `/reports?period=day&date=2024-02-29&page=1`. Add focus time with QA
+     focus, the selected leap date, 25 minutes and QA green. Save and inspect
+     its ID, local date, duration, project and report row.
+  2. Edit that row, choose No project, open Date and choose Clear date. Submit
+     and inspect linked invalid feedback, announcement and focus. Compare
+     durable storage before/after the rejected submission.
+  3. Select February 29, 2024 again with the calendar, retain No project, save,
+     reload and inspect the same record ID and report row.
+- **Expected results:** The first save uses the correct leap date/project. Empty
+  required date prevents all writes and gives one linked error with focus on the
+  invalid Date control. The valid edit has project_id null, the same
+  ID/date/25-minute duration and no duplicate record after reload. Other
+  records, projects, settings and idle timer stay unchanged.
+- **Evidence:** Save form/focus/ARIA feedback, before/after durable records,
+  ID/date/project assertions and inspected screenshots in the batch path and
+  `qa-artifacts/QA-158-session.png`.
+- **Cleanup:** Keep only the verified owned record for later batch cases, then
+  run shared cleanup and protected original-owner return checks.
+- **Status:** pending; no valid or invalid create/edit run is claimed yet.
 
 ### [ ] QA-159 — P1 — CSV date range and options
 
 - **Purpose:** Preserve date range, unit, delimiter and safe CSV export.
-- **Prerequisites:** Shared setup; isolated dated records including a task named
-  `=1+1`; browser downloads directed to ignored `qa-artifacts/`.
-- **Inputs:** From 2024-02-28 through 2024-02-29; hours and tab; then an end
-  date earlier than the start.
-- **Steps:** 1. Open `/reports` and Download report. 2. Select the dates, hours
-  and tab; download the CSV. 3. Reopen and select an end date before the start;
-  submit. 4. Clear each date and submit. 5. Inspect the downloaded CSV.
-- **Expected results:** CSV contains only in-range records, hours, tab-separated
-  columns and an escaped formula-like task name. A reversed range or a cleared
-  required date shows an error and does not download.
-- **Evidence:** `qa-artifacts/QA-159-export.csv` and
-  `qa-artifacts/QA-159-validation.png`; inspect values and error.
-- **Cleanup:** Delete only the isolated records; retain sanitized evidence.
-- **Status:** pending.
+- **Prerequisites:** Current same-tab reports batch with all dated records.
+  Capture actual UI Blob bytes and match only a fresh expected OS download; copy
+  owned evidence into ignored artifacts without changing global download
+  settings or reading unrelated files.
+- **Inputs:** From 2024-02-28 through 2024-02-29; Hours, Tab, Include task names
+  on; manual Task name `=1+1`. Also use reversed and empty date ranges.
+- **Steps:**
+  1. Open `/reports` and Download report. Select the inclusive date range,
+     Hours, Tab and task names, then Download CSV.
+  2. Match fresh OS bytes to the UI Blob and strictly parse tab-separated
+     fields. Check every row/date/project/hour value against the saved fixture,
+     including both range endpoints and the formula-like title.
+  3. Reopen the export dialog. Set an end date before the start and submit.
+     Restore valid dates, clear From and submit, then restore From, clear To and
+     submit. Inspect each linked error/focus and count downloads.
+  4. Cancel the dialog and verify that no workspace data changed.
+- **Expected results:** Exactly 25 in-range rows total 53/60 hours, with
+  source-equivalent row durations in Hours and Tab-separated columns.
+  Formula-like task text is apostrophe-neutralized. February 27, March 1, year
+  0099 and 2026 records are absent. Reversed/empty required dates give visible
+  linked feedback and no download. Cancel preserves all data.
+- **Evidence:** Save byte-match/strict-parse/range/validation assertions, actual
+  owned CSV and inspected feedback screenshots in the batch path,
+  `qa-artifacts/QA-159-export.csv` and `qa-artifacts/QA-159-validation.png`.
+- **Cleanup:** Remove export observers/wrappers and run shared guest/raw and
+  protected-owner cleanup. Keep sanitized owned download evidence only.
+- **Status:** pending; new range/invalid-download runs have not started.
 
 ### [ ] QA-160 — P2 — Popup interaction and responsive layout
 
@@ -5269,23 +5411,35 @@ QA-163 and QA-165; static tooling: QA-166.
 
 ### [ ] QA-164 — P1 — Report filters synchronize with URL navigation
 
-- **Purpose:** preserve immediately applied report filters, paging reset, and
-  back/forward and direct-link synchronization.
-- **Prerequisites:** shared setup; isolated guest project `QA green` and dated
-  focus records with and without a project; existing `/reports/` route.
-- **Inputs:** date 2024-02-29, day/week/month/year, QA green, No project, and
-  All projects; use the existing report pagination controls when available.
-- **Steps:** 1. Open `/reports/`, select each period, set the date, then each
-  project filter. 2. Change the filter after moving to another history page. 3.
-  Use previous and next period, reload, then browser Back and Forward. 4. Open
-  the resulting URL directly in an owned tab.
-- **Expected results:** each action updates the URL and matching rows and totals
-  without a submit button; page returns to 1; date remains local; controls match
-  the URL after direct navigation, reload, Back and Forward.
-- **Evidence:** `qa-artifacts/QA-164-report-filters.txt` and
-  `qa-artifacts/QA-164-report-filters.png`; inspect URL, controls and records.
-- **Cleanup:** delete only isolated records/project and close the owned tab.
-- **Status:** pending.
+- **Purpose:** Preserve immediately applied report filters, paging reset, and
+  Back/Forward and direct-link synchronization.
+- **Prerequisites:** Current same-tab reports batch and all 22 pagination
+  records. Confirm 24 records on February 29 and the real 20-row page size. Use
+  only the existing tab; no second client, account action or fault.
+- **Inputs:** 2024-02-29; Day/Week/Month/Year; QA green, No project, All
+  projects; History Next/Previous and period Previous/Next controls.
+- **Steps:**
+  1. Inspect each period/date/project control against its URL and matching
+     fixture rows/totals. There must be no separate filter-submit button.
+  2. In Day/All projects, move History to page 2 and inspect the four remaining
+     rows. Separately change project, period, and calendar date from page 2;
+     verify each accepted change resets URL/control page to 1.
+  3. Return to February 29, Day/All projects. Move period forward to March 1 and
+     back, then reload. Create two distinct valid filter states and use browser
+     Back and Forward to check their exact URL/control/row values.
+  4. Open a captured resulting report URL directly in the same existing tab and
+     verify the same state. Compare durable workspace data throughout.
+- **Expected results:** Controls, local date, URL, row IDs and totals agree
+  immediately and after reload/direct/history navigation. Page 2 has four rows;
+  changing any filter resets page 1. All projects/QA green/No project on
+  February 29 show 48/11/37 minutes, with no data or timer mutation.
+- **Evidence:** Save page/filter/history/direct-link assertions, URLs, row IDs,
+  totals and inspected screenshots in the batch path and
+  `qa-artifacts/QA-164-report-filters.{txt,png}`.
+- **Cleanup:** Run shared guest/raw and protected original-owner cleanup. Do not
+  close the existing tab or change authentication.
+- **Status:** pending; real pagination fixture and exact expectations are
+  defined, but no new navigation run has started.
 
 ### [ ] QA-165 — P1 — Report filter keyboard and failure handling
 
@@ -7088,3 +7242,77 @@ Coverage: visible shared loading shapes → QA-221. Settings composition and
 breakpoints remain QA-153. Task-list edges remain QA-215. API, database,
 payment, queue, deployment, and authorization changes are not applicable to this
 color fix. Original session preservation still requires the cleanup check above.
+
+### [x] QA-222 — P1 — Loaded report frame content stays visible
+
+- **Purpose:** Keep the card frame background behind its body and footer. Cover
+  the hidden empty-history message and page counter found during QA-012.
+- **Affected files and routes:** `apps/web/src/components/ui/card.tsx` owns the
+  shared frame. `report-history.tsx` and `reports-loading.tsx` consume it on
+  `/reports`. No HTTP, auth, database, timer, schema or dependency change is
+  required. Loading-shape checks remain in QA-221; do not carry a pass to its
+  stale-SSR matrix.
+- **Prerequisites:** Use current shared setup and the same-tab reports batch.
+  Keep the protected account signed in. Verify the disposable guest and its
+  original empty UI/raw baselines before fixture writes. Keep the frame
+  decoration, borders and theme tokens. Do not restart a server or change CSP.
+- **Inputs:** The UI-created green Study project, Read 25 minutes on 2026-01-01,
+  and Review 50 minutes on 2026-01-02. Use Day 2026-01-03 for empty history and
+  Year 2026 for two records. Inspect 1440px and 320px in both light and dark
+  media with stored System theme. Do not run the timer.
+- **Steps:**
+  1. Retain the pre-fix full-page and actual viewport screenshots. Record the
+     message layout and normal paint properties of its five ancestors. Record
+     the shared source hash and all frame callers before editing.
+  2. After the source change, visit the existing guest Reports view through
+     normal navigation. At each width/theme, inspect the empty history in the
+     actual viewport. Inspect its message, help text and `Page 1 of 1` footer.
+  3. Inspect the populated year at each width/theme. Check both titles, local
+     dates, durations, 75-minute total, page counter and disabled pager
+     controls. Use keyboard navigation and confirm no decorative layer takes
+     focus or blocks an enabled control. Retain headers, captions and action
+     labels.
+  4. Compare the real screenshots and shared computed layer values. Compare all
+     seven durable sections and unrelated storage keys with the two-record
+     state. Run current lint, format, typecheck, web build and the existing
+     Doctor regression check. Record its existing diagnostics, not a clean scan.
+- **Expected results:** Both message lines and page counter are painted, not
+  merely present in the accessibility tree. The decorative background stays
+  within its frame below all content. Headers, tables, shadows, borders and
+  controls remain visible and usable, with no new horizontal overflow. The frame
+  keeps its public props, refs, `render`, class and slot contracts. Record data,
+  filter meaning, timer state and protected session do not change.
+- **Evidence:** Save before/after screenshots, source and computed layer proof,
+  exact geometry/data assertions and check logs in the current reports batch's
+  `card-frame-layering/` directory and `qa-artifacts/QA-222.txt`. Inspect every
+  visual artifact before checking this case. Keep the initial blank captures.
+- **Cleanup:** Use shared reports-batch cleanup. Restore guest UI/raw state and
+  media, remove only owned listeners, and restore helper paths. Return the same
+  tab to the protected origin, verify the original owner and fresh server/UI
+  equality in all seven sections, and restore its route, viewport and idle
+  timer. Never log out, start a new tab, or request credentials.
+- **Status:** passed on 2026-11-13 UTC at source commit `d1d2dd2`. Frame
+  isolation and the negative decorative layer put the background below its
+  content. All eight loaded-frame samples passed layer, total, row,
+  selected-range, disabled-pager, document/footer width and exact raw-data
+  checks. All three native-resolution sheets were inspected. Both empty message
+  lines and page text are now painted. Pointer and Enter opened the same
+  unchanged Review record. Escape and Cancel returned focus to Edit Review
+  without Save. Tab skipped the native-disabled pager. A full reload retained
+  the loaded frame fix. Original failure images and the fractional border-size
+  adapter correction remain in the evidence. Literal root typecheck, lint,
+  format and web build passed against both exact-current isolated snapshots.
+  Doctor scanned all 101 files without skips and has no changed diagnostics. Its
+  existing 16 errors and 22 warnings are not a clean scan. Fresh guest UI/raw
+  storage and protected original-owner/server/UI equality passed. All owned
+  hooks and the observer are removed, with no HTTP mutations or auth requests.
+  Original root, title, media, viewport and idle timer are restored. See
+  `card-frame-layering/checks/verified-results.json`, `matrix-assertions.json`,
+  `protected-final-equality.json` and `final-cleanup.json` in the batch path.
+  QA-153/QA-221 remain blocked by stale loading SSR and are not passed by this
+  loaded-frame check.
+
+Coverage: loaded history body/footer paint → QA-222; known aggregation and
+boundaries → QA-012; report table and pagination → QA-158/QA-159/QA-164; shared
+loading visibility and stale SSR → QA-221. Authorization and API changes are not
+applicable to this CSS layer fix.
