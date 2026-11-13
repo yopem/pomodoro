@@ -1,9 +1,9 @@
-import type { MouseEvent } from "react"
+import type { FocusEvent, MouseEvent } from "react"
 
 import { useForm } from "@tanstack/react-form"
 import { useNavigate, useSearch } from "@tanstack/react-router"
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react"
-import { startTransition, useActionState, useState } from "react"
+import { startTransition, useActionState, useRef, useState } from "react"
 import { z } from "zod"
 
 import { DatePicker } from "@/components/date-picker"
@@ -65,6 +65,7 @@ export function ReportFilters({
   const search = useSearch({ from: "/reports/" })
   const navigate = useNavigate({ from: "/reports/" })
   const projectItems = reportProjectItems(projectNames)
+  const filterFocus = useRef<HTMLElement | null>(null)
 
   async function updateReportFilter(action: FilterAction) {
     if (action.kind === "move") {
@@ -173,6 +174,27 @@ export function ReportFilters({
   )
 
   const [events] = useState(function createFilterEvents() {
+    function rememberFocus(event: FocusEvent<HTMLElement>) {
+      // Keep the filter trigger when focus enters a portal.
+      if (event.currentTarget.contains(event.target))
+        filterFocus.current = event.target
+    }
+
+    function restoreFocus(panel: HTMLElement | null) {
+      if (!panel) return
+
+      const target = filterFocus.current
+      filterFocus.current = null
+
+      if (!target) return
+
+      // Select enables its trigger after the parent ref callback.
+      queueMicrotask(function restoreEnabledFocus() {
+        if (target.isConnected && document.activeElement === document.body)
+          target.focus()
+      })
+    }
+
     function period(event: MouseEvent<HTMLButtonElement>) {
       const value = event.currentTarget.value
       startTransition(() => dispatch({ kind: "period", value }))
@@ -195,13 +217,25 @@ export function ReportFilters({
       startTransition(() => dispatch({ kind: "move", direction: 1 }))
     }
 
-    return { period, date, project, previous, next }
+    return {
+      period,
+      date,
+      project,
+      previous,
+      next,
+      rememberFocus,
+      restoreFocus,
+    }
   })
 
   return (
     <form.Subscribe selector={selectIsSubmitting}>
       {(submitting) => (
-        <Card render={<section aria-label="Report filters" />}>
+        <Card
+          render={<section aria-label="Report filters" />}
+          ref={pending || submitting ? undefined : events.restoreFocus}
+          onFocusCapture={events.rememberFocus}
+        >
           <CardPanel density="compact">
             <Stack>
               <HStack layout="row">
