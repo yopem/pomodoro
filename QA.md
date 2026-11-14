@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 64 checked sections out of 205, including historical passes.
+Current total: 67 checked sections out of 205, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -6576,7 +6576,32 @@ QA-202; accessibility and overlays QA-203; loading, SSR, themes and build
 QA-204. API, migrations, payments, and new integrations are not applicable: this
 change does not alter them. Existing behavior cases remain applicable.
 
-### [ ] QA-198 — P1 — Shared component style
+### Shared presentation execution setup
+
+The approved execution uses only the existing tab and the verified-empty
+`qa-64266751d403.localhost:13001` guest, never the protected account for writes.
+Artifacts: `docs/qa198201-current-artifact-path`. First verify the protected
+owner/revision and guest actual-UI/raw baselines. Restore the exact committed
+owned QA174/225 guest fixture with two real completed Focus records and three
+real incomplete records; do not fabricate completed records or inject time. The
+extraction is not a fresh completion or a fresh UI export. Create only project
+`Design review` (Green), template `Review` with `Read notes` estimate 2, and
+task `Design review` estimate 2. Derive exact expected IDs, seconds, counts and
+associations from actual native saves/run IDs. Use 1440/390 widths and both
+themes for loaded routes/controls. Exercise `/` and `/focus` with
+real >=2-second Start/Pause, Reset review Cancel/confirm and phase-change
+Cancel; no extra window/fullscreen attempt. Incomplete Focus may add only its
+run-linked record, never task actual/completed count. Inspect collection editors
+and Cancel, reports with all/project/no-project and empty/populated periods.
+Compare actual loaded primitive styles with current copied source. Prior Account
+evidence can support only unchanged reviewed source, not new account mutations.
+Preserve current fullscreen/AT/stale-SSR blockers. Restore the original empty
+guest UI/raw keys, remove exact observers/helper changes, then verify the
+original protected owner/revision/server/fresh-UI seven sections and original
+page/viewport/media/timezone. Never sign in/out, start servers, use extra
+tabs/profiles/agents or modify protected records.
+
+### [x] QA-198 — P1 — Shared component style
 
 - **Purpose:** Check the style refresh and regression behavior for all routes
   and shared controls.
@@ -6598,7 +6623,20 @@ change does not alter them. Existing behavior cases remain applicable.
 - **Cleanup:** Remove only isolated records, restore recorded settings and
   network controls, and stop only processes started for this case. Do not clear
   existing user storage.
-- **Status:** pending.
+- **Status:** passed on 2026-11-14 (Asia/Jakarta) at `a136ba46` with unchanged
+  source from the validated `5bff221` tree. All five loaded routes in both
+  themes, four-layout project/template draft and Cancel checks, task required
+  error/disabled Menu, selected timer and focused Settings controls passed
+  independent source-token/style and native visual review. Nine inspected
+  semantic values match the local source. All 32 report views and 16 native
+  detail sheets passed. Whole-case audit: `runtime-final-acceptance.json` in
+  `qa-artifacts/QA-198-201/presentation-5fzcs8zy/`; representative native sheets
+  and provenance are in `qa-artifacts/QA-198/`. Guest raw/UI and original
+  authenticated owner/revision 49/server/fresh-UI seven-section baselines,
+  viewport, media and idle timer are restored; exact observer removed. Prior
+  static checks are reused for 165 unchanged code/config files, not rerun. Known
+  SSR diagnostics and unknown readiness timeouts remain recorded; this is not
+  production SSR or broad accessibility acceptance.
 
 ### [ ] QA-199 — P1 — Navigation and page layout
 
@@ -6626,7 +6664,7 @@ change does not alter them. Existing behavior cases remain applicable.
   existing user storage.
 - **Status:** pending.
 
-### [ ] QA-200 — P1 — Timer and task presentation
+### [x] QA-200 — P1 — Timer and task presentation
 
 - **Purpose:** Check the style refresh and regression behavior for / and /focus.
 - **Prerequisites:** Shared refresh setup; preserve existing local data with an
@@ -6649,9 +6687,22 @@ change does not alter them. Existing behavior cases remain applicable.
 - **Cleanup:** Remove only isolated records, restore recorded settings and
   network controls, and stop only processes started for this case. Do not clear
   existing user storage.
-- **Status:** pending.
+- **Status:** passed on 2026-11-14 (Asia/Jakarta) at `a136ba46`. Four native
+  Root/Focus light/dark scenarios passed phase selection, real Start/Pause,
+  interruption and Reset Cancel raw identity, then one confirmed Reset each.
+  Exactly four intended run-linked incomplete histories were added; task actual
+  0 and completed count 2 stayed unchanged. All state/phase images passed visual
+  review. Six Root daily summaries match native epochs, two planned intervals
+  and breaks: focus today 2m, sessions left 2 and exact finish labels.
+  Whole-case/runtime and daily-overview assertions are in
+  `qa-artifacts/QA-198-201/presentation-5fzcs8zy/`; native sheets/provenance are
+  in `qa-artifacts/QA-200/`. Complete guest and protected-owner/revision/server/
+  fresh-UI baseline restoration passed; no mutations or auth requests among
+  1,713 observed HTTP requests. The Focus Start readiness timeout recovered
+  read-only; its cause remains unknown. Static checks are reused unchanged, and
+  existing Doctor 16 errors/22 warnings are not a clean scan.
 
-### [ ] QA-201 — P1 — Collections and report presentation
+### [x] QA-201 — P1 — Collections and report presentation
 
 - **Purpose:** Check the style refresh and regression behavior for /projects,
   /templates, /reports.
@@ -6675,7 +6726,22 @@ change does not alter them. Existing behavior cases remain applicable.
 - **Cleanup:** Remove only isolated records, restore recorded settings and
   network controls, and stop only processes started for this case. Do not clear
   existing user storage.
-- **Status:** pending.
+- **Status:** passed on 2026-11-14 (Asia/Jakarta) at `a136ba46`. Native Design
+  review Green project and Review template with Read notes/estimate 2, four
+  editor layouts per domain and Cancel byte identity passed independent and
+  visual review. All 32 report period/project/empty/history views at 1440/390 in
+  both themes passed exact row, time-bin, separate chart-maximum, global streak
+  and raw-byte assertions. The nine-history fixture totals 152 seconds (120
+  completed, 18 assigned incomplete and 14 other incomplete); assigned and
+  unassigned totals are 18 and 134 seconds. Earlier owned real focus completions
+  were reused, not repeated in this batch. All 16 report review sheets passed
+  visual review. Whole-case assertions and 59 unrelated-key comparisons are in
+  `qa-artifacts/QA-198-201/presentation-5fzcs8zy/`, with representative evidence
+  in `qa-artifacts/QA-201/`. Original guest raw/UI and authenticated
+  owner/revision/server/fresh-UI baselines, root/viewport/media and idle timer
+  are restored; observer/helper cleanup passed. Privacy scan: 519 private files
+  mode 0600 and 480 shareable texts, zero known private-field matches. Retained
+  hydration/tool-CSP and readiness evidence is not waived.
 
 ### [x] QA-202 — P0 — Settings and account controls
 
