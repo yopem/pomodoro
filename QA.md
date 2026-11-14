@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 67 checked sections out of 205, including historical passes.
+Current total: 68 checked sections out of 205, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -7219,13 +7219,14 @@ workspace checks, disabled states, data, and confirmation flows. Reuse the
 installed Menu, Button, HStack, Text, and controlled task ConfirmAction. No new
 dependencies or styling policy are needed.
 
-### [ ] QA-211 — P1 — Task queue alignment and menu layout
+### [x] QA-211 — P1 — Task queue alignment and menu layout
 
 - **Purpose:** Replace wrapping action clusters with a stable task header,
   readable card hierarchy, and grouped secondary actions.
-- **Prerequisites:** Existing approved browser environment on port 13001;
-  isolated task `QA-208 Timer probe — café`; baseline backup from QA-206;
-  current local Yopem UI source and both themes.
+- **Prerequisites:** Current shared same-tab browser setup; fresh protected
+  owner/revision reads and fresh empty guest UI/raw baselines; local TaskRow,
+  Button and Menu source, both themes. Do not use the obsolete localhost or
+  QA-206 baseline as new verification.
 - **Inputs:** `/`; 320, 390, and 1440 CSS pixel viewports; one task with notes
   `Review spacing and controls.` and one 200-character unbroken task title.
 - **Steps:**
@@ -7244,10 +7245,32 @@ dependencies or styling policy are needed.
   overflow observations in `qa-artifacts/QA-211/`.
 - **Cleanup:** Remove only named QA tasks and restore theme and viewport. Do not
   clear unrelated tasks, history, or browser storage.
-- **Status:** pending. The 390px light/dark images show aligned metadata and
-  actions. The 200-character title, selected/completed states, and empty state
-  were exercised. Complete the remaining 320/1440px task and theme matrix.
-  QA-212 also remains unchecked.
+- **Status:** passed on 2026-11-14 (Asia/Jakarta), source `dcd2d1e7`. The
+  standalone whole-case audit accepted 24 native layouts (initial empty, two
+  populated states, final empty) and 36 row/bulk menus across 320/390/1440 and
+  both themes. Exact seven-section/raw checks, 200-character wrapping, readable
+  metadata/notes, 40px triggers, unchanged source 32px fine-pointer menu items,
+  correct disabled bounds, no overlap/document overflow, accessible labels and
+  native Escape/focus return passed. All native sheets were inspected. Both
+  320px full-page originals also show header/controls/rows/footer where prior
+  element framing was incomplete; the framing cause remains unproven. Both owned
+  tasks were individually deleted. Actual reload and fresh UI/raw exports prove
+  original guest restoration. Protected original-owner/revision49 reads and
+  fresh server/actual UI exports equal the original seven-section baseline;
+  original root/title/1667x1257/media/timezone/idle25:00/completed1, native
+  methods, no hooks/dialog/fullscreen, observer absence and exporter binding
+  restored. All 954 observed requests were GET and none used auth routes. No
+  timer/history/actual/settings changes or source fix occurred. Privacy passed
+  517 private0600 files and 251 shareable texts. All 165 non-QA tracked hashes
+  match successful current static validation, reused rather than rerun; Doctor
+  retains 16 errors/22 warnings, not a clean scan. Natural account Retry
+  recovered without auth/save. Startup/reload readiness timeout and availability
+  causes remain unproven; retained known SSR/tool CSP records are not described
+  as a clean interval. Evidence:
+  `qa-artifacts/QA-211/task-layout-xt4q2ti1/runtime-final-acceptance.json`,
+  `final-cleanup.json`, native review sheets and exact data proofs;
+  `docs/qa-task-queue-layout-progress.md`. QA-212 action-guard evidence remains
+  separate. No other case or blocker is waived.
 
 ### [x] QA-212 — P0 — Task menu safety and existing mutations
 
