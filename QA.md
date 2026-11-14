@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 58 checked sections out of 204, including historical passes.
+Current total: 60 checked sections out of 205, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -6059,17 +6059,19 @@ Affected files: `apps/web/src/features/timer/components/focus-timer.tsx`,
 existing phase duration calculation and phase color. No timer mutation, storage,
 API, or authentication contract changes.
 
-Setup: use the existing isolated guest workspace at `http://localhost:13001`. Do
-not replace an active server. Record original settings and timer state. Use an
-idle workspace with no active real task. Set each interval to 1 minute and turn
-off automatic starts for repeatable checks. Run QA-174 before QA-175. Save
-evidence in ignored `qa-artifacts/`. Browser runs and production builds need a
-separate QA request. Lint, format, and typecheck can run now. Coverage: running,
-paused, reset, completion, and phase changes map to QA-174. Home/focus reuse,
-mobile sizing, theme, and accessibility map to QA-175. API, auth, and migrations
-are not applicable because no such contracts change.
+Setup: use the approved same-tab disposable guest origin in the shared setup.
+Keep the protected signed-in origin and its data unchanged. Do not replace an
+active server or open another tab or browser. Record original UI and raw guest
+baselines. Use only owned fixtures with no active real task. Set each interval
+to 1 minute and turn off automatic starts for repeatable checks. Run QA-174
+before QA-175. Save evidence in ignored `qa-artifacts/`. Browser runs and
+production builds need a separate QA request. Lint, format, and typecheck can
+run now. Coverage: running, paused, reset, completion, and phase changes map to
+QA-174. Home/focus reuse, mobile sizing, theme, and accessibility map to QA-175.
+Zero-progress stroke paint maps to QA-225. API, auth, and migrations are not
+applicable because no such contracts change.
 
-### [ ] QA-174 — P1 — Progress follows the interval clock
+### [x] QA-174 — P1 — Progress follows the interval clock
 
 - **Purpose:** Keep ring progress consistent with elapsed time, including pause,
   resume, phase selection, reset, and completion.
@@ -6093,7 +6095,30 @@ are not applicable because no such contracts change.
   screenshots at half progress and after reset.
 - **Cleanup:** Restore settings; reset only the isolated timer and remove only
   sessions created by this case through existing history controls.
-- **Status:** Pending.
+- **Status:** passed on 2026-11-14 UTC after paint fix `5bff221`. Real Focus,
+  Short and Long intervals passed near-half clockwise progress, frozen real
+  5-second pauses, same-run resume, natural completion, Reset Cancel/confirm and
+  confirmed phase changes. The independent audit checked 42 stages, 306 native
+  samples and exact 100-percent strokes for all three phases. Records contain
+  only two intended 60-second completions and 8/4-second confirmed partial Focus
+  runs; QA-225 added one intended 2-second partial Focus. Break completion/reset
+  and drawing added no Focus records or completed counts. The first reload's
+  Pause-only wait timed out despite a 200 response; its cause remains unproven
+  and all evidence is retained. A separate early reload recovered the exact
+  stored run/deadline and visible Pause before completion. This does not erase
+  or diagnose the first timeout. QA-225 now removes the confirmed zero-progress
+  endpoint. All 24 zero states, three positive/reset branches and 16 normal
+  route/theme/motion surfaces passed independent native state, pixel and
+  inspected-image checks. Original guest raw/UI baselines and protected
+  owner/revision 49/server/fresh UI seven-section equality passed; original
+  page, viewport, media, timezone and idle count were restored. All hooks and
+  the request observer were removed. The 3334 observed requests contained no
+  HTTP mutations or authentication routes. Current forced root
+  typecheck/lint/format and production build passed; full Doctor retained the
+  same 16 errors/22 warnings, not a clean scan. See
+  `docs/qa174175-current-artifact-path` and `runtime-final-acceptance.json`.
+  QA-175 fullscreen and actual screen-reader prerequisites remain separate and
+  are not claimed by this pass.
 
 ### [ ] QA-175 — P2 — Ring layout, themes, and accessibility
 
@@ -6116,14 +6141,33 @@ are not applicable because no such contracts change.
   `qa-artifacts/QA-175-accessibility.txt` with keyboard and browser errors.
 - **Cleanup:** Restore viewport, theme, motion settings, and fullscreen; reset
   only the isolated timer created for this case.
-- **Status:** Pending.
-
-Timer ring static validation passed from `apps/web`: `bun run lint`,
-`bun run format:check`, and `bun run typecheck`, including route generation and
-app, tools, and service-worker configs. Root `git diff --check` passed. Logs:
-`docs/timer-ring-lint.log`, `docs/timer-ring-format.log`, and
-`docs/timer-ring-typecheck.log`. QA-174 and QA-175 remain pending. No browser,
-automated tests, builds, or endpoint checks ran.
+- **Status:** partial; blocked for native fullscreen geometry and actual
+  screen-reader speech. Sixteen paused Root/Focus samples passed at 1440/320,
+  both themes and motion settings: equal stored progress, circular track,
+  unclipped readable clock, controls outside the ring, visible keyboard focus,
+  no document overflow, no SVG Tab stop and exact raw storage preservation. All
+  eight native review sheets were inspected. Native AX marks the SVG ignored and
+  preserves the timer role/name; two real clock samples changed from 00:57 to
+  00:55 with live-off semantics and no independent SVG animation. Native
+  keyboard Resume/Pause/Reset and all phase controls passed. This is AX
+  evidence, not actual AT speech. The existing Full screen button received a
+  trusted enabled click but showed the explicit browser-permissions fallback;
+  fullscreen was not reached. Eight fullscreen samples remain unrun, not waived.
+  No permission bypass, Focus window, new tab or AT installation was used. The
+  failed fullscreen driver and corrected native-AX selector adapter remain in
+  evidence; neither is treated as a timer defect. Original guest and protected
+  baselines, page/media/zone/native methods were restored and all
+  observers/hooks removed. See `docs/qa174175-current-artifact-path`,
+  `layout-independent-assertions.json` and `runtime-final-acceptance.json`.
+  Complete an approved native fullscreen and actual screen-reader pass before
+  checking this case. Historical implementation-only record, before this
+  separate runtime QA: Timer ring static validation passed from `apps/web`:
+  `bun run lint`, `bun run format:check`, and `bun run typecheck`, including
+  route generation and app, tools, and service-worker configs. Root
+  `git diff --check` passed. Logs: `docs/timer-ring-lint.log`,
+  `docs/timer-ring-format.log`, and `docs/timer-ring-typecheck.log`. QA-174 and
+  QA-175 remain pending. No browser, automated tests, builds, or endpoint checks
+  ran.
 
 ## Task section radius and save notifications
 
@@ -7918,3 +7962,73 @@ session and export DatePicker implementations stay unchanged.
   the exact attributed screenshot-tool CSP diagnostic remain separate.
   Representative inspected PNG/JSON and independent runtime/privacy audit are
   saved. Batch: `docs/qa156-current-artifact-path`.
+
+### [x] QA-225 — Empty progress rings hide the foreground stroke
+
+- **Priority:** P2.
+- **Task and scope:** Remove the visible endpoint at zero progress. Change only
+  the circle in `apps/web/src/features/timer/components/focus-timer.tsx`, shared
+  by `/` and `/focus`. Keep timer calculations, actions, data and SVG semantics.
+- **Purpose:** Keep the foreground ring fully hidden for an empty interval and
+  visible when elapsed progress is positive.
+- **Prerequisites:** Use the shared approved same-tab guest setup and the owned
+  QA-174/175 fixture. Save original guest UI/raw baselines first. Keep each
+  interval at 1 minute, automatic starts off, sound off and notifications off.
+  Do not use Focus window, another tab, a clock patch or a protected save.
+- **Inputs:** Focus, Short break and Long break; initial, Reset and phase-change
+  zero states; positive real-clock paused states; 1440 and 320 CSS-pixel widths;
+  light and dark themes. Cover both routes. Use QA-175 for reduced motion and
+  fullscreen checks.
+- **Steps:**
+  1. Inspect the saved pre-fix native images and offset proofs in
+     `docs/qa174175-current-artifact-path`. Confirm that all three phase colors
+     paint the 10-pixel endpoint while offset is 100 and progress is zero.
+  2. After the fix, select each phase through its existing control. Check both
+     routes, widths and themes. Record the circle's opacity and offset. Save
+     unscaled screenshots and inspect the top of the ring. Do not start a timer
+     during these zero-state reads.
+  3. Use real Start/Pause controls for each phase. Record positive progress and
+     opacity. Inspect the visible arc, clock, phase label and native SVG state.
+     Use the existing confirmation for any partial Focus Reset.
+  4. Reset each paused interval and confirm that the foreground disappears.
+     Check exact history/run IDs, settings and unrelated storage. Drawing and
+     read-only checks must not create records or change the timer.
+  5. Complete guest and protected return cleanup from the shared setup.
+- **Expected results:** Zero progress has opacity 0, offset 100 and no
+  phase-color endpoint. Positive progress has opacity 1 and retains the existing
+  clockwise arc, phase color and 0–100 bounds. The clock stays readable. SVG
+  remains decorative, nonfocusable and pointer-transparent. No new animation,
+  timer calculation, persistence, action or authentication behavior is added.
+- **Evidence:** Keep native before/after images, pixel counts, circle/clock/AX
+  proofs, exact workspace/history/raw comparisons, current static results and
+  final cleanup under `docs/qa174175-current-artifact-path`. Inspect every image
+  before marking this case passed. Retain input hashes and known diagnostics.
+- **Cleanup:** Restore the original guest UI/raw baselines and protected owner,
+  revision, seven sections, page, viewport, media and timezone. Remove only
+  owned records, keys, hooks and observers. Leave authentication and servers
+  unchanged.
+- **Status:** passed on 2026-11-14 UTC for source fix `5bff221`. Before the fix,
+  all three zero-progress colors painted 10 pixels in one column at offset 100.
+  The shared circle now sets opacity from the existing clamped progress; timer
+  calculations, controller, store and contracts are unchanged. All 24 Root/Focus
+  × phase × 1440/320 × light/dark zero states passed native
+  state/AX/trusted-input checks and independent unscaled annulus pixel checks
+  with no phase-colored endpoint. All eight zero review sheets and both
+  positive/reset sheets were inspected. Three real Start/Pause branches painted
+  the correct clockwise colored arc with opacity 1; three Reset branches
+  returned to opacity 0 and no endpoint. One intended incomplete Focus recorded
+  2 seconds versus 2.055 seconds between native active clicks; its run/start ID
+  and duration were exact, with no break histories or completed-count change.
+  Sixteen normal paused width/theme/motion surfaces passed geometry, focus and
+  raw-state checks. QA-175 native fullscreen and actual AT speech remain blocked
+  and are not claimed here. The independent whole-case audit verified original
+  guest raw/UI and protected original-owner, revision 49, server/fresh UI
+  seven-section equality, original page/media/zone, native methods and removal
+  of every owned hook/observer. All 3334 observed requests were read-only and
+  avoided authentication routes. Exact-current forced root typecheck/lint/format
+  and web build passed. Full Doctor scanned 101 files without skips and retained
+  the same 16 errors/22 warnings; this is no new diagnostics, not a clean scan.
+  Initial reload timing and known shared Skeleton hydration diagnostics remain
+  recorded without an invented cause. Evidence:
+  `docs/qa174175-current-artifact-path`, `native-ring-pixel-assertions.json` and
+  `runtime-final-acceptance.json`.
