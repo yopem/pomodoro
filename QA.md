@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 56 checked sections out of 204, including historical passes.
+Current total: 57 checked sections out of 204, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -553,26 +553,96 @@ passed.
   `qa-artifacts/qa-isolated-guest-timer/results.txt` and the referenced
   snapshots, image, and JSON. No clock was changed.
 
-### [ ] QA-008 — P1 — Pause and skip preserve timer semantics
+### [x] QA-008 — P1 — Pause and skip preserve timer semantics
 
-- **Purpose:** Do not count a skipped interval as a completed pomodoro.
-- **Prerequisites:** Shared setup above. Guest mode and one selected task with
-  zero actual pomodoros.
-- **Inputs:** A focus interval paused after a few seconds.
+- **Purpose:** Do not count a skipped interval as a completed pomodoro. Exclude
+  paused wall time from the retained active-focus duration. Affected files:
+  `features/timer/components/focus-timer.tsx`, `features/focus/store.ts`,
+  `features/timer/countdown.ts`, `lib/focus-time.ts` and report history under
+  `apps/web/src/`. Routes: `/settings`, `/` and `/reports`.
+- **Prerequisites:** Current shared setup and same existing project tab only.
+  Read-only protected preflight must verify the original owner and unchanged
+  seven-section workspace against the retained actual UI reference; record its
+  reuse, not a fresh initial UI export. Navigate only to the approved guest
+  origin and verify session 200/user null plus fresh empty actual UI/raw
+  baselines before writes. Do not use the protected account timer, auth actions,
+  peers, restarts, direct DB access, fake clocks or direct store method calls.
+- **Inputs:** Owned `QA-008 Pause probe`, note `QA-008 active seconds`, estimate
+  1/actual 0/incomplete/No project. Save guest Focus 5 minutes; use alarm and
+  focus sound `none` and notifications off without requesting hardware
+  permission. Keep other preferences unchanged. Use real active waits of at
+  least two seconds on each side of a paused wait of at least six seconds.
 - **Steps:**
-  1. Confirm the stated isolated starting state.
-  2. Start, pause, wait, resume, then skip. Inspect task actual count and focus
-     history.
-  3. Save the observable result and inspect the evidence.
-- **Expected results:** Paused time is excluded. Skip does not increment the
-  task completion count. Any partial focus record follows the visible duration
-  rule.
-- **Evidence:** `qa-artifacts/QA-008.txt` and relevant screenshots or downloads
-  in `qa-artifacts/QA-008/`; inspect actual state, errors and stored effects.
-- **Cleanup:** Remove only this case’s isolated records and browser profile.
-  Stop only processes started for this case. Retain sanitized evidence.
-- **Status:** pending; implementation and final executable mappings are
-  required.
+  1. From the repository root, prepare ignored mode-0700 case/private
+     directories with a mode-0600 ownership marker. Use the existing Playwriter
+     session 1, fresh snapshot locators and read-only original-owner preflight.
+     Save the safe request metadata observer reference and helper directory for
+     cleanup.
+  2. On verified guest `/settings`, capture original UI/raw baselines. Save only
+     the stated guest preferences. On `/`, add/select the owned task through
+     native controls. Assert selected ID, actual 0, zero history/completions and
+     an idle full Focus interval before Start.
+  3. Use native Start, observe the same owned run/deadline, wait at least two
+     real seconds, then native Pause. Record browser epoch/monotonic times,
+     durable remaining seconds/run ID and the displayed rounded-up clock. Wait
+     at least six real seconds and capture again. Do not advance time.
+  4. Use native Resume, observe the same run/start ID and a new deadline based
+     on the retained remaining time. Wait at least two real seconds. Open Skip,
+     inspect the incomplete-session confirmation and Cancel once. Assert raw
+     workspace unchanged; reopen and confirm only `Skip session` for this run
+     while its deadline is still in the future.
+  5. Check the task, phase/cycle and exact single partial history record. Derive
+     timing bounds from browser before/after action times and the observed
+     deadlines, not from a guessed fixed elapsed value. Open `/reports` for the
+     actual recorded local date and inspect that owned row, duration and flags.
+     Save and inspect sanitized screenshots plus private raw/UI data.
+- **Expected results:** Paused raw timer/clock do not advance; paused wall time
+  is excluded. Resume preserves run/start identity and remaining duration.
+  Cancel does not mutate. Skip leaves task actual 0/incomplete and completed
+  focus count 0, clears run/deadline/start, and offers an idle full Short break.
+  Exactly one linked history record has the same run ID, owned task ID/title, no
+  project and completed=false. Its duration equals floored active seconds within
+  the observed action-time bounds, not start-to-skip wall seconds. Current
+  report formatting floors seconds to minutes, so a positive partial duration
+  below 60 seconds displays `0m`, not a completed pomodoro. Other sections and
+  unrelated keys stay unchanged. No HTTP mutation/auth route, unexpected app
+  error, notification or completed alarm occurs.
+- **Evidence:** `docs/qa008-current-artifact-path` points to owned inputs,
+  source-contract mapping, real-time traces, raw snapshots, actual UI exports,
+  sanitized images/log classifications and independent timing/data assertions.
+  Keep all private payloads mode 0600. Retain earlier SSR diagnostics and exact
+  attributed screenshot-tool CSP separately; do not label them new timer bugs. A
+  UI Blob proves serialization, not fresh OS download persistence.
+- **Cleanup:** Stop only the owned guest run through native controls if an
+  interruption leaves it running. Use reviewed ordinary UI replacement with the
+  original empty baseline, then remove only verified generated guest
+  primary/backup keys after raw-baseline guards. Reload and assert fresh UI/raw
+  equality. Restore the helper directory and exact observer, then return the
+  original protected owner and verify session/workspace 200, unchanged revision
+  and fresh server/UI seven-section equality, count 1/idle25, original
+  root/title/1667×1257/media. Never remove a browser/profile or log out.
+  Preserve sanitized evidence. Do not start a service or browser process for
+  this case; use only the owned CLI test driver.
+- **Status:** passed — 2026-11-14 UTC, source `3d751a4`, under the approved
+  same-tab guest scope. Native driver exited 0. Independent eleven-stage
+  assertions verified a real 7.095-second frozen pause and an 8.885-second total
+  pause gap, same run/start IDs, fresh resume deadline, unchanged Cancel state
+  and exactly one incomplete run-linked record of 13 seconds within active-only
+  bounds [13, 14], below the 21-second wall-time lower bound. Skip left idle
+  Short break 05:00, task actual 0/incomplete and completed-focus count 0. Three
+  timer screenshots and the Reports row were visually inspected; positive 13
+  seconds correctly displays as floored 0m. Fresh post-reload guest UI/raw
+  baselines exactly match the original empty seven sections/two keys. Fresh
+  protected owner/session/workspace 200, revision 49 and server/UI seven-section
+  equality preserve count 1, idle25, original root/title/1667×1257/media. All
+  owned hooks, observer and helper were restored; 889 observed requests had zero
+  HTTP mutations or auth routes. Private files remain 0600; no known private
+  fields occur in shareable text. Initial shared-Skeleton hydration and exact
+  screenshot-tool CSP records remain; final logs are empty. All 165 code/config
+  hashes match the prior successful full validation, reused rather than rerun;
+  Doctor still has 16 errors/22 warnings, not a clean scan. Standalone
+  `recompute-final-acceptance.py`, `runtime-assertions.json` and
+  `final-cleanup.json` in the case evidence directory passed independent review.
 
 ### [x] QA-009 — P1 — Task edits and ordering preserve identity
 
