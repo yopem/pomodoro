@@ -6121,18 +6121,55 @@ payments, API contracts, and migrations are not changed by this task.
 
 - **Purpose:** match the Tasks section radius to other cards without changing
   its contents or loading layout.
-- **Prerequisites:** shared setup; isolated guest workspace; web app at
-  `http://localhost:13001`.
-- **Inputs:** empty task list and one task named `QA radius task`.
-- **Steps:** 1. Open `/` and compare the Tasks outer border with another
-  card. 2. Add the task and compare again. 3. Reload and inspect the loading
-  state.
+- **Prerequisites:** Shared current same-tab setup; freshly verified-empty
+  approved guest origin. Preserve protected owner/revision 49 and original
+  UI/raw backups. No account write, login/logout, server change, or extra tab.
+- **Inputs:** Empty task list and one UI-created `QA radius task`, estimate 1,
+  note `QA-176 radius sample`, actual 0, No project. Use 1440 and 390 CSS pixels
+  in Light/Dark. Do not select or start the task.
+- **Steps:**
+  1. Open `/` and compare all four visible empty Tasks Card corners to the timer
+     Card. The transparent taskQueue section has no border; inspect the painted
+     Card surfaces, not a nonexistent wrapper border.
+  2. Add the owned task through the native form. Compare its Card corners and
+     verify the task content and actions remain usable. Repeat widths/themes;
+     each read-only sample must preserve all raw workspace bytes.
+  3. Reload with the read-only bootstrap response held by a bounded controller.
+     Inspect loading Task Card corners against the timer loading Card. Release
+     the response and verify the same guest/task/no timer start, native network
+     state, and exact raw bytes. Capture styles, layout, and actual paint.
 - **Expected results:** outer Tasks corners match card corners in empty, filled,
   and loading states; content remains visible and usable.
 - **Evidence:** `qa-artifacts/QA-176-radius.png`; inspect corner sizes and
   layout.
-- **Cleanup:** delete the isolated task; stop only processes started for QA.
-- **Status:** pending.
+- **Cleanup:** Delete only the owned task through UI. Restore original guest
+  UI/raw baselines under exact key/byte guards, helper path, network, media,
+  viewport, and observers. Return the protected original owner/revision 49 and
+  compare fresh server/UI seven-section equality, original root/title/zone, idle
+  25:00/completed count 1. Never clear storage or replace account data.
+- **Status:** partial at `83692d1` on 2026-11-14 UTC. All 12 empty, filled, and
+  held-loading samples passed the radius comparison at 1440/390 in both themes.
+  Every painted Task/Timer Card corner was 12px; the transparent wrapper was
+  correctly excluded. Task title/note/count/actions and Edit/Cancel remained
+  usable. Each loading sample held exactly one bootstrap response, preserved all
+  task/storage bytes, and released Fetch/cache/listener/timer without errors or
+  safety expiry. Actual corner sheets were visually reviewed. The complete
+  visible-content requirement is not passed: the inspected 1440-dark loading
+  Task Card interior was uniformly `#111111`, with no visible Skeleton shapes.
+  Keep this case unchecked with the related QA153/221 loading blockers; do not
+  infer a new cause or restart the server. No radius source change was needed.
+  The owned task was individually deleted; actual reload and fresh guest UI/raw
+  exports matched the original empty baselines. Protected
+  original-owner/revision-49 server and fresh UI exports matched all seven
+  baseline sections; original root/title/viewport/media/zone/idle state, helper,
+  observer, and native methods were restored. All 2245 observed requests had no
+  HTTP mutation or auth request. Final logs were empty; retained logs include
+  known Skeleton hydration, exact attributed screenshot-tool CSP, and one
+  natural 503 with cause unproven. All 165 code/config hashes matched prior
+  successful checks, reused rather than rerun; Doctor remains 16 errors and 22
+  warnings, not clean. Evidence: `docs/qa176-current-artifact-path`,
+  `runtime-assertions.json`, `loading-visible-content-blocker.json`, and
+  `final-cleanup.json` in that batch. No full case pass is claimed.
 
 ### [ ] QA-177 — P1 — Save success notifications
 
