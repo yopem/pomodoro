@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 57 checked sections out of 204, including historical passes.
+Current total: 58 checked sections out of 204, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -1178,7 +1178,7 @@ cache and offline coverage: QA-020. Build and browser checks require approval.
 Historical calendar-range coverage maps to QA-026. Other aggregation and CSV
 cases remain QA-012 and QA-013.
 
-### [ ] QA-027 — P1 — Short pauses keep fractional active time
+### [x] QA-027 — P1 — Short pauses keep fractional active time
 
 - **Scope:** `features/focus/schema.ts`, `features/focus/store.ts`, and
   `features/timer/components/focus-timer.tsx` under `apps/web/src/`; route `/`;
@@ -1207,10 +1207,33 @@ cases remain QA-012 and QA-013.
   paused reload. Do not infer timing success from a screenshot alone.
 - **Cleanup:** Reset the isolated timer, restore its original settings, and
   remove only records created for this case.
-- **Status:** Pending. Static checks and offline OpenAPI export passed for the
-  precision source change; this browser scenario has not run.
-
-Timer pause precision and numeric backup compatibility map to QA-027.
+- **Status:** passed at `a45ae31` on 2026-11-14 UTC. Independent native-event
+  recomputation passed eight real running intervals with at least 250ms each,
+  plus a ninth after an actual paused reload. The first eight consumed 15.414
+  seconds including command overhead; all nine stored values retained fractional
+  seconds. Nineteen trusted enabled native Reset/Start/Resume/Pause events
+  bounded each actual write time. Every interval retained the same run and start
+  IDs; resume assigned a new deadline without counting paused wall time. All
+  nine actual UI backup Blobs matched their paused workspace; each stored
+  fraction and raw map survived paused waits/export/navigation, and the eighth
+  survived reload exactly. Visible clock and accessible name used ceil whole
+  seconds with no decimal text; all three screenshots were inspected. The
+  original integral 1500-second actual UI backup passed normal reviewed guest
+  replacement and fresh UI equality. Programmatic file transfer is not
+  native-picker evidence; UI Blob capture is not OS-download persistence proof.
+  The sole ordinary backup matched the preceding fractional workspace. No task,
+  history, completion, or other workspace section changed. Original guest raw/UI
+  baselines and native methods/helper/observer were restored. Protected
+  original-owner/revision-49 server and fresh UI exports matched all seven
+  sections; original authenticated root/title/viewport/media/zone/idle state
+  remained intact. All 1284 observed requests had no HTTP mutation or auth
+  request. Final logs were empty; retained known Skeleton hydration and exact
+  attributed screenshot-tool CSP are not a clean interval. All 165 code/config
+  hashes matched prior successful checks, reused rather than rerun; Doctor
+  remains 16 errors and 22 warnings, not clean. Evidence:
+  `docs/qa027-current-artifact-path`, the durable timing/final audit scripts,
+  `runtime-assertions.json`, and `final-cleanup.json` in that batch. Timer pause
+  precision and numeric backup compatibility map to QA-027.
 
 ### [ ] QA-028 — P0 — A failed partition load hides the previous account
 
