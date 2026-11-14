@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 62 checked sections out of 205, including historical passes.
+Current total: 63 checked sections out of 205, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -5584,7 +5584,7 @@ QA-163 and QA-165; static tooling: QA-166.
   switching. Extra tabs and account switching are forbidden. A same-tab injected
   write cannot be reported as this peer-tab run. No new runtime pass is claimed.
 
-### [ ] QA-162 — P1 — Backup selection and confirmation lifecycle
+### [x] QA-162 — P1 — Backup selection and confirmation lifecycle
 
 - **Purpose:** preserve select, replace, remove, reselect, cancel and confirm
   behavior after migration.
@@ -5600,7 +5600,29 @@ QA-163 and QA-165; static tooling: QA-166.
 - **Evidence:** `qa-artifacts/QA-162-backup-lifecycle.txt` and
   `qa-artifacts/QA-162-backup-lifecycle.png`; inspect focus, dialog, and data.
 - **Cleanup:** restore only the isolated workspace backup and close owned tabs.
-- **Status:** pending.
+- **Status:** passed on 2026-11-14 UTC at `e2ad7a6`, using only the approved
+  same-tab guest. Actual UI exports contained the same owned task with original
+  then newer note (1148/1160 bytes). Select/change/Remove/reselect preserved raw
+  storage. UI filenames/ceiling-2KB size and browser File metadata matched;
+  Remove focused the enabled chooser. Supported file transfer events were
+  untrusted; no OS chooser proof is claimed. Native review/Cancel retained
+  original selection and Import focus with zero setItem calls and byte-identical
+  newer data. Explicit guest-only confirm restored the same UUID/original seven
+  sections, kept one backup exactly equal to preceding newer data, cleared
+  selection and showed success. Actual reload 200 and fresh UI export preserved
+  exact original data/raw bytes. All three native images were inspected.
+  Optional hidden Import and snapshot-diff capture errors were corrected without
+  repeated actions or app changes. Guest-start and cleanup-reload readiness
+  timeout causes remain unknown; later read-only recovery did not repeat
+  restore/removal/reload. Original empty guest raw/UI and protected original
+  owner/revision49/server/ fresh UI seven sections, original surface and native
+  methods were restored; owned observers/hooks were removed. All 1135 requests
+  were read-only/non-auth. Privacy, retained-log and 165 unchanged code/config
+  hash-reuse audits passed; no new static run or clean Doctor scan is claimed.
+  This does not cover QA-161 owner-change races. Evidence:
+  `docs/qa162-current-artifact-path`,
+  `qa-artifacts/QA-162-backup-lifecycle.txt`, and
+  `qa-artifacts/QA-162-backup-lifecycle.png`.
 
 ### [x] QA-163 — P1 — Invalid backups do not reach confirmation
 
