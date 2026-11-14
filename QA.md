@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 60 checked sections out of 205, including historical passes.
+Current total: 62 checked sections out of 205, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -6238,7 +6238,7 @@ payments, API contracts, and migrations are not changed by this task.
   `runtime-assertions.json`, `loading-visible-content-blocker.json`, and
   `final-cleanup.json` in that batch. No full case pass is claimed.
 
-### [ ] QA-177 — P1 — Save success notifications
+### [x] QA-177 — P1 — Save success notifications
 
 - **Purpose:** confirm explicit saves show one success toast only after a save.
 - **Prerequisites:** shared setup; isolated guest workspace; web app available.
@@ -6252,9 +6252,30 @@ payments, API contracts, and migrations are not changed by this task.
 - **Evidence:** `qa-artifacts/QA-177-saves.txt` and screenshots; inspect each
   toast and the persisted results.
 - **Cleanup:** remove only isolated QA data and restore the changed setting.
-- **Status:** pending.
+- **Status:** passed on 2026-11-14 UTC at source revision `0eda1bc`, using the
+  approved same-tab disposable guest. Native create and same-UUID edit passed
+  for task, project (Green to Blue), template (same original row, estimate 1 to
+  2), and manual focus record (25 to 30 minutes). Guest Settings Focus 25 to 26
+  also passed. Each of nine saves made only its intended seven-section change,
+  preserved unrelated raw keys, and showed one relevant success toast after the
+  durable write. Mounted duration was 5511–5546ms; forms closed where needed.
+  Five actual route reloads preserved exact data and showed no new toast. All
+  nine images and nonempty trusted enabled Save traces were reviewed.
+  Exact-label test errors were corrected from observed controls without
+  duplicate creates. Initial project-color popup timeout cause remains unknown;
+  preserved evidence and later successful native save/reload do not prove an app
+  or tool defect. Full guest raw/UI and protected
+  original-owner/revision49/server/fresh-UI seven-section equality, original
+  page/media/timezone, and native observer/hook cleanup passed. All 2423
+  observed requests were read-only and outside auth routes. Final logs were
+  empty; retained hydration, exact tool-CSP, availability and unknown
+  timing/readiness findings remain recorded. Static checks were reused only
+  after all 165 code/config hashes matched; Doctor still has its unchanged 16
+  errors/22 warnings, not a clean scan. Evidence:
+  `qa-artifacts/QA-177-saves.txt`, `docs/qa177179-current-artifact-path`, and
+  the batch `runtime-final-acceptance.json`.
 
-### [ ] QA-178 — P1 — Save errors remain visible
+### [x] QA-178 — P1 — Save errors remain visible
 
 - **Purpose:** prevent a success toast for invalid or failed saves and preserve
   actionable errors.
@@ -6268,7 +6289,22 @@ payments, API contracts, and migrations are not changed by this task.
 - **Evidence:** `qa-artifacts/QA-178-errors.txt`; inspect errors, toasts, and
   saved task state. Record a blocker if safe failure injection is unavailable.
 - **Cleanup:** restore storage access and delete only the isolated task.
-- **Status:** pending.
+- **Status:** passed on 2026-11-14 UTC at source revision `0eda1bc` on the
+  approved disposable guest only. Trusted empty-title Save retained the dialog
+  and linked/focused invalid field with zero writes and zero toasts. One bounded
+  exact guest-primary quota denial retained the valid draft and byte-identical
+  raw storage, exposed the controlled error, and emitted no success. Native
+  setter restoration preceded one successful retry: exactly one new
+  `QA failed save` UUID, no other seven-section change, one Task added toast
+  after its durable write, and natural removal after 5509ms. All three images
+  and independent raw/input/lifecycle assertions passed. The injected denial is
+  a controlled simulation, not hardware failure evidence. Final guest raw/UI,
+  protected original owner/revision49/server/fresh UI, page/
+  viewport/media/timezone and native hooks/observers all matched baseline.
+  Privacy and read-only/non-auth request review passed. No source change or new
+  static run was needed; current code hashes match verified checks. Evidence:
+  `qa-artifacts/QA-178-errors.txt`, `docs/qa177179-current-artifact-path`, and
+  the batch `runtime-final-acceptance.json`.
 
 ### [ ] QA-179 — P2 — Toast accessibility and layout
 
@@ -6285,7 +6321,27 @@ payments, API contracts, and migrations are not changed by this task.
 - **Evidence:** `qa-artifacts/QA-179-accessibility.txt` and screenshots; inspect
   announcements, focus, and layouts.
 - **Cleanup:** delete the isolated task and restore theme and motion settings.
-- **Status:** pending.
+- **Status:** partial; actual screen-reader speech is blocked under the current
+  sleeping-user setup. No AT installation, new browser/profile/tab or speech
+  substitute was used. At source revision `0eda1bc`, all eight native keyboard
+  saves at 1440/320, light/dark and normal/reduced motion passed exact same-UUID
+  note-only effects, unrelated raw preservation, trusted enabled
+  Save/continuation Enter, no focus steal and automatic dismissal. Native AX
+  exposes one named toast within a polite Notifications region; this is not
+  proof that a screen reader spoke once. Eight native menu/toast crops, four
+  unscaled sheets and the full 320px frame were inspected. Text contrast,
+  document/viewport bounds, visible popup-control separation and reduced motion
+  with no root transition/animation passed. An extra create pilot allowed
+  continued keyboard use of a new blank form while the toast remained.
+  Reduced-motion mounted durations were 4981–4990ms and normal 5479–5516ms; all
+  removals were at least 5044ms after durable writes. The original invented
+  5000ms mount threshold was corrected with render-time/source evidence; no
+  exact mount threshold is an acceptance requirement. Full guest raw/UI and
+  protected owner/revision/server/fresh-UI equality and original
+  browser/hooks/observer cleanup passed. Actual listening remains pending, so
+  this case stays unchecked. Evidence: `qa-artifacts/QA-179-accessibility.txt`,
+  `docs/qa177179-current-artifact-path`, and
+  `qa179-native-independent-assertions.json` in the batch.
 
 ### [ ] QA-180 — P1 — Icon-only browser focus controls
 
