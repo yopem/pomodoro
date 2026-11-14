@@ -273,6 +273,7 @@ export function FocusTimer({
                 pathLength="100"
                 strokeDasharray="100"
                 strokeDashoffset={100 - progress}
+                opacity={progress > 0 ? 1 : 0}
               />
             </svg>
             <Text variant="note" tone="muted">
