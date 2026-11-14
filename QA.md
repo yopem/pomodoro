@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 63 checked sections out of 205, including historical passes.
+Current total: 64 checked sections out of 205, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -2072,7 +2072,7 @@ and downloads are included without a paywall. Template count and byte limits
 protect resources; they are not a paid quota. In-memory uncertain request facts
 do not survive a full page reload, which can require a new conflict review.
 
-### [ ] QA-050 — P2 — Idle and paused finish estimates stay current
+### [x] QA-050 — P2 — Idle and paused finish estimates stay current
 
 - **Purpose:** Cover clock updates in `features/focus/store.ts` and the `/`
   finish estimate without advancing a stopped timer or changing saved work.
@@ -2093,7 +2093,29 @@ do not survive a full page reload, which can require a new conflict review.
   `qa-artifacts/QA-050/`. Inspect displayed minutes and absence of saves.
 - **Cleanup:** Remove the isolated task and restore guest settings. Stop only
   processes started for the case.
-- **Status:** pending; browser and endpoint execution remain deferred.
+- **Status:** passed on 2026-11-14 UTC at `9dae529`, using the approved same-tab
+  guest with default 25/5/15 durations and only unselected `Estimate check`
+  (estimate 1/actual 0). Real idle finish 20:49→20:50 and paused finish
+  20:50→20:51 changed 1009ms/980ms after their native minute boundaries.
+  Corresponding countdowns stayed 25:00/24:57. Whole raw storage, all seven
+  sections, task/history/completed counts and guest header save status stayed
+  exact within each window; the bounded pass-through observer recorded zero
+  setItem calls and restored the exact native setter without expiry. Real
+  Start/Pause preserved run/start IDs and created no history or completion. No
+  clock/date injection occurred. All four unscaled native images were inspected.
+  Original guest UI/raw and protected original owner/ revision49/server/fresh-UI
+  seven sections, original browser surface and native methods were restored;
+  owned observers/hooks were removed. All 846 requests were read-only/non-auth.
+  The original natural account-request failure recovered through existing Retry,
+  never sign-in/out; its cause remains unknown. Guest-start report timeout
+  happened after baseline artifacts completed, and later read-only recovery
+  repeated no action. A final evidence-only zone/timezone key mismatch was
+  corrected with original values preserved; it was not a browser change or app
+  defect. Retained hydration/tool diagnostics remain classified, not a
+  whole-interval clean claim. Privacy and 165 unchanged code/config hashes
+  passed by reuse, not a new full static run. Evidence:
+  `docs/qa050-current-artifact-path` and
+  `qa-artifacts/QA-050/finish-estimate-5z7a3qlm/runtime-final-acceptance.json`.
 
 ### [ ] QA-051 — P1 — Today summary changes at local midnight
 
