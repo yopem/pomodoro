@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 54 checked sections out of 203, including historical passes.
+Current total: 56 checked sections out of 204, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -5205,23 +5205,97 @@ navigation: QA-157; session editing: QA-158; CSV export: QA-159; keyboard,
 accessibility, layout, and theme regressions across controls: QA-160. Auth, API
 contracts, payments, migrations, and external integrations are unchanged.
 
-### [ ] QA-156 — P1 — Project selection and persistence
+### [x] QA-156 — P1 — Project selection and persistence
 
-- **Purpose:** Preserve project color and task/template project choices.
-- **Prerequisites:** Shared setup; isolated guest workspace and projects above.
-- **Inputs:** Green and blue colors; active and archived projects; no project.
-- **Steps:** 1. In `/projects`, create a green project and edit it to blue. 2.
-  On `/`, add and edit a task with an active project, then select no project. 3.
-  In `/templates`, create two tasks with distinct projects; change the second
-  after removing the first. 4. Reload and inspect saved values. 5. Edit a task
-  that already references the archived project.
-- **Expected results:** Each saved color and project persists, including the
-  correct remaining template task. No-project saves without an ID. The current
-  archived task project remains visible; unrelated archived projects do not.
+- **Purpose:** preserve project color and task/template project choices,
+  including the correct row after removing an earlier template task.
+- **Prerequisites:** current same-tab owned guest authorization. First verify
+  the protected original owner, workspace revision and unchanged baseline by
+  read-only requests. Then verify the exact owned guest origin, session 200/user
+  null and fresh empty UI/raw baselines. No timer, account change, extra
+  tab/browser/agent, service restart or direct database access.
+- **Inputs:** projects `QA-156 Color` and `QA-156 Other`; Green and Blue. Task
+  `QA-156 Choice`, estimate 1/actual 0/incomplete. Template `QA-156 Pair` has
+  `QA-156 First`, estimate 1, note `QA-156 first note`, Color project; and
+  `QA-156 Second`, estimate 2, note `QA-156 second note`, Other project. Keep
+  generated IDs and baseline exports private with mode `0600` in the batch named
+  by `docs/qa156-current-artifact-path`.
+- **Steps:**
+  1. In `/projects`, use Add project, Project name, Project color and Save
+     project to create Color as Green. Edit that card to Blue. Verify the same
+     ID and only the intended color change. Create Other as Green.
+  2. On `/`, use Add task and Project (optional) to save Choice with Color. Edit
+     it to No project and save. Verify a null project ID and reload. Reassign
+     Color through the same editor; keep actual count 0 and no timer.
+  3. In `/templates`, use New template, Template name and Add task as needed for
+     the two rows above. Set Task 1 project and Task 2 project to distinct IDs
+     and Save template. Reopen it. Use Remove task 1. Verify that the remaining
+     title, note, estimate and project belong to Second. Change its now Task 1
+     project to Color and save without changing its other fields.
+  4. Reload `/projects`, `/` and `/templates`. Reopen the saved editors and
+     compare their values with fresh UI exports and durable workspace data.
+  5. Archive Color and Other through their own project cards. Edit Choice: its
+     current Color (archived) must stay visible; unrelated Other must not appear
+     as a choice. Opening the editor must not change its stored ID. An extra
+     note-only save with that archived ID must meet the existing active-project
+     boundary: reject it without a data change and retain the draft. Then
+     explicitly choose No project and save the note; check the null ID and exact
+     intended changes. Do not change the business guard. Record any template
+     archived-project display that disagrees with its stored ID; do not infer a
+     defect from source.
+- **Expected results:** each saved color and project persists with stable IDs,
+  including the correct remaining template task. No project saves a null ID. The
+  current archived task project remains visible; unrelated archived projects do
+  not appear as choices. Opening the editor or a rejected save must not change
+  the current ID. Only an explicit valid choice changes it. The original case
+  requires archived visibility, not permission to save an archived assignment.
+  Only the intended records and fields change. All other sections/keys, actual
+  counts, history and idle timer stay unchanged. Native keyboard controls and
+  visible labels remain usable.
 - **Evidence:** `qa-artifacts/QA-156-selects.png`; inspect selections and saved
-  results without personal data.
-- **Cleanup:** Delete only isolated QA tasks, templates, and projects.
-- **Status:** pending.
+  values without personal data. Keep native snapshots, before/after UI/raw data,
+  generated IDs, row-removal/reload assertions, screenshots and final
+  privacy/cleanup proof in the batch named by
+  `docs/qa156-current-artifact-path`.
+- **Cleanup:** delete only the owned task, template and two projects through UI,
+  or restore the verified original empty guest baseline through reviewed UI.
+  Remove only owned generated storage keys under exact guards. Reload and prove
+  original guest raw/UI equality. Remove the request observer and restore the
+  helper directory. Return to the protected original owner/revision with fresh
+  server/UI seven-section equality and original page/title/viewport/ media/idle
+  timer. Never log out or replace protected workspace data.
+- **Status:** passed; reviewed 2026-11-14 UTC. Tested frontend source in
+  `0f34ec0`. Color saved Green then Blue with one ID; Other saved Green with
+  Enter. Choice saved Color→null→Color with exact intended changes, reload and
+  editor values. Pair saved First/Color plus Second/Other; removing First and
+  changing original Second to Color kept its note/estimate and template ID.
+  Actual reload retained its row/project and Blue project choice. Current
+  archived Color stayed visible for Choice; unrelated archived Other was
+  excluded. The extra note-only archived Save correctly rejected unchanged;
+  explicit No project then saved only the intended note/null ID. Original QA-156
+  requires archived visibility, not archived-save permission. QA-224 fixed the
+  independently observed false No project template label. Four 1440/320
+  light/dark label/menu/Escape samples and native active/null same-template
+  saves/reload passed with the original Second fields intact. Independent
+  recomputation covers 27 raw snapshots and seven-section changes; all inspected
+  images and corrections remain in the batch. The initial console-envelope pilot
+  and 10-second reload wait exited 1; subsequent read-only/native verification
+  proved the expected state without repeated Save/reload. Their timing cause is
+  not established as an app defect. Root typecheck/type-aware zero-warning
+  lint/format and isolated production build passed. Doctor 0.9.22 scanned 101
+  files/no skips with all 38 diagnostics unchanged: 16 errors and 22 warnings,
+  not clean. All 165 code/config hashes match the checked snapshots; later QA.md
+  status edits receive a new native format check. Source commit hooks passed all
+  four package typechecks, staged lint and staged format. Reviewed UI baseline
+  replacement and guarded owned-key removal restored original guest raw/UI data.
+  Protected original owner/workspace revision 49 and fresh server/UI exports
+  match all seven sections; original root/title/1667×1257/media/idle25/count1
+  restored. Native methods/helper restored; observer absence verified. Of 1966
+  observed requests, none mutated HTTP data or used auth routes. Final ready
+  logs empty; earlier shared-Skeleton SSR class differences and exact attributed
+  screenshot CSP remain recorded, not waived as global QA passes. All 101
+  private files are mode 0600; 272 shareable text files have zero known
+  private-field matches. Batch: `docs/qa156-current-artifact-path`.
 
 ### [x] QA-157 — P1 — Report filters and local date
 
@@ -7576,3 +7650,90 @@ applicable to this CSS layer fix.
 Coverage: report popup/control focus → QA-223; report pending/error and invalid
 URL recovery → QA-165; native rapid-action ordering → QA-167. Shared manual
 session and export DatePicker implementations stay unchanged.
+
+### [x] QA-224 — P1 — Archived template project label
+
+- **Purpose:** Show the template task's actual current project. Keep the
+  existing active-project save boundary and active-only choices.
+- **Prerequisites:** Current shared setup and QA-156's approved disposable guest
+  fixtures before cleanup. Color Blue and Other Green are archived. Pair has
+  only the original Second row with Color's non-null project ID. Choice has
+  explicitly saved No project. No timer has run. Protected account checks are
+  read-only; never use its data for replacement or mutations.
+- **Inputs:** `QA-156 Pair`; `QA-156 Second`; note `QA-156 second note`;
+  estimate `2`; `QA-156 Color (archived)`; `QA-156 Other`; No project. Record
+  generated IDs only in the batch's private fixture manifest. Reuse the original
+  guest UI/raw baselines and protected owner/revision reference from QA-156.
+- **Steps:**
+  1. In guest `/templates`, open Pair's Edit dialog. Capture the actual project
+     label, all row fields and durable project ID. Opening it must not change
+     data. Capture an unchanged Save attempt: the existing guard must reject the
+     archived ID with `Select an active project`, not clear it silently.
+  2. At widths 1440 and 320, in light and dark media, inspect and capture the
+     label, dialog/control bounds, page overflow and focus. Open the project
+     menu and press Escape. The current label must remain Color (archived). Both
+     archived projects must stay excluded from new choices; No project remains
+     available. Compare the whole raw map after each read-only sample.
+  3. Use the native project card to restore only Other. Reopen Pair: Color
+     (archived) must remain its current value; only active Other and No project
+     are new choices. Select Other with real keyboard input and save. Check the
+     same template ID, only the Second row's project change, unchanged title,
+     note and estimate, and unchanged other six sections/unrelated raw keys.
+  4. Reopen the saved template. Its active Other label must match its ID. Choose
+     No project explicitly and save. Check a null ID and no other field change.
+     Reload, reopen and export through the UI to verify the persisted result.
+  5. Run the current lint, format and typecheck commands. When source changes,
+     run the approved isolated production build and complete Doctor regression
+     comparison. Preserve existing diagnostics; do not call a baseline-equal
+     scan clean. Finish the combined QA-156 guest/protected cleanup below.
+- **Expected results:** The current archived value reads Color (archived), not
+  No project. It does not become an eligible new archived choice. The unchanged
+  archived Save is rejected without data changes. Explicit active and null
+  choices save their exact IDs, with correct row binding and no other changes.
+  Labels and focus remain readable at all four width/theme samples without
+  horizontal overflow. No task copy, timer start, history or HTTP mutation/auth
+  exchange occurs. Keep the save guard unchanged; this is a display fix.
+- **Evidence:** Save before/after native snapshots, screenshots, field/geometry,
+  raw/UI equality and mutation assertions in the QA-156 batch. Representative
+  evidence: `qa-artifacts/QA-224-template-project.png` and `.json`. Inspect all
+  images and sanitized console logs. Retain the exact attributed screenshot CSP
+  warning separately from app errors. Private JSON stays mode 0600.
+- **Cleanup:** Share QA-156 cleanup. Restore original empty guest UI/raw data;
+  remove only exact owned generated keys after guards. Remove the exact request
+  observer and restore the helper directory. Return the same tab to the original
+  protected account without logout. Verify owner, revision, fresh server/UI
+  equality in seven sections, original viewport/media/title/route and idle
+  timer/count. Delete only hash-verified owned temporary inputs, if any.
+- **Coverage:** Accurate controlled value and archived state, active-only
+  eligibility, unchanged-save rejection, active/null persistence, responsive
+  keyboard rendering and safe combined cleanup map to QA-224. QA-156 retains the
+  original project/task/template row-binding and archived-task criteria.
+- **Status:** passed; reviewed 2026-11-14 UTC. Tested frontend source in
+  `0f34ec0`. Before the fix, Edit displayed No project while the original Second
+  retained Color's archived non-null ID; unchanged Save rejected
+  `Select an active project` without changing raw data. TemplateProjectSelect
+  now reads the current name from all projects and marks archived. Active-only
+  choices and both save guards remain unchanged. The four native 1440/320
+  light/dark samples and twelve ready/menu/Escape stages retained exact label,
+  ID and raw bytes, showed only No project while both projects were archived,
+  restored visible keyboard focus and had no overflow. All four dialog crops
+  were inspected. Unchanged archived Save still rejected without data changes.
+  Restoring only Other exposed exactly No project and active Other; trusted
+  Home/ArrowDown/Enter selected Other, then explicit Home/Enter selected null.
+  Each Save kept the same template UUID and original Second title/note/estimate
+  and changed only its project ID. Actual reload, native reopened editor and
+  fresh UI export retained the exact null value/fields. The driver's 10-second
+  reload wait exited 1; bounded read-only readiness and the next native Edit
+  proved persistence without another Save/reload. No app timing cause is
+  established; all original pilot/adapter/timeout records remain. Scoped and
+  root type-aware zero-warning lint/typecheck/format and isolated production
+  build passed. Doctor 0.9.22 covered 101 files/no skips: identical 16 errors/22
+  warnings, not clean. Current 165 code/config hashes match both checked
+  snapshots; current documentation gets its own native format check. Full
+  original guest raw/UI and protected original-owner/revision49/server/UI
+  seven-section cleanup passed. No task copy, timer run, history or HTTP
+  mutation/auth exchange occurred; native methods/helper/observer cleanup is
+  verified. Final ready logs empty; earlier shared-Skeleton SSR differences and
+  the exact attributed screenshot-tool CSP diagnostic remain separate.
+  Representative inspected PNG/JSON and independent runtime/privacy audit are
+  saved. Batch: `docs/qa156-current-artifact-path`.
