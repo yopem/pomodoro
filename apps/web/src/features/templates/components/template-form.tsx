@@ -186,6 +186,7 @@ export function TemplateProjectSelect({
   })
 
   const availableProjects = projects.filter((project) => !project.archived)
+  const selectedProject = projects.find((project) => project.id === value)
 
   return (
     <Field>
@@ -195,8 +196,8 @@ export function TemplateProjectSelect({
       <Select value={value ?? ""} onValueChange={changeValue}>
         <SelectTrigger id={`template-task-${index}-project`} onBlur={onBlur}>
           <SelectValue>
-            {availableProjects.find((project) => project.id === value)?.name ??
-              "No project"}
+            {selectedProject?.name ?? "No project"}
+            {selectedProject?.archived ? " (archived)" : null}
           </SelectValue>
         </SelectTrigger>
         <SelectPopup>
