@@ -6677,12 +6677,19 @@ session contract changes are intended.
 
 - **Purpose:** Check the new history hierarchy and preserve edit, delete, empty
   state, range selection, and URL-based pagination.
-- **Prerequisites:** Shared refresh setup; approved browser QA; isolated guest
-  workspace with a backup; `/reports` available at the recorded web origin.
-- **Inputs:** A manual focus record named `Design review`, project `Website`,
-  duration 25 minutes; another record with no project; an empty date range. Use
-  the existing Add focus time form to create enough isolated records for two
-  pages. Read its current page limit before creating records.
+- **Prerequisites:** Shared setup and current same-tab guest authorization;
+  fresh protected original-owner reads and verified-empty guest UI/raw backups.
+  Use only the approved guest origin for records, settings saves, and normal
+  backup restores. No authentication, peer tab, account switch, or server
+  change.
+- **Inputs:** Create active Green project `Website` and manual `Design review`
+  on 2024-01-02 at local 13:05, 25 minutes, assigned to Website. Create manual
+  `QA-206 No project` at local 14:05, one minute, with no project. Use their
+  actual UI export to clone the latter into 20 unique UUID records named
+  `QA-206 Page 01` through `QA-206 Page 20`; restore only this owned guest file
+  through review. The 20-row page limit gives 22 records, two pages, and 46
+  minutes. Use 2024-01-03 as the empty day. Compare 12h/24h at 1440 and 390 CSS
+  pixels in Light/Dark and device zones Asia/Jakarta/America/New_York.
 - **Steps:**
   1. Open `/reports`, select the range containing the isolated records, and
      inspect the history header, total, table, and page controls.
@@ -6691,8 +6698,18 @@ session contract changes are intended.
      deletion on an isolated record and inspect the removed row and totals.
   3. Use Next, Previous, reload, and Back. Select the empty date range.
   4. Repeat at 390 and 1440 CSS pixels in both themes. Use the keyboard to reach
-     each action. Change the time preference between 12h and 24h and inspect the
-     record timestamps.
+     each action. Restore only the owned 22-record fixture before each scenario.
+     Change Design review to 30 minutes with its ID/start/project unchanged: the
+     total becomes 51 minutes. Cancel deletion of QA-206 No project without a
+     storage write, then confirm its deletion: 21 records and 50 minutes.
+  5. Restore the original owned fixture. Save only guest `hour_format` through
+     Settings and compare all 16 width/theme/hour/zone samples on page 2. Use
+     page-scoped timezone emulation and a real reload; never replace the clock.
+     Verify each timestamp against its unchanged epoch in the stated zone.
+     Compare all raw workspace bytes before and after each read-only sample.
+  6. Clear the page timezone override and verify the original device zone before
+     protected return. Confirm the original guest UI/raw baselines, then fresh
+     protected original-owner/server/UI equality with no protected save/import.
 - **Expected results:** One shared frame contains the history header, table, and
   footer without a nested card. Task and project names remain visible. Duration
   and timestamps retain their original values. The total and page labels are
@@ -6703,17 +6720,51 @@ session contract changes are intended.
 - **Evidence:** Save sanitized screenshots and action results in
   `qa-artifacts/QA-206/`; inspect the populated, empty, edit, delete, and
   pagination results before marking passed.
-- **Cleanup:** Remove only isolated records and restore the recorded range, time
-  preference, theme, and viewport. Do not clear existing user storage.
-- **Status:** pending. Browser checks cover populated/empty ranges, two-page URL
-  pagination, reload, Back/Forward, edit, cancel, confirmed deletion, mobile
-  table scrolling, and keyboard dialog focus. Complete the 12-hour and time-zone
-  matrix. See the browser run record below.
-
-Coverage: the header navigation requirement uses QA-199. History hierarchy,
-record rendering, empty state, and unchanged actions use QA-206. Loading
-geometry uses QA-195 and QA-204; reopen those cases for this revision. No
-authentication, payment, API, or persistence contract changes are in scope.
+- **Cleanup:** On the verified guest, use reviewed normal UI baseline restore.
+  Remove only its generated primary/backup keys under exact-origin/key/byte
+  guards. Reload and compare fresh guest UI/raw baselines. Restore timezone,
+  range, time preference, media, viewport, helper path, and owned observers.
+  Return the protected original owner and verify revision and fresh server/UI
+  seven-section equality, original root/title/idle clock/count. Never clear user
+  storage or replace the protected workspace.
+- **Status:** partial; unchecked, reviewed 2026-11-14. Fresh original-owner
+  reads and final server/actual UI exports match all seven protected baseline
+  sections at revision 49. Native guest forms created Website and two manual
+  records; reviewed guest restore added 20 owned UUID copies. Four preliminary
+  pointer scenarios passed 24 data/UI captures. Four complete keyboard scenarios
+  passed 40 captures, 36 native Enter actions, and 656 Tab events at 1440/390
+  pixels in both themes. The same Design review ID changed 25 → 30 minutes; only
+  the intended one-minute record was deleted. Totals were 46 → 51 → 50 minutes;
+  page sizes were 20+2 → 20+1. Cancel, reload, and guarded owned Back preserved
+  raw bytes. Empty history retained guidance and disabled page controls. Four
+  additional Cancel checks observed exactly zero setItem calls, native method
+  restoration, and no safety expiry. All keyboard and Cancel review sheets were
+  inspected and accepted. Eight native Asia/Jakarta 12h/24h samples passed
+  independent epoch, name, project, duration, total, pagination, raw-byte, and
+  visual checks. The other eight America/New_York samples remain blocked: Chrome
+  rejected the override and reset with protocol -32000, Timezone override is
+  only available to trusted clients. No override succeeded. The owned timer was
+  removed, and the original zone/native clock/Storage were verified. No
+  restriction was bypassed; the second-zone criterion is not waived, and this
+  case is not a full pass. Guest UI/raw baselines and the protected original
+  owner, revision 49, fresh server/UI exports, root/title/viewport/media/zone,
+  idle 25:00, and completed count 1 were restored. All owned hooks, timers, and
+  observers were removed. The 12,761 observed requests contained no HTTP
+  mutations or authentication actions. Independent review checked 717 private
+  files at mode 0600 and 508 shareable text files with no known private-field
+  match. All 165 code/config hashes match prior successful checks; checks were
+  reused, not rerun. No source fix ran. Known shared-skeleton hydration, exact
+  attributed screenshot-tool CSP, and one natural 503 interval remain in
+  evidence; the last cleanup logs are empty. Responsive navigation,
+  summary/minutes selectors, and null-primary cleanup observation failures were
+  test adapters, not app defects; corrections and original evidence are
+  retained. Evidence: the owned directory in `docs/qa206-current-artifact-path`,
+  including `final-cleanup.json` and the independent CRUD, keyboard, Cancel, and
+  native-format assertions. Coverage: the header navigation requirement uses
+  QA-199. History hierarchy, record rendering, empty state, and unchanged
+  actions use QA-206. Loading geometry uses QA-195 and QA-204; reopen those
+  cases for this revision. No authentication, payment, API, or persistence
+  contract changes are in scope.
 
 ### [ ] QA-207 — P1 — Shared control sizes and remaining source styles
 
