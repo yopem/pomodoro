@@ -1,5 +1,7 @@
+import type { MouseEvent } from "react"
+
 import { MoonIcon, SunIcon } from "lucide-react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { updateSettings, useFocusSnapshot } from "@/features/focus/store"
@@ -14,6 +16,7 @@ export function ThemeSwitcher() {
   )
 
   const [saving, setSaving] = useState(false)
+  const focusAfterSave = useRef(false)
 
   const { settings, timer } = workspace
 
@@ -25,7 +28,10 @@ export function ThemeSwitcher() {
       ? "Switch to light theme"
       : "Switch to dark theme"
 
-  const toggleTheme = useEventCallback(async function toggleTheme() {
+  const toggleTheme = useEventCallback(async function toggleTheme(
+    event: MouseEvent<HTMLButtonElement>,
+  ) {
+    focusAfterSave.current = document.activeElement === event.currentTarget
     setSaving(true)
 
     try {
@@ -47,10 +53,22 @@ export function ThemeSwitcher() {
     }
   })
 
-  const [events] = useState(() => ({ toggleTheme }))
+  const [events] = useState(function createThemeEvents() {
+    function restoreThemeFocus(button: HTMLButtonElement | null) {
+      if (button && focusAfterSave.current) {
+        focusAfterSave.current = false
+
+        if (!button.disabled && document.activeElement === document.body)
+          button.focus()
+      }
+    }
+
+    return { toggleTheme, restoreThemeFocus }
+  })
 
   return (
     <Button
+      ref={saving ? undefined : events.restoreThemeFocus}
       variant="outline"
       size="icon"
       aria-label={label}
