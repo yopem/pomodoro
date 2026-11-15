@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 68 checked sections out of 205, including historical passes.
+Current total: 68 checked sections out of 206, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -1107,7 +1107,41 @@ cache and offline coverage: QA-020. Build and browser checks require approval.
   inspect both themes, link names, keyboard focus, and narrow layout.
 - **Cleanup:** Restore guest settings and stop only processes started for this
   case.
-- **Status:** pending.
+- **Current safe execution plan:** use only the existing project tab and
+  verified-empty guest `qa-64266751d403.localhost:13001`, never the protected
+  signed-in workspace for writes. Fresh owner/revision/server preflight and
+  guest UI/raw baselines must precede actions. Target-scoped light/dark media
+  emulation checks System without changing the user's OS. Native Settings and
+  header actions test Light/Dark/System persistence, actual Start/Pause with
+  dark-while-running, and unchanged saved preference/public mirror under the
+  override. Do not start OAuth, log out, create tabs/profiles/agents, restart
+  servers, inject time or bypass disabled controls. Use all main links and the
+  guest login landing only (never its issuer action), then narrow keyboard
+  navigation. An exact guest-only stale mirror and bounded read-only bootstrap
+  hold record initial paint separately from hydrated preference restoration;
+  release Fetch/cache/listener/timer even on failure. No task or completion is
+  needed. Restore the original guest through reviewed UI, guarded owned-key
+  removal and actual reload/UI/raw equality, then protected
+  original-owner/revision49 server/fresh-UI equality and original
+  root/1667x1257/media/timezone/idle25/count1. Remove only owned
+  hooks/observers/locks and restore the exporter binding. Save and inspect all
+  matrix/data/error evidence under
+  `qa-artifacts/QA-024-169/theme-state-kypfaejq/`.
+- **Status:** partial;native Settings Light/Dark/System saves,public mirror
+  agreement,System media changes and actual Dark reload passed sampled exact
+  persistence checks. Native keyboard testing found the theme control lost focus
+  after loading. Source fix `33ad576` restores focus;four native 1440/390
+  light/dark keyboard cases independently passed focus-visible and exact
+  theme-only changes. Root typecheck,zero-warning lint,format and web build
+  passed;Doctor retains16 existing errors/22 warnings,with one existing
+  diagnostic location shifted,not a clean scan. Pending-lock,alternate-focus,
+  forced-dark,quota and stale-mirror coverage remain unrun. Early missing
+  trace/filename/Tab-bound adapters are preserved;picker/readiness timeouts have
+  unknown causes,not proven app defects. Guest original UI/raw and protected
+  original owner/revision49/fresh server-UI seven-section equality are restored.
+  Original root1667x1257/media/idle25 and observers/native methods are restored.
+  No full case pass is claimed. Evidence: `docs/qa024169-current-artifact-path`,
+  `focus-matrix-independent-assertions.json` and `final-cleanup.json`.
 
 ### [ ] QA-025 — P1 — PWA update and registration feedback
 
@@ -5962,7 +5996,43 @@ analytics, and SEO are not applicable: their contracts do not change.
   before/after preferences, resolved theme, error, and unchanged settings.
 - **Cleanup:** Restore OS emulation, original settings, and storage permission;
   stop only the isolated timer created here.
-- **Status:** Pending; write-failure fixture needs discovery before execution.
+- **Current safe execution plan:** use only the existing project tab and
+  verified-empty guest `qa-64266751d403.localhost:13001`, never the protected
+  signed-in workspace for writes. Fresh owner/revision/server preflight and
+  guest UI/raw baselines must precede actions. Target-scoped light/dark media
+  emulation checks System without changing the user's OS. Native Settings and
+  header actions test Light/Dark/System persistence, actual Start/Pause with
+  dark-while-running, and unchanged saved preference/public mirror under the
+  override. Do not start OAuth, log out, create tabs/profiles/agents, restart
+  servers, inject time or bypass disabled controls. Compare each native toggle's
+  exact seven-section delta and public mirror; reload Settings. Test repeated
+  physical clicks while a real guest workspace Web Lock holds the pending save,
+  with a 45-second safety/finally release. Deny only the exact guest primary
+  setItem for one toggle, preserve draft/data/ mirror, inspect error/disabled
+  state and retry through an allowed native action after restoring Storage.
+  Observe initial not-ready disabled controls during the bounded hold without
+  simulating enabled interaction. Restore the original guest through reviewed
+  UI, guarded owned-key removal and actual reload/UI/raw equality, then
+  protected original-owner/revision49 server/fresh-UI equality and original
+  root/1667x1257/media/timezone/idle25/count1. Remove only owned
+  hooks/observers/locks and restore the exporter binding. Save and inspect all
+  matrix/data/error evidence under
+  `qa-artifacts/QA-024-169/theme-state-kypfaejq/`.
+- **Status:** partial;native Settings Light/Dark/System saves,public mirror
+  agreement,System media changes and actual Dark reload passed sampled exact
+  persistence checks. Native keyboard testing found the theme control lost focus
+  after loading. Source fix `33ad576` restores focus;four native 1440/390
+  light/dark keyboard cases independently passed focus-visible and exact
+  theme-only changes. Root typecheck,zero-warning lint,format and web build
+  passed;Doctor retains16 existing errors/22 warnings,with one existing
+  diagnostic location shifted,not a clean scan. Pending-lock,alternate-focus,
+  forced-dark,quota and stale-mirror coverage remain unrun. Early missing
+  trace/filename/Tab-bound adapters are preserved;picker/readiness timeouts have
+  unknown causes,not proven app defects. Guest original UI/raw and protected
+  original owner/revision49/fresh server-UI seven-section equality are restored.
+  Original root1667x1257/media/idle25 and observers/native methods are restored.
+  No full case pass is claimed. Evidence: `docs/qa024169-current-artifact-path`,
+  `focus-matrix-independent-assertions.json` and `final-cleanup.json`.
 
 ### [ ] QA-170 — P2 — Header layout, keyboard, and static checks
 
@@ -8221,3 +8291,59 @@ session and export DatePicker implementations stay unchanged.
   recorded without an invented cause. Evidence:
   `docs/qa174175-current-artifact-path`, `native-ring-pixel-assertions.json` and
   `runtime-final-acceptance.json`.
+
+### [ ] QA-226 — Theme save restores keyboard focus (P1)
+
+- **Task and scope:** fix theme control focus after an asynchronous save.
+  Affected file: `apps/web/src/components/theme-switcher.tsx`. The shared Button
+  and workspace save guards must stay unchanged.
+- **Purpose:** keep visible keyboard focus on the same enabled control after its
+  loading state ends. Do not move focus from another control.
+- **Prerequisites:** follow the current shared setup and same-tab guest limits.
+  Verify the guest identity and empty UI/raw baselines before changes. Use the
+  existing protected account only for read-only baseline/return checks.
+- **Inputs:** widths 1440 and 390, light/dark media, saved Light/Dark/System.
+  Use a bounded real guest workspace Web Lock for a pending save. Use an exact
+  guest-primary quota denial only for the failure scenario.
+- **Steps:**
+  1. With native Tab/Shift+Tab, focus the enabled theme control. Press Enter.
+     Record the trusted input, loading/disabled/blur events and final focus.
+  2. Repeat for both widths and themes. Confirm one theme-only durable change,
+     the correct public mirror/icon/label and visible focus after re-enabling.
+  3. Hold the real guest workspace lock and activate the control. Confirm no
+     early workspace/mirror change and no repeated action while disabled.
+     Release the lock and confirm focus returns to the enabled control.
+  4. Repeat a held save, but use native Tab to focus another enabled header
+     control without activating it. Release the lock;that focus must remain.
+  5. Deny only the guest primary write. Confirm the controlled error,unchanged
+     durable data/mirror and no attempt to focus the still-disabled control.
+     Restore native methods and recover through the normal UI/reload.
+  6. Confirm initial render does not take focus. Confirm forced-dark and
+     unready/error controls retain their existing disabled behavior.
+  7. Restore guest UI/raw baselines and the protected original owner/revision,
+     fresh server/UI seven-section equality and original page/media/viewport.
+- **Expected results:** the same control regains focus only when it held focus
+  before the save and is enabled again. Another focused control is not
+  displaced. No extra write,unguarded activation or persistence change occurs.
+- **Evidence:** use `docs/qa024169-current-artifact-path`,
+  `theme-keyboard-focus-failure-proof.json`,native traces,focus screenshots,
+  exact-delta assertions and final cleanup proof. Inspect the final focus ring
+  and native semantic disabled state. Do not equate AX with AT speech.
+- **Cleanup:** restore only owned guest data/preferences/raw keys. Remove exact
+  probes/listeners/locks/timers and restore the helper path. Preserve the
+  signed-in account,original cycle/history,servers and other tabs.
+- **Status:** partial;native Settings Light/Dark/System saves,public mirror
+  agreement,System media changes and actual Dark reload passed sampled exact
+  persistence checks. Native keyboard testing found the theme control lost focus
+  after loading. Source fix `33ad576` restores focus;four native 1440/390
+  light/dark keyboard cases independently passed focus-visible and exact
+  theme-only changes. Root typecheck,zero-warning lint,format and web build
+  passed;Doctor retains16 existing errors/22 warnings,with one existing
+  diagnostic location shifted,not a clean scan. Pending-lock,alternate-focus,
+  forced-dark,quota and stale-mirror coverage remain unrun. Early missing
+  trace/filename/Tab-bound adapters are preserved;picker/readiness timeouts have
+  unknown causes,not proven app defects. Guest original UI/raw and protected
+  original owner/revision49/fresh server-UI seven-section equality are restored.
+  Original root1667x1257/media/idle25 and observers/native methods are restored.
+  No full case pass is claimed. Evidence: `docs/qa024169-current-artifact-path`,
+  `focus-matrix-independent-assertions.json` and `final-cleanup.json`.
