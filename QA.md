@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 68 checked sections out of 206, including historical passes.
+Current total: 71 checked sections out of 206, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -1076,7 +1076,7 @@ Coverage: shell semantics and theme map to QA-024; service-worker update
 feedback maps to QA-025. Existing navigation and keyboard coverage: QA-021. PWA
 cache and offline coverage: QA-020. Build and browser checks require approval.
 
-### [ ] QA-024 — P1 — Shell navigation and theme
+### [x] QA-024 — P1 — Shell navigation and theme
 
 - **Purpose:** Check shell layout, links, alerts, and theme after lint repairs.
 - **Prerequisites:** Shared setup; isolated guest data; approved local web
@@ -1121,27 +1121,31 @@ cache and offline coverage: QA-020. Build and browser checks require approval.
   hold record initial paint separately from hydrated preference restoration;
   release Fetch/cache/listener/timer even on failure. No task or completion is
   needed. Restore the original guest through reviewed UI, guarded owned-key
-  removal and actual reload/UI/raw equality, then protected
-  original-owner/revision49 server/fresh-UI equality and original
+  removal and actual reload/UI/raw equality, then protected current
+  verified-owner/revision server/fresh-UI equality and original
   root/1667x1257/media/timezone/idle25/count1. Remove only owned
   hooks/observers/locks and restore the exporter binding. Save and inspect all
   matrix/data/error evidence under
   `qa-artifacts/QA-024-169/theme-state-kypfaejq/`.
-- **Status:** partial;native Settings Light/Dark/System saves,public mirror
-  agreement,System media changes and actual Dark reload passed sampled exact
-  persistence checks. Native keyboard testing found the theme control lost focus
-  after loading. Source fix `33ad576` restores focus;four native 1440/390
-  light/dark keyboard cases independently passed focus-visible and exact
-  theme-only changes. Root typecheck,zero-warning lint,format and web build
-  passed;Doctor retains16 existing errors/22 warnings,with one existing
-  diagnostic location shifted,not a clean scan. Pending-lock,alternate-focus,
-  forced-dark,quota and stale-mirror coverage remain unrun. Early missing
-  trace/filename/Tab-bound adapters are preserved;picker/readiness timeouts have
-  unknown causes,not proven app defects. Guest original UI/raw and protected
-  original owner/revision49/fresh server-UI seven-section equality are restored.
-  Original root1667x1257/media/idle25 and observers/native methods are restored.
-  No full case pass is claimed. Evidence: `docs/qa024169-current-artifact-path`,
-  `focus-matrix-independent-assertions.json` and `final-cleanup.json`.
+- **Status:** passed on 2026-11-16 UTC at source `33ad576`. All five main links
+  reached their named routes. The guest Log in link reached only `/auth/login`;
+  the issuer action was not used. Native narrow Tab, Enter and menu keys kept
+  visible focus and preserved raw storage. Light, Dark and System saves, actual
+  reloads and native media changes passed. Real Start applied the temporary dark
+  override; Pause restored saved Light without changing its mirror, history or
+  completion count. A stale Dark mirror produced initial Dark paint with a
+  disabled control. After bootstrap release, saved Light controlled the document
+  and mirror again. Native alert semantics and readable layouts remain intact;
+  actual AT speech is not claimed. Reviewed screenshots and exact-delta
+  assertions passed. Guest original UI/raw baselines and the protected current
+  owner/revision50/server/fresh UI seven-section baseline are restored. No old
+  protected settings were restored. The original root, viewport, media, clock
+  and native methods are restored. Root typecheck, zero-warning lint, format and
+  web build results are reused from unchanged source. Doctor retains 16 errors
+  and 22 warnings; it is not clean. Early timeouts have unknown causes. The
+  relay restart lost the live request buffer, so this result does not claim a
+  full network count. Evidence: `docs/qa-theme-followup-current-artifact-path`,
+  `runtime-final-acceptance.json` and `final-cleanup.json`.
 
 ### [ ] QA-025 — P1 — PWA update and registration feedback
 
@@ -5972,7 +5976,7 @@ analytics, and SEO are not applicable: their contracts do not change.
 - **Cleanup:** Close owned popups and return to `/`; keep the session.
 - **Status:** Pending.
 
-### [ ] QA-169 — P1 — Theme toggle persistence and timer override
+### [x] QA-169 — P1 — Theme toggle persistence and timer override
 
 - **Purpose:** Use the existing guarded Settings mutation, not a second theme
   store.
@@ -6013,26 +6017,31 @@ analytics, and SEO are not applicable: their contracts do not change.
   Observe initial not-ready disabled controls during the bounded hold without
   simulating enabled interaction. Restore the original guest through reviewed
   UI, guarded owned-key removal and actual reload/UI/raw equality, then
-  protected original-owner/revision49 server/fresh-UI equality and original
-  root/1667x1257/media/timezone/idle25/count1. Remove only owned
+  protected current verified-owner/revision server/fresh-UI equality and
+  original root/1667x1257/media/timezone/idle25/count1. Remove only owned
   hooks/observers/locks and restore the exporter binding. Save and inspect all
   matrix/data/error evidence under
   `qa-artifacts/QA-024-169/theme-state-kypfaejq/`.
-- **Status:** partial;native Settings Light/Dark/System saves,public mirror
-  agreement,System media changes and actual Dark reload passed sampled exact
-  persistence checks. Native keyboard testing found the theme control lost focus
-  after loading. Source fix `33ad576` restores focus;four native 1440/390
-  light/dark keyboard cases independently passed focus-visible and exact
-  theme-only changes. Root typecheck,zero-warning lint,format and web build
-  passed;Doctor retains16 existing errors/22 warnings,with one existing
-  diagnostic location shifted,not a clean scan. Pending-lock,alternate-focus,
-  forced-dark,quota and stale-mirror coverage remain unrun. Early missing
-  trace/filename/Tab-bound adapters are preserved;picker/readiness timeouts have
-  unknown causes,not proven app defects. Guest original UI/raw and protected
-  original owner/revision49/fresh server-UI seven-section equality are restored.
-  Original root1667x1257/media/idle25 and observers/native methods are restored.
-  No full case pass is claimed. Evidence: `docs/qa024169-current-artifact-path`,
-  `focus-matrix-independent-assertions.json` and `final-cleanup.json`.
+- **Status:** passed on 2026-11-16 UTC at source `33ad576`. Native header
+  actions persisted the opposite resolved theme, including System under both
+  media schemes. Actual Settings reloads agreed with the saved preference and
+  mirror. Real Start/Pause kept the saved Light preference and explained the
+  forced-dark disabled state. A real guest Web Lock held the save; three trusted
+  physical hits on the disabled area left exactly one queued mutation and no
+  early write. Release produced one theme-only delta. One denied guest primary
+  write showed an alert, preserved every raw byte and mirror, and did not show a
+  false success or focus the disabled control. Native methods and reload
+  recovery restored the allowed control. Initial unready behavior also stayed
+  disabled. Exact data, native traces and screenshots passed review. Guest
+  UI/raw baselines and the protected current owner/revision50/server and fresh
+  UI seven-section baseline are restored. No old protected settings were
+  restored. The root, viewport, media and methods are restored. Existing root
+  lint, format, typecheck and build results are reused; Doctor remains at 16
+  errors and 22 warnings, not clean. Early timeouts remain cause-unproven. The
+  relay restart lost the live request buffer; no full network count is claimed.
+  Evidence: `docs/qa-theme-followup-current-artifact-path`,
+  `runtime-final-acceptance.json`, native lock/quota traces and
+  `final-cleanup.json`.
 
 ### [ ] QA-170 — P2 — Header layout, keyboard, and static checks
 
@@ -8292,7 +8301,7 @@ session and export DatePicker implementations stay unchanged.
   `docs/qa174175-current-artifact-path`, `native-ring-pixel-assertions.json` and
   `runtime-final-acceptance.json`.
 
-### [ ] QA-226 — Theme save restores keyboard focus (P1)
+### [x] QA-226 — Theme save restores keyboard focus (P1)
 
 - **Task and scope:** fix theme control focus after an asynchronous save.
   Affected file: `apps/web/src/components/theme-switcher.tsx`. The shared Button
@@ -8332,18 +8341,22 @@ session and export DatePicker implementations stay unchanged.
 - **Cleanup:** restore only owned guest data/preferences/raw keys. Remove exact
   probes/listeners/locks/timers and restore the helper path. Preserve the
   signed-in account,original cycle/history,servers and other tabs.
-- **Status:** partial;native Settings Light/Dark/System saves,public mirror
-  agreement,System media changes and actual Dark reload passed sampled exact
-  persistence checks. Native keyboard testing found the theme control lost focus
-  after loading. Source fix `33ad576` restores focus;four native 1440/390
-  light/dark keyboard cases independently passed focus-visible and exact
-  theme-only changes. Root typecheck,zero-warning lint,format and web build
-  passed;Doctor retains16 existing errors/22 warnings,with one existing
-  diagnostic location shifted,not a clean scan. Pending-lock,alternate-focus,
-  forced-dark,quota and stale-mirror coverage remain unrun. Early missing
-  trace/filename/Tab-bound adapters are preserved;picker/readiness timeouts have
-  unknown causes,not proven app defects. Guest original UI/raw and protected
-  original owner/revision49/fresh server-UI seven-section equality are restored.
-  Original root1667x1257/media/idle25 and observers/native methods are restored.
-  No full case pass is claimed. Evidence: `docs/qa024169-current-artifact-path`,
-  `focus-matrix-independent-assertions.json` and `final-cleanup.json`.
+- **Status:** passed on 2026-11-16 UTC at fix `33ad576`. Four native 1440/390
+  light/dark keyboard saves restored enabled focus and visible focus with one
+  theme-only delta. A real guest lock confirmed the loading blur and focus
+  return after release. Native Tab to the other header control preserved that
+  control's focus instead. The quota scenario kept the failed control disabled
+  with unchanged raw data and no disabled-control refocus. Native recovery,
+  initial no-focus behavior, unready disabled state and real forced-dark
+  Start/Pause all passed. Exact traces, snapshots and screenshots passed
+  independent review. Guest original UI/raw baselines and protected current
+  owner/revision50/server/fresh UI seven-section equality are restored. No old
+  protected settings were restored. The original authenticated root, viewport,
+  media and native methods are restored; no owned hooks remain. Static results
+  are reused from unchanged source. Doctor retains 16 errors and 22 warnings;
+  only one existing diagnostic location moved with the fix. It is not a clean
+  scan. Earlier timeouts remain cause-unproven. Automatic relay recovery lost
+  the old live request buffer, so no full request-count claim is made. Evidence:
+  `docs/qa-theme-followup-current-artifact-path`,
+  `runtime-final-acceptance.json`, `final-cleanup.json` and the original four
+  keyboard cases under `docs/qa024169-current-artifact-path`.
