@@ -1,7 +1,7 @@
 import type { MouseEvent } from "react"
 
 import { createLazyFileRoute, Link } from "@tanstack/react-router"
-import { startTransition, useActionState, useState } from "react"
+import { startTransition, useActionState, useRef, useState } from "react"
 
 import type { Template } from "@/features/focus/schema"
 import type { WorkspaceOwner } from "@/features/focus/store"
@@ -43,6 +43,7 @@ export const Route = createLazyFileRoute("/templates/")({
 export function TemplatesRoute() {
   const { workspace, hydrated } = useFocusSnapshot((snapshot) => snapshot)
   const owner = useWorkspaceMutationOwner()
+  const formTriggerRef = useRef<HTMLButtonElement>(null)
   const [editing, setEditing] = useState<Template | null>(null)
   const [open, setOpen] = useState(false)
   const [isNew, setIsNew] = useState(false)
@@ -102,15 +103,18 @@ export function TemplatesRoute() {
   )
 
   const [events] = useState(function createTemplateActions() {
-    function createBlank() {
+    function createBlank(event: MouseEvent<HTMLButtonElement>) {
+      formTriggerRef.current = event.currentTarget
       startTransition(() => dispatch({ kind: "create", copyTasks: false }))
     }
 
-    function copyTasks() {
+    function copyTasks(event: MouseEvent<HTMLButtonElement>) {
+      formTriggerRef.current = event.currentTarget
       startTransition(() => dispatch({ kind: "create", copyTasks: true }))
     }
 
     function edit(event: MouseEvent<HTMLButtonElement>) {
+      formTriggerRef.current = event.currentTarget
       const id = event.currentTarget.value
       startTransition(() => dispatch({ kind: "edit", id }))
     }
@@ -223,6 +227,7 @@ export function TemplatesRoute() {
       </Container>
       {open && editing && (
         <TemplateForm
+          finalFocus={formTriggerRef}
           template={editing}
           expected={isNew ? null : editing}
           projects={workspace.projects}

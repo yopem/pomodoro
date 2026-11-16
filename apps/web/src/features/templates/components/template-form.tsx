@@ -1,4 +1,4 @@
-import type { ChangeEvent, FormEvent, MouseEvent } from "react"
+import type { ChangeEvent, FormEvent, MouseEvent, RefObject } from "react"
 
 import { useForm } from "@tanstack/react-form"
 import { useRef, useState } from "react"
@@ -46,6 +46,7 @@ const noteValidators = { onBlur: noteSchema, onSubmit: noteSchema }
 const estimateValidators = { onBlur: estimateSchema, onSubmit: estimateSchema }
 
 interface TemplateFormProps {
+  finalFocus: RefObject<HTMLButtonElement | null>
   template: Template
   projects: Project[]
   expected: Template | null
@@ -215,11 +216,12 @@ export function TemplateProjectSelect({
 
 export function TemplateForm(props: TemplateFormProps) {
   const { form, events, formRef, error, taskKeys } = useTemplateForm(props)
-  const { projects, onOpenChange } = props
+  const { projects, onOpenChange, finalFocus } = props
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogPopup
+        finalFocus={finalFocus}
         render={<form ref={formRef} noValidate onSubmit={events.submit} />}
       >
         <DialogHeader>
