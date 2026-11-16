@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 71 checked sections out of 206, including historical passes.
+Current total: 72 checked sections out of 206, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -7257,22 +7257,39 @@ production CSS/font output, and offline rendering have not been checked.
 
 ## Browser QA finding: Select trigger size
 
-### [ ] QA-210 — P1 — Source Select trigger geometry
+### [x] QA-210 — P1 — Source Select trigger geometry
 
 - **Purpose:** Reproduce and fix the 32px default Project dropdown found in the
   focus record editor while app Button actions already measured 40px.
-- **Prerequisites:** Existing Vite origin `http://localhost:13001`, anonymous
-  isolated QA records, baseline backup in `qa-artifacts/QA-206/`; current
-  unpublished local UI source. Browser QA is approved; builds are not.
+- **Prerequisites:** Current shared setup and approved existing main tab. Verify
+  the current protected owner and actual UI/server baseline first. Use only the
+  verified-empty guest origin `http://qa-64266751d403.localhost:13001` for
+  fixtures and state probes. Read the current copied Select and its recorded
+  source comparison. Do not log out, enter OAuth, change protected data, add a
+  tab or restart a server. Existing isolated static/build results may be reused
+  only for unchanged code/config hashes. Current evidence pointer:
+  `docs/qa210-current-artifact-path`.
 - **Inputs:** `/reports` Add focus time, `/projects` Add project, settings
-  dropdowns; 390 and 1440 CSS pixel viewports; both themes.
+  dropdowns; 390 and 1440 CSS pixel viewports; both themes. Use owned project
+  `QA-210 Website`, Blue, and manual record `QA-210 Focus`, 1 minute. Keep the
+  native form date. Do not start a timer or change a protected record.
 - **Steps:**
   1. Open Add focus time and inspect Project trigger height and padding.
   2. Compare the shared Select default, small, and large definitions with the
-     local registry source. Apply that source geometry without changing
-     selection behavior, labels, or form contracts.
-  3. Reopen the affected forms and settings; inspect default dropdowns and
-     select `QA-206 Website` on the isolated record. Cancel an editor once.
+     recorded source geometry and fix. Keep selection behavior, labels and form
+     contracts unchanged.
+  3. Measure Settings dropdowns and both editors at all four layouts. Open each
+     tested Select and use Escape to check focus return. Use native keys to
+     select Blue and save the owned project. Select that project in a focus
+     record draft, Cancel with stored data unchanged, then save a new record.
+  4. Measure the real coarse-pointer pseudo target and tap its top and bottom
+     extensions with native touch. Use integer CSS hit-test coordinates to avoid
+     browser rounding across a fractional boundary. Restore emulation after each
+     sample. Check invalid appearance with a bounded temporary guest attribute
+     only; do not call it validation or AT speech.
+  5. Reload and inspect the same saved project association. Compare fresh
+     exports and durable data. Delete only the owned record and project, restore
+     guest raw/UI baselines, and verify protected return equality.
 - **Expected results:** Default Select triggers measure 40px with the source
   14px font and weight 450. Source small/large variants remain 32px/48px. Source
   padding, coarse-pointer target, focus, and invalid states remain intact. The
@@ -7280,12 +7297,31 @@ production CSS/font output, and offline rendering have not been checked.
   saving the isolated choice keeps its project.
 - **Evidence:** Save measurements and screenshots in `qa-artifacts/QA-210/`.
   Inspect the actual trigger, source diff, and saved project before passing.
-- **Cleanup:** Close case-owned popups and remove only QA records. Restore theme
-  and viewport. Do not clear or replace user storage.
-- **Status:** pending. Retain the original 32px failure on `40971ec`. The fix is
-  in `6f81968`. Report-filter and record-editor triggers now measure 40px, with
-  a 14px font and weight 450. The saved QA record kept its project. Finish
-  focus, invalid, and coarse-pointer state checks before checking this case.
+- **Cleanup:** Close case-owned popups and delete only the owned record and
+  project through their confirmation controls. After exact empty-workspace
+  proof, remove only the case-generated guest primary key. Restore guest raw/UI
+  baselines, original media and viewport. Remove owned observers and probes.
+  Verify protected owner and fresh server/UI equality. Do not clear user
+  storage, restore old protected settings or log out.
+- **Status:** passed on 2026-11-16 UTC at `d8d0679`, with no source changes.
+  Retain the original 32px failure on `40971ec` and fix `6f81968`; current
+  Select bytes still match that fix. Independent audit passed 40 default
+  40px/14px/450 measurements, 12 native Escape focus returns, and 12 actual
+  coarse-pointer 44px layouts with 24 trusted outside-40px touch hits across
+  Settings and both editors at 1440/390 in both themes. Four controlled invalid
+  appearances preserved the source state; this is not actual form validation or
+  screen-reader speech. Native keys saved Blue and the owned project
+  association. Cancel preserved raw bytes. Actual reload and fresh UI export
+  retained the same project/record IDs and all seven sections. All 30 native
+  crops were inspected. Individual fixture deletion, guarded empty-primary
+  removal, fresh guest raw/UI and protected owner/current revision/server/UI
+  equality passed. All 1166 observed requests were GETs, with no auth routes.
+  The code/config hashes match successful prior checks; checks were reused, not
+  rerun. Existing Doctor 16 errors/22 warnings remain, not a clean scan.
+  Preserve native fractional-touch rounding and CLI-timeout corrections, known
+  SSR/tool-CSP records and natural 503s of unknown cause; existing Retry
+  recovered without login/logout. Evidence and executed audit:
+  `qa-artifacts/QA-210/select-geometry-riq91yjj/runtime-final-acceptance.json`.
 
 Coverage: QA-210 covers the shared Select gap found during QA-208/QA-209.
 
