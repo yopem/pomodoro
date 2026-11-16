@@ -58,7 +58,7 @@ every section. Further exact acceptance cases are in progress. After parent
 evidence review, QA-004, QA-009, QA-010, QA-011, and QA-014 are checked. Their
 guest outcomes include baseline cleanup; broader account observations remain
 partial case coverage. Parent-run QA-213 keyboard/touch checks also passed.
-Current total: 72 checked sections out of 206, including historical passes.
+Current total: 75 checked sections out of 208, including historical passes.
 Settings submit, backup isolation, and Save layout QA-216 passed. Loading color
 and stale SSR class checks remain open under QA-153/QA-221. All 39 open P0 cases
 need permissions or fixtures outside the current scope. The safe QA-202 and
@@ -7180,14 +7180,24 @@ Variable instead of Inter and IBM Plex Mono. QA-207 remains pending for
 non-button source styles; use QA-208 for button sizes and QA-209 for fonts.
 Reopen QA-195, QA-196, QA-199, QA-200, and QA-204 for these changes.
 
-### [ ] QA-208 — P1 — Default action sizes throughout the app
+### [x] QA-208 — P1 — Default action sizes throughout the app
 
 - **Purpose:** Check that app actions use the default Yopem UI Button size,
   including text and icon-only actions, without mixed 32px and 48px heights.
-- **Prerequisites:** Shared refresh setup; approved browser QA; isolated guest
-  workspace with one task and one project; current local Button source.
+- **Prerequisites:** Current same-tab setup above; existing session1 only. Read
+  the current local Button source. Before actions, verify the original protected
+  owner and fresh server/UI baseline, then guest user-null and original empty
+  UI/raw baselines. Do not sign in, log out, create a tab or restart a server.
+  Use only disposable guest records for saves and timer work.
 - **Inputs:** `/`, `/focus`, `/projects`, `/templates`, `/reports`, `/settings`,
-  `/auth/login`, `/offline.html`; light/dark themes; 390 and 1440 CSS pixels.
+  `/auth/login`, `/offline.html`; light/dark media; 390 and 1440 CSS pixels.
+  Reuse one task `QA toast task edited`, project `QA toast project edited`,
+  template `QA toast template edited`, and manual `QA toast focus` from the
+  previously UI-authored owned guest export in the QA177–179 artifacts. Keep
+  each record unchanged and derive a minimal input using the fresh empty guest
+  settings/timer; do not copy its unrelated records or settings. Record source
+  hashes and the exact recipe. No fake clock or raw fixture seeding. Artifacts:
+  `docs/qa208-current-artifact-path`.
 - **Steps:**
   1. Visit each input route. Open task, template, project, and focus editors,
      delete confirmations, backup controls, and account controls as permitted.
@@ -7196,6 +7206,20 @@ Reopen QA-195, QA-196, QA-199, QA-200, and QA-204 for these changes.
      Inspect timer phase and start/pause/reset controls too.
   3. Exercise keyboard navigation and touch emulation. Inspect task and timer
      loading placeholders, then inspect settings placeholders.
+  4. Restore the minimal owned UI-derived input once through the reviewed guest
+     backup workflow and verify exact seven-section equality. Open the native
+     create/edit forms; cancel read-only drafts and confirmations with raw
+     identity. Reuse qualified unchanged save-handler evidence from QA177, not a
+     new create claim. Use a real brief Start/Pause only on the guest to inspect
+     Pause/Resume/Reset; never start the protected timer.
+  5. At each width/theme, measure visible `data-slot="button"` controls and
+     record `data-size`, role, label, and bounds. Keep calendar cells and other
+     native controls separate. Inspect native keyboard focus and 44px coarse
+     targets; activate only safe guest controls, never the issuer action.
+  6. Hold one read-only bootstrap response for loading captures with a 45-second
+     safety release. Restore Fetch, cache, listeners and timers in finally.
+     Check 40px placeholder geometry without treating existing stale-SSR
+     contrast failures as resolved. Inspect all images and action results.
 - **Expected results:** App Button actions have 40px visible height without old
   sm/lg/xl size overrides. Source-owned calendar cells and other native controls
   retain their component contract. Touch targets remain at least 44px where
@@ -7204,11 +7228,41 @@ Reopen QA-195, QA-196, QA-199, QA-200, and QA-204 for these changes.
   colors remain unchanged.
 - **Evidence:** Save sanitized measurements and screenshots in
   `qa-artifacts/QA-208/`; inspect each route and opened form before passing.
-- **Cleanup:** Cancel forms and remove only isolated records. Restore theme,
-  viewport, and emulation. Do not clear existing storage.
-- **Status:** pending. Recorded guest views and editors use 40px app buttons.
-  Mobile header and task controls have extended touch targets. Full loading and
-  account-control coverage remains unrun.
+- **Cleanup:** Cancel case-owned forms and remove only owned records. Restore
+  the exact original guest UI/raw baseline, including only case-generated keys
+  after guarded empty-workspace proof. Release every hold and touch override.
+  Restore helper paths and remove owned observers. Verify original protected
+  owner and fresh server/UI equality, original route, viewport, media and zone.
+  Do not clear user storage or restore old protected preferences.
+- **Status:** Passed on 2026-11-17 local time (2026-11-16 UTC). Four read-only
+  protected Account viewport/media samples passed native Escape focus and
+  server-data checks without changing account preferences. The verified-empty
+  same-tab guest then used one owned task/project/template/manual-record fixture
+  with default settings. Independent and visual review passed 32 loaded route
+  views with 278 shared 40px controls, 48 square icons and four native offline
+  links. All 32 modal scenarios and 11 composed-Cancel supplements passed 129
+  saved raw comparisons and default/icon measurements. The two reproduced
+  editor-focus failures were fixed and checked under QA-227/228. All 32 coarse
+  targets passed 64 trusted outside-visible pointerdowns; these cancelled
+  gestures prove hit-testing, not click activation. Four separate genuine touch
+  Add-task/Cancel flows passed. Eight bounded loading samples measured 176 40px
+  placeholders with clean Fetch/cache/listener release. A real 2200ms-or-longer
+  wait between Start/Pause and eight paused Root/Focus layouts passed 102 shared
+  measurements and 24 Resume/Reset/Skip measurements without history,
+  task-actual or completion changes. All images were inspected. The final audit
+  recomputed 257 raw comparison groups and reviewed 34846 observed GET requests,
+  with no mutating request or authorize/callback/logout exchange. Guest raw/UI
+  baselines and fresh same-owner/current-revision protected server/UI baselines
+  match in all seven sections. The original authenticated surface and native
+  methods are restored; all probes are gone. Source commits `0e75ffa` and
+  `83f482f` match the runtime and full isolated typecheck/lint/format/build
+  checks. Doctor retains 16 errors and 22 warnings, not a clean scan.
+  Slot/coordinate/runner corrections and unknown readiness timeouts remain
+  qualified in the artifacts. Retained development hydration, source-location
+  metadata, exact tool-CSP and natural 503 diagnostics are not waived. This
+  geometry pass does not close QA153/176/221 loading-visibility,
+  production-worker, actual screen-reader or OS-download cases. Evidence:
+  `qa-artifacts/QA-208/button-scale-hzdambsn/runtime-final-acceptance.json`.
 
 ### [ ] QA-209 — P1 — Geist font loading and layout
 
@@ -8396,3 +8450,105 @@ session and export DatePicker implementations stay unchanged.
   `docs/qa-theme-followup-current-artifact-path`,
   `runtime-final-acceptance.json`, `final-cleanup.json` and the original four
   keyboard cases under `docs/qa024169-current-artifact-path`.
+
+### [x] QA-227 — Project editor returns focus (P1)
+
+- **Purpose:** Keep the Project Edit trigger focused after Cancel or Escape. Do
+  not disable it for an action that only opens the editor. Keep the archive
+  mutation guard and errors unchanged.
+- **Affected files:** `apps/web/src/routes/projects/index.lazy.tsx`;
+  `/projects`.
+- **Prerequisites:** Use the current same-tab disposable guest from QA-208.
+  Verify user-null before every action. Keep the signed-in origin unchanged. Use
+  the owned `QA toast project edited` project and the QA-208 baseline.
+- **Inputs:** The existing Blue project. Use 1440 and 390 CSS pixel widths and
+  light and dark media. Do not change project fields in focus checks.
+- **Steps:**
+  1. Reach Edit with native Tab and press Enter. Check that the editor opens
+     without disabling the Edit trigger for an unrelated mutation.
+  2. Reach Cancel with native Tab and press Enter. Check the original Edit
+     trigger and its visible focus indicator. Repeat with Escape and pointer
+     Cancel at each width and theme.
+  3. Reopen the editor after a render. Check the current project values. Cancel
+     without Save. Compare all seven sections and raw guest storage.
+  4. Archive and Restore only the owned project through the normal controls.
+     Check that only its archived flag changes. Check pending controls and
+     retain native store validation, owner checks and error handling.
+  5. Finish QA-208 guest and protected-origin baseline cleanup. Do not restore
+     old protected preferences or start login or logout.
+- **Expected results:** Cancel and Escape close the correct editor and return
+  focus to its enabled Edit trigger. Keyboard focus stays visible. The dialog
+  shows current values. Cancel and Escape make no storage writes. Archive and
+  Restore retain their mutation guard and change only the intended flag.
+- **Evidence:** Save native key traces, focus snapshots, screenshots, exact
+  workspace and raw comparisons, and static results in the QA-208 artifact
+  directory. Inspect the artifacts before this checkbox is marked passed.
+- **Cleanup:** Keep the project in its original active state, then follow the
+  QA-208 original guest and protected-origin equality checks. Remove probes.
+- **Status:** Passed on 2026-11-17 local time (2026-11-16 UTC). Before the fix
+  at `a1dab40`, pointer and trusted native Edit/Cancel replays closed the editor
+  with no focused control and unchanged raw data. Commit `0e75ffa` opens Edit
+  outside the archive queue without changing archive guards. Eight native
+  Cancel/Escape width/theme replays passed 44 trusted keys, zero setter calls,
+  eight saved raw comparisons and visible focus on the enabled Edit trigger.
+  Four focused crops and current project fields were inspected. Pointer Cancel
+  and real guest Web Lock pending Archive/exact Restore also passed. Full root
+  typecheck/lint/format and web build passed for identical source bytes; Doctor
+  retains the same 38 semantic diagnostics, not a clean scan. The final QA-208
+  audit verifies original guest raw/UI restoration, fresh
+  protected-owner/server/ UI equality, native probe removal and original surface
+  restoration. Evidence:
+  `qa-artifacts/QA-208/button-scale-hzdambsn/project-focus-independent-assertions.json`
+  and `runtime-final-acceptance.json` in the same directory.
+
+### [x] QA-228 — Template editor returns focus (P1)
+
+- **Purpose:** Return focus to the actual Template opener after Cancel or
+  Escape, including an opener disabled while its action starts.
+- **Affected files:** `apps/web/src/routes/templates/index.lazy.tsx` and
+  `apps/web/src/features/templates/components/template-form.tsx`; `/templates`.
+- **Prerequisites:** Use only the verified same-tab QA-208 guest and its owned
+  template/task fixture. Verify user-null and exact raw fixture data. Keep the
+  signed-in origin unchanged. Do not Apply or Save a template in these checks.
+- **Inputs:** `QA toast template edited`; New template and Copy current tasks;
+  1440 and 390 CSS pixel widths; light and dark media.
+- **Steps:**
+  1. Reach Edit through native Tab and press Enter. Read the existing template
+     and task fields. Reach Cancel and press Enter. Check its enabled opener.
+  2. Repeat with Escape and pointer Cancel at both widths and themes. Inspect
+     the visible keyboard focus indicator and native event traces.
+  3. Open New template and Copy current tasks. Cancel without Save. Check that
+     focus returns to the correct distinct opener, not a different Edit button.
+  4. Compare all seven sections and raw storage after each close. Use a bounded
+     pass-through setter observer to check for writes during native closure.
+     Keep template lookup, action queue, owner checks and save guards unchanged.
+  5. Finish the QA-208 guest and protected-origin baseline cleanup. Remove all
+     probes and restore the original surface without login or logout.
+- **Expected results:** The correct enabled opener regains focus after the
+  editor closes. Keyboard focus is visible. Current fields remain correct. No
+  template is saved or applied and no storage write occurs. Cancel does not
+  change records, timer, settings, task estimates or completed counts.
+- **Evidence:** Keep native key traces, focused control captures, exact raw and
+  workspace comparisons and current static checks in the QA-208 directory.
+  Inspect all evidence before marking this case passed.
+- **Cleanup:** Cancel every draft. Follow the original guest UI/raw and fresh
+  protected-owner/server/UI equality checks from QA-208. Remove all probes.
+- **Status:** Passed on 2026-11-17 local time (2026-11-16 UTC). Before the fix
+  at `a1dab40`, pointer and independent native Edit/Cancel replays closed the
+  editor with no focused control and unchanged raw data. Commit `83f482f`
+  supplies each actual opener ref to the existing popup final-focus API. All 24
+  native Edit/New/Copy Cancel/Escape cases passed 180 trusted keys, current
+  draft fields, zero setter calls, saved raw equality and visible focus on the
+  correct enabled opener. Twelve separate native Escape replays and focused
+  images passed independent and visual review. The copied terminal count is
+  qualified against their actual 12-case manifest; it does not replace the
+  separate 24-case closure audit. Pointer Cancels also passed. No template was
+  saved or applied. Queued actions, lookup, validation and persistence remain
+  unchanged. Full root checks and web build passed for identical source bytes;
+  Doctor retains 16 errors and 22 warnings, not a clean scan. The final QA-208
+  audit verifies exact original guest and protected-owner/server/UI restoration
+  and removal of all probes. Evidence:
+  `template-focus-independent-assertions.json`,
+  `template-native-visual-independent-assertions.json` and
+  `runtime-final-acceptance.json` in
+  `qa-artifacts/QA-208/button-scale-hzdambsn/`.
