@@ -7119,27 +7119,46 @@ session contract changes are intended.
 
 - **Purpose:** Check source-owned button sizing, navigation composition, notes
   fields, input placeholders, and overlay edges after the source comparison.
-- **Prerequisites:** Shared refresh setup; approved browser QA; isolated guest
-  workspace. Read the current local registry Button and Textarea source before
-  comparison. No new dependencies or services are required.
+- **Prerequisites:** Use the existing main tab and the approved same-tab
+  disposable guest origin. First capture fresh protected-owner/server/UI and
+  verified-empty guest UI/raw baselines. Do not use another tab, profile or
+  browser, or run auth, logout, server restarts or protected-workspace faults.
+  Read the current source-owned Input, Textarea, Popover and Toast styles. Reuse
+  checked QA-208 only for unchanged button-scale/touch/loading evidence. No new
+  dependencies or services are required.
 - **Inputs:** `/`, `/projects`, `/templates`, `/reports`, `/settings`,
   `/offline.html`; 390 and 1440 CSS pixel viewports; light/dark themes; mouse
   and touch emulation; task title `Design review` and notes
-  `Review spacing and controls.`
+  `Review spacing and controls.`; unsaved template name `QA207 Draft`.
 - **Steps:**
   1. Open each route. Inspect header and settings links, page actions, timer
      actions, theme control, task actions, and history pagination.
-  2. Compare their measured heights with the source scale: small buttons 32px,
-     default buttons 40px, and large buttons 48px. Main navigation uses small
-     ghost Buttons; settings navigation uses default ghost Buttons. Check
-     pointer targets of at least 44px with touch emulation. Check the static
-     retry link on `/offline.html` against the default 40px button size.
-  3. Open the task and template forms. Inspect their notes fields and input
-     placeholders against the local source. Enter and preserve the input text.
-     Open and close the date picker and an existing notification.
-  4. Use keyboard navigation for all links and controls. Repeat in both themes
-     and at both viewports. Capture the settings loading state before its
-     content loads and compare navigation placeholder height.
+  2. The later default-size requirement supersedes the old small-header policy.
+     Use the checked QA-208 default-40px and coarse-44px comparisons, including
+     the static offline retry link. Do not restore small navigation buttons or
+     infer notes, placeholder or overlay styles from those button measurements.
+  3. Open Add task and New template through their real controls. Use task name
+     `Design review` and notes `Review spacing and controls.`. In a new
+     template, add one draft task with the same safe values. Check empty and
+     filled notes at both widths/themes; preserve exact drafts on resize/media
+     changes. Compare 120px minimum block size and 15px horizontal padding with
+     source. Cancel the template without Save. These task/template fields do not
+     set a source placeholder attribute. Qualify any temporary guest-only
+     placeholder probe as a shared-style check, restore it in finally, and do
+     not call it shipped text, real validation or screen-reader evidence.
+  4. On `/reports?period=day&date=2024-01-02&page=1`, open Date picker with
+     native keys in Add focus time and close it without Save. Check its source
+     shadow and focus return. Save only the owned task to produce a real
+     notification; inspect the notification shadow/motion, observe its natural
+     close, and keep title, note, UUID and other sections exact. Repeat
+     necessary owned note-only saves for both themes/motion without duplicate
+     creates.
+  5. Use native Tab/Enter/Escape for route links, Settings section hashes, form
+     controls, picker and notification continuation. Use a real touch on the
+     owned notes field without Save. Keep login/issuer, Full screen and Focus
+     window actions out of scope. Repeat at 390 and 1440 in both themes. Match
+     Settings navigation loading placeholders to unchanged QA-208 native
+     measurements; keep its dark-visibility/SSR qualifications.
 - **Expected results:** Controls use the shared scale without custom height or
   padding rules on navigation links. Active header text remains neutral. Link
   URLs, hashes, focus indicators, labels, actions, and timer behavior do not
@@ -7147,12 +7166,49 @@ session contract changes are intended.
   notes minimum height is 120px and horizontal padding is 15px. Input
   placeholders use the muted foreground. Popovers and notifications have no old
   inset edge shadow. Reduced-motion notification behavior remains intact.
-- **Evidence:** Save sanitized measurements, screenshots, and keyboard/action
-  observations in `qa-artifacts/QA-207/`; inspect each comparison and the action
-  results before marking passed.
-- **Cleanup:** Discard or remove only isolated form data and restore viewport,
-  theme, and emulation. Close only case-owned overlays. Do not clear storage.
-- **Status:** pending; runtime QA remains deferred.
+- **Evidence:** Use `qa-artifacts/QA-207/remaining-controls-0lj6vaba/`.
+  `partial-final-acceptance.json` records the independently checked native
+  notes/placeholder pilot, full cleanup, log review, privacy and unchanged code
+  hashes. `recompute-partial-evidence.py` repeats this offline review. Private
+  native styles and matched rules retain the original results. No PNG succeeded;
+  keep `screenshot-timeout-qualification.json` and the temporary attribute
+  qualification. The remaining matrix, traces and visual evidence must exist and
+  be inspected before this case can pass.
+- **Cleanup:** Cancel drafts and delete only the owned task through its UI.
+  Remove only generated guest keys under exact-origin/empty-state guards; never
+  clear storage. Verify original guest raw/UI baselines, remove observers and
+  attribute probes, restore device/media state, and return to the original
+  authenticated owner with fresh server/UI equality to this batch's protected
+  baseline. Preserve intervening protected changes; no login or logout.
+- **Status:** Partial. At unchanged code from `34fd426`, native inspection of
+  the empty Task notes field at 1440px/light confirmed 120px height/minimum and
+  15px padding on all four sides. The actual Task title/notes fields have no
+  placeholder. A bounded temporary guest attribute probe confirmed native Input
+  placeholder color from `--muted-foreground` and Textarea's existing 72% token
+  mix. It restored both attributes, preserved empty draft/raw data and created
+  no record. This is shared-style evidence, not shipped text, real validation or
+  actual screen-reader speech. Five bounded screenshot attempts timed out,
+  including a dialog-free Timer control. Foregrounding the authorized existing
+  tab and releasing the CSS inspection domain did not resolve capture. A
+  standard non-surface request was explicitly unsupported; no policy or
+  permission was changed. The cause remains unproven, not a confirmed app paint
+  defect. Task/template width/theme draft coverage, date-popup/toast shadows and
+  motion, keyboard/touch notes and fresh visual review remain unrun. QA-208
+  supports only unchanged button requirements; its loading visibility/SSR gaps
+  are not waived. Cleanup is complete: guest original UI/raw baselines and
+  protected original owner/revision/server/fresh UI agree in all seven sections.
+  The same tab is back at the original root, native 1682x1223 viewport, media
+  and time zone, idle 25:00 with the existing completed count preserved. No
+  task, settings or timer write occurred; no replacement/key removal was needed.
+  Owned hooks and request observer are absent. The surviving session2 interval
+  contains 605 GET-only requests and no auth exchange; two earlier
+  broker-session losses left that initial buffer incomplete, so whole-run totals
+  are unavailable. Retained logs have zero unclassified records but include
+  development and hydration diagnostics; final empty logs do not make the whole
+  interval clean. All 165 code/config hashes match prior successful QA-208
+  validation, reused rather than rerun. Doctor still has 16 errors and 22
+  warnings, not a clean scan. The case remains unchecked for the missing
+  runtime/visual coverage.
 
 Coverage: shared button and form sizing and source-style gaps use QA-207. QA-199
 covers link routing and neutral active styling. QA-206 covers the redesigned
