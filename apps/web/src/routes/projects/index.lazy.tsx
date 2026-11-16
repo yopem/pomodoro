@@ -54,6 +54,7 @@ import {
   useFocusSnapshot,
   useWorkspaceMutationOwner,
 } from "@/features/focus/store"
+import { useEventCallback } from "@/hooks/use-event-callback"
 import { formatFocusTime } from "@/lib/focus-time"
 
 export const Route = createLazyFileRoute("/projects/")({
@@ -187,14 +188,7 @@ export function ProjectCard({
   const owner = useWorkspaceMutationOwner()
 
   const [error, dispatch, pending] = useActionState(
-    async (_previous: string | null, action: "edit" | "archive") => {
-      if (action === "edit") {
-        onEdit(project)
-        onOpenChange(true)
-
-        return null
-      }
-
+    async (_previous: string | null) => {
       try {
         await saveProject(
           {
@@ -214,16 +208,13 @@ export function ProjectCard({
     null,
   )
 
-  const [events] = useState(function createProjectCardEvents() {
-    function edit() {
-      startTransition(() => dispatch("edit"))
-    }
+  const edit = useEventCallback(() => {
+    onEdit(project)
+    onOpenChange(true)
+  })
 
-    function archive() {
-      startTransition(() => dispatch("archive"))
-    }
-
-    return { edit, archive }
+  const archive = useEventCallback(() => {
+    startTransition(dispatch)
   })
 
   return (
@@ -261,7 +252,7 @@ export function ProjectCard({
             variant="outline"
 
             disabled={pending}
-            onClick={events.edit}
+            onClick={edit}
           >
             <PencilIcon size={16} aria-hidden="true" /> Edit
           </Button>
@@ -269,7 +260,7 @@ export function ProjectCard({
             variant="ghost"
 
             disabled={pending}
-            onClick={events.archive}
+            onClick={archive}
           >
             <ArchiveIcon size={16} aria-hidden="true" />{" "}
             {project.archived ? "Restore" : "Archive"}
