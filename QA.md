@@ -271,23 +271,59 @@ needs confirmation.
       error shell offers a usable path back to `/`. Confirm workspace contents
       do not change. Reference: QA-131–132, QA-173.
 - [ ] **QA-332 · P1 — Install and offline recovery.** From an approved
-      production build, install `/` using `/manifest.webmanifest`. Inspect the
-      192, 512, and maskable icons. Launch standalone, go offline, navigate to
-      an uncached `/reports`, then reconnect using the fallback link. Verify the
-      fallback is readable at 320 CSS pixels, works by keyboard, uses local
-      assets, and returns to saved work without claiming sync. Reference:
-      QA-020, QA-133, QA-205.
+      production build (shared setup), open `/` in a browser profile with no app
+      installed. Inspect `/icons/site.webmanifest` in DevTools, then install
+      `Pomodoro by Yopem`. Check that both PNG icons load at their declared 192
+      and 512 pixel sizes for normal and maskable use. Launch in standalone mode
+      at `/`. In Cache Storage, confirm the worker precaches `/offline.html`,
+      `/offline.css`, and `/icons/favicon.svg`. Set the viewport to 320 CSS
+      pixels, then go offline and open an uncached `/reports`. Expect the
+      offline page to show the Yopem mark and “You’re offline” without missing
+      assets in light or dark mode. Reconnect and activate “Try opening the
+      timer” with the keyboard. Expect `/` and saved local work, with no false
+      sync confirmation. Save the manifest, launch view, and offline screenshots
+      under `qa-artifacts/<run>/QA-332/`. Uninstall the test app and restore
+      network and theme settings. Status: pending. Affects the static manifest,
+      offline assets, and `vite.config.ts`. Reference: QA-020, QA-133, QA-205.
 - [ ] **QA-333 · P1 — PWA update and worker failure.** In the same approved
       installation, record caches and serve an approved newer build. Verify
       update is announced, requires confirmation, activates before reload, and
-      removes old app caches. Inject a registration failure and verify safe
-      feedback; confirm development does not register the worker. Reference:
+      removes old app caches. For the branding update, start from the prior
+      build with `/manifest.webmanifest` and `/favicon.svg`, then update to the
+      current build. Check that Cache Storage drops the old icon and that `/`
+      uses `/icons/site.webmanifest` after reload. Save both cache listings in
+      `qa-artifacts/<run>/QA-333/`. Inject a registration failure and verify
+      safe feedback; confirm development does not register the worker. Restore
+      the browser profile after collecting evidence. Status: pending. Reference:
       QA-025, QA-070.
 - [ ] **QA-334 · P1 — Public metadata and sitemap.** Request `/`,
       `/sitemap.xml`, `/robots.txt`, and private routes from QA-061. Verify
       public timer content and canonical metadata are in SSR, private routes are
       not in the sitemap and are not indexed, and any structured data matches
-      visible content. Reference: QA-061, QA-147, QA-181–182.
+      visible content. In an approved isolated production build configured with
+      `PUBLIC_ORIGIN=https://pomodoro.yopem.com` (use the isolated listener, not
+      the live host), inspect the HTML head for `/`. Expect the canonical URL
+      and Open Graph URL to be `https://pomodoro.yopem.com/`. Expect Open Graph
+      and Twitter to use `https://pomodoro.yopem.com/og.png`, with Yopem image
+      text and Pomodoro as the service name. Request `/og.png` on that listener;
+      expect 200 and the supplied 3500 × 1440 PNG. Verify the sitemap lists only
+      the production home URL and `robots.txt` points to that sitemap. Save the
+      sanitized head, discovery responses, and image headers under
+      `qa-artifacts/<run>/QA-334/`. No data cleanup. Status: pending. Affects
+      `apps/web/src/routes/index.tsx` and the documented production origin.
+      Reference: QA-061, QA-147, QA-181–182.
+- [ ] **QA-340 · P1 — Yopem mark and browser icons.** With the shared web setup,
+      open `/projects` as a guest in a fresh browser profile. At 320 and 1440
+      CSS pixels, switch between light and dark themes. The header must show the
+      Yopem SVG mark at both widths, with no missing image or loss of contrast.
+      Expect the Pomodoro service label at 1440 CSS pixels and the mark alone at
+      320 CSS pixels. Tab to the “Pomodoro by Yopem” link and press Enter;
+      expect `/` and no change to saved records. Inspect the document head and
+      check that `/icons/favicon.svg`, `/icons/favicon-96x96.png`,
+      `/icons/favicon.ico`, and `/icons/apple-touch-icon.png` return 200 and
+      show the Yopem mark. Save screenshots and status codes under
+      `qa-artifacts/<run>/QA-340/`. Restore theme and viewport. Status: pending.
+      Affects `app-shell.tsx`, `__root.tsx`, and `apps/web/public/icons/`.
 
 ## Tooling, build, and local services
 

@@ -294,10 +294,10 @@ reproducible.
 Create a private Compose env file outside the repository. Use a secret manager
 or a secure editor to set `PUBLIC_ORIGIN`, `DATABASE_URL`, `AUTH_CLIENT_ID`,
 `AUTH_SESSION_KEY`, `TRUSTED_PROXY_IPS`, and `PRIVATE_NETWORK`. Set
-`PUBLIC_ORIGIN` to the approved HTTPS origin and use the same value for each
-build and deployment. Use the approved issuer client and a stable session key.
-`PRIVATE_NETWORK` is the name of the existing isolated network. Do not use the
-repository `.env` or put secrets in build arguments.
+`PUBLIC_ORIGIN=https://pomodoro.yopem.com` for the production build and runtime.
+Use the approved issuer client and a stable session key. `PRIVATE_NETWORK` is
+the name of the existing isolated network. Do not use the repository `.env` or
+put secrets in build arguments.
 
 ```sh
 PRODUCTION_ENV=$(mktemp /tmp/pomodoro-compose-env.XXXXXXXX)
