@@ -13,9 +13,7 @@ export const Route = createFileRoute("/")({
     const description =
       "Plan tasks with a Pomodoro timer, work in focus intervals, and take regular breaks. Track completed sessions and review your focus time in daily reports."
 
-    const image = canonical
-      ? new URL("/icon-512.png", canonical).href
-      : undefined
+    const image = canonical ? new URL("/og.png", canonical).href : undefined
 
     return {
       meta: [
@@ -27,19 +25,19 @@ export const Route = createFileRoute("/")({
         { property: "og:type", content: "website" },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:site_name", content: "Pomodoro" },
+        { property: "og:site_name", content: "Pomodoro by Yopem" },
         ...(canonical ? [{ property: "og:url", content: canonical }] : []),
         ...(image
           ? [
               { property: "og:image", content: image },
-              { property: "og:image:width", content: "512" },
-              { property: "og:image:height", content: "512" },
-              { property: "og:image:alt", content: "Pomodoro app icon" },
+              { property: "og:image:width", content: "3500" },
+              { property: "og:image:height", content: "1440" },
+              { property: "og:image:alt", content: "Yopem logo" },
               { name: "twitter:image", content: image },
-              { name: "twitter:image:alt", content: "Pomodoro app icon" },
+              { name: "twitter:image:alt", content: "Yopem logo" },
             ]
           : []),
-        { name: "twitter:card", content: "summary" },
+        { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
       ],
