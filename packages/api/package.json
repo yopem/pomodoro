@@ -7,11 +7,11 @@
   },
   "scripts": {
     "generate": "bun scripts/generate.ts",
-    "lint": "bun lint --no-script",
-    "lint:fix": "bun lint --no-script --fix",
-    "format:check": "bun fmt --no-script --check",
-    "format:write": "bun fmt --no-script",
-    "typecheck": "bun check --no-script -p tsconfig.json && bun check --no-script -p tsconfig.tools.json"
+    "lint": "bun lint --type-aware",
+    "lint:fix": "bun lint --fix",
+    "format:check": "bun fmt --check",
+    "format:write": "bun fmt",
+    "typecheck": "bun check -p tsconfig.json && bun check -p tsconfig.tools.json"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0"

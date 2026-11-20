@@ -6,11 +6,11 @@
     "dev": "vite --host 127.0.0.1 --port 13001 --strictPort",
     "build": "vite build",
     "start": "NITRO_HOST=127.0.0.1 NITRO_PORT=13001 bun .output/server/index.mjs",
-    "lint": "bun lint --no-script",
-    "lint:fix": "bun lint --no-script --fix",
-    "format:check": "bun fmt --no-script --check",
-    "format:write": "bun fmt --no-script",
-    "typecheck": "bun run routes:generate && bun check --no-script -p tsconfig.json && bun check --no-script -p tsconfig.tools.json && bun check --no-script -p src/service-worker/tsconfig.json",
+    "lint": "bun lint --type-aware",
+    "lint:fix": "bun lint --fix",
+    "format:check": "bun fmt --check",
+    "format:write": "bun fmt",
+    "typecheck": "bun run routes:generate && bun check -p tsconfig.json && bun check -p tsconfig.tools.json && bun check -p src/service-worker/tsconfig.json",
     "routes:generate": "bun scripts/generate-routes.ts"
   },
   "dependencies": {

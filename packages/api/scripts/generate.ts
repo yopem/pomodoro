@@ -53,6 +53,6 @@ result.dispose()
 
 await writeFile(output, source)
 
-execFileSync(process.execPath, ["fmt", "--no-script", fileURLToPath(output)], {
+execFileSync(process.execPath, ["fmt", fileURLToPath(output)], {
   stdio: "inherit",
 })

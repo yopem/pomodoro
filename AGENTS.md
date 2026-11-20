@@ -2,7 +2,7 @@
 
 | Profile | Choice |
 | --- | --- |
-| Runtime | Bun canary; ESM |
+| Runtime | Pinned Bun; ESM |
 | Package model | Bun workspaces; Turborepo tasks |
 | Backend | Rust, Axum, JSON HTTP, and utoipa OpenAPI |
 | Validation | Rust boundary validation and Zod; lint, format, and typecheck by default; other QA needs approval |
@@ -256,8 +256,8 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
   does not emit JavaScript or declarations. Do not use `tsc` or `tsrs` as a
   fallback. Report a separate declaration-build need before selecting tooling.
 - Read scripts before commands. A script named `check`, `lint`, or `fmt` can
-  shadow the native Bun command. Use `--no-script` when native execution is
-  required, especially inside Turborepo tasks. Do not create recursive scripts.
+  shadow the native Bun command. Use different script names when you need to
+  call a native command. Do not create recursive scripts.
 
 ### Lint suppression: last resort only
 
@@ -318,11 +318,11 @@ bun run format:write                      # root: turbo run format:write; uncach
 bun run typecheck                         # root: turbo run typecheck
 
 # Native leaf commands, from the owning workspace:
-bun lint --no-script
-bun lint --no-script --fix
-bun fmt --no-script --check
-bun fmt --no-script
-bun check --no-script -p tsconfig.json
+bun lint
+bun lint --fix
+bun fmt --check
+bun fmt
+bun check
 
 # Rust workspace, after confirming manifest and targets:
 cargo fmt --all -- --check
@@ -1400,4 +1400,3 @@ applicable category into concrete cases with the details required above.
 - Google Analytics 4: https://developers.google.com/analytics/devguides/collection/ga4.
 - Umami: https://umami.is/docs.
 - Polar: https://polar.sh/docs.
-
