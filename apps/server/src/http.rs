@@ -15,6 +15,7 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
+use nid::Nanoid;
 use pomodoro_db::{
     DbError,
     users::User,
@@ -27,7 +28,6 @@ use tokio::sync::Semaphore;
 use tracing::Instrument;
 use url::Url;
 use utoipa::{OpenApi, ToSchema};
-use uuid::Uuid;
 
 use crate::{
     ApiDoc,
@@ -53,7 +53,7 @@ pub struct AppState {
 #[derive(Hash, Eq, PartialEq)]
 enum RateKey {
     Address(IpAddr, bool),
-    User(Uuid),
+    User(String),
 }
 
 struct RateWindow {
@@ -105,12 +105,12 @@ pub fn router(
         .layer(middleware::from_fn_with_state(state, boundary))
 }
 
-fn failure(status: StatusCode, message: &str, request_id: Uuid) -> Response {
+fn failure(status: StatusCode, message: &str, request_id: Nanoid) -> Response {
     (
         status,
         Json(ErrorResponse {
             error: message.to_owned(),
-            request_id: Some(request_id),
+            request_id: Some(request_id.to_string()),
         }),
     )
         .into_response()
@@ -144,11 +144,11 @@ fn limited(state: &AppState, key: RateKey, limit: u32) -> bool {
 
 async fn boundary(State(state): State<AppState>, mut request: Request, next: Next) -> Response {
     let started = Instant::now();
-    let request_id = Uuid::new_v4();
+    let request_id = Nanoid::<21>::new();
     request.extensions_mut().insert(request_id);
     request.headers_mut().insert(
         "x-request-id",
-        HeaderValue::from_str(&request_id.to_string())
+        HeaderValue::from_str(request_id.as_str())
             .unwrap_or(HeaderValue::from_static("unavailable")),
     );
     let liveness = request.uri().path() == "/health" && *request.method() == Method::GET;
@@ -210,7 +210,7 @@ async fn boundary(State(state): State<AppState>, mut request: Request, next: Nex
     }
     headers.insert(
         "x-request-id",
-        HeaderValue::from_str(&request_id.to_string())
+        HeaderValue::from_str(request_id.as_str())
             .unwrap_or(HeaderValue::from_static("unavailable")),
     );
     headers.insert(
@@ -257,7 +257,7 @@ async fn authorized_request(
     state: &AppState,
     mut request: Request,
     next: Next,
-    id: Uuid,
+    id: Nanoid,
     ip: IpAddr,
 ) -> Response {
     let path = request.uri().path();
@@ -299,7 +299,7 @@ async fn authorized_request(
             );
         };
         let expected = single_header(request.headers(), "x-pomodoro-user")
-            .and_then(|value| pomodoro_focus::parse_uuid::<serde::de::value::Error>(value).ok());
+            .filter(|value| pomodoro_focus::is_valid_id(value));
         let Some(expected) = expected else {
             return failure(
                 StatusCode::BAD_REQUEST,
@@ -321,7 +321,7 @@ async fn authorized_request(
                 id,
             );
         }
-        if unsafe_method && limited(state, RateKey::User(user.id), 120) {
+        if unsafe_method && limited(state, RateKey::User(user.id.clone()), 120) {
             let mut response = failure(
                 StatusCode::TOO_MANY_REQUESTS,
                 "Too many account changes. Retry later.",
@@ -337,7 +337,7 @@ async fn authorized_request(
     next.run(request).await
 }
 
-fn database_failure(error: DbError, id: Uuid) -> Response {
+fn database_failure(error: DbError, id: Nanoid) -> Response {
     let (status, message) = match error {
         DbError::Conflict => (
             StatusCode::CONFLICT,
@@ -364,7 +364,7 @@ fn database_failure(error: DbError, id: Uuid) -> Response {
     failure(status, message, id)
 }
 
-fn workspace_response(stored: StoredWorkspace, user_id: Uuid) -> Response {
+fn workspace_response(stored: StoredWorkspace, user_id: String) -> Response {
     Json(WorkspaceResponse {
         user_id,
         workspace: stored.workspace.into_workspace(),
@@ -373,7 +373,7 @@ fn workspace_response(stored: StoredWorkspace, user_id: Uuid) -> Response {
     .into_response()
 }
 
-fn json_failure(error: JsonRejection, id: Uuid) -> Response {
+fn json_failure(error: JsonRejection, id: Nanoid) -> Response {
     if error.status() == StatusCode::PAYLOAD_TOO_LARGE {
         failure(
             StatusCode::PAYLOAD_TOO_LARGE,
@@ -398,7 +398,7 @@ fn json_failure(error: JsonRejection, id: Uuid) -> Response {
 #[utoipa::path(get, path = "/api/session", responses((status = 200, body = SessionResponse), (status = 503, body = ErrorResponse), (status = 400, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 pub async fn session(
     State(state): State<AppState>,
-    Extension(id): Extension<Uuid>,
+    Extension(id): Extension<Nanoid>,
     headers: axum::http::HeaderMap,
 ) -> Response {
     let Some(auth) = state.auth else {
@@ -420,23 +420,23 @@ pub async fn session(
     }
 }
 
-#[utoipa::path(get, path = "/api/workspace", params(("X-Pomodoro-User" = Uuid, Header)), security(("account_cookie" = [])), responses((status = 200, body = WorkspaceResponse), (status = 400, body = ErrorResponse), (status = 401, body = ErrorResponse), (status = 409, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 404, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
+#[utoipa::path(get, path = "/api/workspace", params(("X-Pomodoro-User" = String, Header)), security(("account_cookie" = [])), responses((status = 200, body = WorkspaceResponse), (status = 400, body = ErrorResponse), (status = 401, body = ErrorResponse), (status = 409, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 404, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 pub async fn load_workspace(
     State(state): State<AppState>,
     Extension(user): Extension<User>,
-    Extension(id): Extension<Uuid>,
+    Extension(id): Extension<Nanoid>,
 ) -> Response {
-    match pomodoro_db::workspaces::load(&state.db, user.id).await {
+    match pomodoro_db::workspaces::load(&state.db, &user.id).await {
         Ok(stored) => workspace_response(stored, user.id),
         Err(error) => database_failure(error, id),
     }
 }
 
-#[utoipa::path(put, path = "/api/workspace", params(("X-Pomodoro-User" = Uuid, Header)), request_body = SaveWorkspaceRequest, security(("account_cookie" = [])), responses((status = 200, body = WorkspaceResponse), (status = 400, body = ErrorResponse), (status = 401, body = ErrorResponse), (status = 403, body = ErrorResponse), (status = 409, body = ErrorResponse), (status = 413, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 404, body = ErrorResponse), (status = 415, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
+#[utoipa::path(put, path = "/api/workspace", params(("X-Pomodoro-User" = String, Header)), request_body = SaveWorkspaceRequest, security(("account_cookie" = [])), responses((status = 200, body = WorkspaceResponse), (status = 400, body = ErrorResponse), (status = 401, body = ErrorResponse), (status = 403, body = ErrorResponse), (status = 409, body = ErrorResponse), (status = 413, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 404, body = ErrorResponse), (status = 415, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 pub async fn save_workspace(
     State(state): State<AppState>,
     Extension(user): Extension<User>,
-    Extension(id): Extension<Uuid>,
+    Extension(id): Extension<Nanoid>,
     body: Result<Json<SaveWorkspaceRequest>, JsonRejection>,
 ) -> Response {
     let input = match body {
@@ -447,7 +447,7 @@ pub async fn save_workspace(
         Ok(workspace) => workspace,
         Err(_) => return failure(StatusCode::BAD_REQUEST, "The workspace is invalid", id),
     };
-    match pomodoro_db::workspaces::save(&state.db, user.id, input.expected_revision, workspace)
+    match pomodoro_db::workspaces::save(&state.db, &user.id, input.expected_revision, workspace)
         .await
     {
         Ok(stored) => workspace_response(stored, user.id),
@@ -455,11 +455,11 @@ pub async fn save_workspace(
     }
 }
 
-#[utoipa::path(post, path = "/api/workspace/import", params(("X-Pomodoro-User" = Uuid, Header)), request_body = ImportWorkspaceRequest, security(("account_cookie" = [])), responses((status = 200, body = WorkspaceResponse), (status = 400, body = ErrorResponse), (status = 401, body = ErrorResponse), (status = 403, body = ErrorResponse), (status = 409, body = ErrorResponse), (status = 413, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 404, body = ErrorResponse), (status = 415, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
+#[utoipa::path(post, path = "/api/workspace/import", params(("X-Pomodoro-User" = String, Header)), request_body = ImportWorkspaceRequest, security(("account_cookie" = [])), responses((status = 200, body = WorkspaceResponse), (status = 400, body = ErrorResponse), (status = 401, body = ErrorResponse), (status = 403, body = ErrorResponse), (status = 409, body = ErrorResponse), (status = 413, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 404, body = ErrorResponse), (status = 415, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 pub async fn import_workspace(
     State(state): State<AppState>,
     Extension(user): Extension<User>,
-    Extension(id): Extension<Uuid>,
+    Extension(id): Extension<Nanoid>,
     body: Result<Json<ImportWorkspaceRequest>, JsonRejection>,
 ) -> Response {
     let input = match body {
@@ -472,9 +472,9 @@ pub async fn import_workspace(
     };
     match pomodoro_db::workspaces::r#import(
         &state.db,
-        user.id,
+        &user.id,
         input.expected_revision,
-        input.import_id,
+        &input.import_id,
         workspace,
     )
     .await
@@ -492,7 +492,7 @@ pub async fn health() -> Json<HealthResponse> {
 }
 
 #[utoipa::path(get, path = "/ready", responses((status = 200, body = HealthResponse), (status = 400, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
-pub async fn ready(State(state): State<AppState>, Extension(id): Extension<Uuid>) -> Response {
+pub async fn ready(State(state): State<AppState>, Extension(id): Extension<Nanoid>) -> Response {
     if pomodoro_db::ready(&state.db).await {
         Json(HealthResponse {
             status: "ready".to_owned(),
@@ -512,17 +512,17 @@ pub async fn openapi() -> Json<utoipa::openapi::OpenApi> {
     Json(ApiDoc::openapi())
 }
 
-async fn auth_unavailable(Extension(id): Extension<Uuid>) -> Response {
+async fn auth_unavailable(Extension(id): Extension<Nanoid>) -> Response {
     failure(
         StatusCode::SERVICE_UNAVAILABLE,
         "Account sign-in is not configured",
         id,
     )
 }
-async fn not_found(Extension(id): Extension<Uuid>) -> Response {
+async fn not_found(Extension(id): Extension<Nanoid>) -> Response {
     failure(StatusCode::NOT_FOUND, "The endpoint was not found", id)
 }
-async fn method_not_allowed(Extension(id): Extension<Uuid>) -> Response {
+async fn method_not_allowed(Extension(id): Extension<Nanoid>) -> Response {
     failure(
         StatusCode::METHOD_NOT_ALLOWED,
         "The method is not supported for this endpoint",

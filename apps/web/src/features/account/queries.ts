@@ -6,14 +6,12 @@ import type { Workspace } from "@/features/focus/schema"
 
 import { workspaceSchema } from "@/features/focus/schema"
 
-const uuidSchema = z.string().uuid()
-
 const revisionSchema = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER)
 
 const sessionSchema = z.strictObject({
   user: z
     .strictObject({
-      id: uuidSchema,
+      id: z.string(),
       name: z
         .string()
         .max(500)
@@ -24,7 +22,7 @@ const sessionSchema = z.strictObject({
 })
 
 const workspaceResponseSchema = z.strictObject({
-  user_id: uuidSchema,
+  user_id: z.string(),
   workspace: workspaceSchema,
   revision: revisionSchema,
 })
@@ -37,7 +35,7 @@ const responseTextSchema = z.string()
 
 const errorSchema = z.strictObject({
   error: z.string(),
-  request_id: uuidSchema.nullable(),
+  request_id: z.string().nullable(),
 })
 
 interface SaveWorkspaceInput {
@@ -123,7 +121,7 @@ function workspaceRequestBody<
 function workspaceResponse(result: ApiResult, userId: string) {
   const data = validatedResponse(workspaceResponseSchema, result)
 
-  if (data.user_id.toLowerCase() !== userId.toLowerCase()) {
+  if (data.user_id !== userId) {
     throw new AccountApiError(result.response.status)
   }
 
@@ -170,7 +168,7 @@ export function workspaceQueryOptions(userId: string) {
     networkMode: "always",
     queryFn: ({ signal }) =>
       accountRequest(async () => {
-        const owner = uuidSchema.parse(userId)
+        const owner = z.string().parse(userId)
 
         const result = await createBrowserApiClient().GET("/api/workspace", {
           params: { header: { "X-Pomodoro-User": owner } },
@@ -192,7 +190,7 @@ export function saveWorkspaceMutationOptions() {
     networkMode: "always",
     gcTime: 0,
     mutationFn: (input: SaveWorkspaceInput) => {
-      const owner = uuidSchema.parse(input.userId)
+      const owner = z.string().parse(input.userId)
 
       const body = workspaceRequestBody({
         workspace: workspaceSchema.parse(input.workspace),
@@ -221,12 +219,12 @@ export function importGuestMutationOptions() {
     networkMode: "always",
     gcTime: 0,
     mutationFn: (input: ImportGuestInput) => {
-      const owner = uuidSchema.parse(input.userId)
+      const owner = z.string().parse(input.userId)
 
       const body = workspaceRequestBody({
         workspace: workspaceSchema.parse(input.workspace),
         expected_revision: revisionSchema.parse(input.expected_revision),
-        import_id: uuidSchema.parse(input.import_id),
+        import_id: z.string().parse(input.import_id),
       })
 
       input.beforeSend()
@@ -254,7 +252,7 @@ export function logoutMutationOptions() {
     networkMode: "always",
     gcTime: 0,
     mutationFn: (input: { userId: string; beforeSend: () => void }) => {
-      const owner = uuidSchema.parse(input.userId)
+      const owner = z.string().parse(input.userId)
       input.beforeSend()
 
       return accountRequest(async () => {

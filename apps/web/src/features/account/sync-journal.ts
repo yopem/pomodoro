@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid"
 import { z } from "zod"
 
 import type { JournalWorkspaceV1 } from "@/features/account/journal-workspace-v1"
@@ -14,10 +15,6 @@ type SameWorkspace =
 
 const sameWorkspace: SameWorkspace = true
 
-const uuid = z.string().uuid()
-
-const canonicalAccountId = uuid.refine((value) => value === value.toLowerCase())
-
 const hash = z.string().regex(/^[0-9a-f]{64}$/)
 
 const revision = z.number().int().min(0).max(Number.MAX_SAFE_INTEGER)
@@ -31,7 +28,7 @@ const originalSchema = z.discriminatedUnion("kind", [
   }),
   z.strictObject({
     kind: z.literal("import"),
-    importId: uuid,
+    importId: z.string(),
     expectedRevision: revision,
     guestJson: z.string().max(20_000_000),
     guestHash: hash,
@@ -41,7 +38,7 @@ const originalSchema = z.discriminatedUnion("kind", [
 ])
 
 const resolutionSchema = z.strictObject({
-  attemptId: uuid,
+  attemptId: z.string(),
   source: z.enum(["server", "local"]),
   expectedRevision: revision,
   baseHash: hash,
@@ -53,9 +50,9 @@ const resolutionSchema = z.strictObject({
 const journalSchema = z
   .strictObject({
     version: z.literal(1),
-    accountId: canonicalAccountId,
-    operationId: uuid,
-    token: uuid,
+    accountId: z.string(),
+    operationId: z.string(),
+    token: z.string(),
     original: originalSchema,
     resolution: resolutionSchema.nullable(),
   })
@@ -102,7 +99,7 @@ function current(isCurrent: () => boolean) {
 }
 
 function accountId(value: string) {
-  const parsed = canonicalAccountId.safeParse(value)
+  const parsed = z.string().safeParse(value)
 
   if (!parsed.success) throw new AccountJournalError("invalid")
 
@@ -421,8 +418,8 @@ export async function createAccountJournal(input: {
     {
       version: 1,
       accountId: id,
-      operationId: crypto.randomUUID(),
-      token: crypto.randomUUID(),
+      operationId: nanoid(),
+      token: nanoid(),
       original: input.original,
       resolution: input.resolution,
     },
@@ -468,7 +465,7 @@ export async function setAccountJournalResolution(input: {
   }
 
   const next = await validateJournal(
-    { ...expected, token: crypto.randomUUID(), resolution: input.resolution },
+    { ...expected, token: nanoid(), resolution: input.resolution },
     input.isCurrent,
   )
 

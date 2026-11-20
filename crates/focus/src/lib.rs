@@ -2,42 +2,50 @@ use std::collections::HashSet;
 use std::fmt;
 
 use serde::{Deserialize, Deserializer, Serialize};
-use utoipa::ToSchema;
-use uuid::Uuid;
+use utoipa::{
+    ToSchema,
+    openapi::{
+        RefOr,
+        schema::{ObjectBuilder, Schema, SchemaType, Type},
+    },
+};
 
-pub fn parse_uuid<E: serde::de::Error>(value: &str) -> Result<Uuid, E> {
-    let bytes = value.as_bytes();
-    let canonical = bytes.len() == 36
-        && [8, 13, 18, 23].iter().all(|&index| bytes[index] == b'-')
-        && bytes
-            .iter()
-            .enumerate()
-            .all(|(index, byte)| [8, 13, 18, 23].contains(&index) || byte.is_ascii_hexdigit());
-    let parsed = Uuid::parse_str(value).map_err(E::custom)?;
-    let valid_bits = matches!(bytes.get(14), Some(b'1'..=b'8'))
-        && matches!(bytes.get(19), Some(b'8' | b'9' | b'a' | b'A' | b'b' | b'B'));
-    if !canonical
-        || !(valid_bits || parsed.is_nil() || value == "ffffffff-ffff-ffff-ffff-ffffffffffff")
-    {
-        return Err(E::custom("invalid UUID"));
-    }
-    Ok(parsed)
+const ID_PATTERN: &str = "^[A-Za-z0-9_-]{21}$";
+
+pub fn id_schema() -> RefOr<Schema> {
+    ObjectBuilder::new()
+        .schema_type(Type::String)
+        .pattern(Some(ID_PATTERN))
+        .into()
 }
 
-fn deserialize_workspace_uuid<'de, D: Deserializer<'de>>(
+fn nullable_id_schema() -> RefOr<Schema> {
+    ObjectBuilder::new()
+        .schema_type(SchemaType::Array(vec![Type::String, Type::Null]))
+        .pattern(Some(ID_PATTERN))
+        .into()
+}
+
+pub fn is_valid_id(value: &str) -> bool {
+    nid::Nanoid::<21>::try_from_str(value).is_ok()
+}
+
+fn deserialize_workspace_id<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<String, D::Error> {
     let value = String::deserialize(deserializer)?;
-    parse_uuid::<D::Error>(&value)?;
+    if !is_valid_id(&value) {
+        return Err(serde::de::Error::custom("invalid ID"));
+    }
     Ok(value)
 }
 
-fn deserialize_optional_workspace_uuid<'de, D: Deserializer<'de>>(
+fn deserialize_optional_workspace_id<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Option<String>, D::Error> {
     let value = Option::<String>::deserialize(deserializer)?;
-    if let Some(id) = &value {
-        parse_uuid::<D::Error>(id)?;
+    if value.as_deref().is_some_and(|id| !is_valid_id(id)) {
+        return Err(serde::de::Error::custom("invalid ID"));
     }
     Ok(value)
 }
@@ -150,8 +158,8 @@ pub enum TimerPhase {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Task {
-    #[serde(deserialize_with = "deserialize_workspace_uuid")]
-    #[schema(value_type = Uuid)]
+    #[serde(deserialize_with = "deserialize_workspace_id")]
+    #[schema(schema_with = id_schema)]
     pub id: String,
     pub title: String,
     pub note: String,
@@ -162,16 +170,16 @@ pub struct Task {
     #[serde(deserialize_with = "deserialize_count")]
     pub actual: u32,
     pub completed: bool,
-    #[serde(deserialize_with = "deserialize_optional_workspace_uuid")]
-    #[schema(value_type = Option<Uuid>, required)]
+    #[serde(deserialize_with = "deserialize_optional_workspace_id")]
+    #[schema(schema_with = nullable_id_schema, required)]
     pub project_id: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Project {
-    #[serde(deserialize_with = "deserialize_workspace_uuid")]
-    #[schema(value_type = Uuid)]
+    #[serde(deserialize_with = "deserialize_workspace_id")]
+    #[schema(schema_with = id_schema)]
     pub id: String,
     pub name: String,
     pub color: ProjectColor,
@@ -186,16 +194,16 @@ pub struct TemplateTask {
     #[schema(minimum = 1, maximum = 10000, value_type = u64)]
     #[serde(deserialize_with = "deserialize_count")]
     pub estimate: u32,
-    #[serde(deserialize_with = "deserialize_optional_workspace_uuid")]
-    #[schema(value_type = Option<Uuid>, required)]
+    #[serde(deserialize_with = "deserialize_optional_workspace_id")]
+    #[schema(schema_with = nullable_id_schema, required)]
     pub project_id: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Template {
-    #[serde(deserialize_with = "deserialize_workspace_uuid")]
-    #[schema(value_type = Uuid)]
+    #[serde(deserialize_with = "deserialize_workspace_id")]
+    #[schema(schema_with = id_schema)]
     pub id: String,
     pub name: String,
     pub tasks: Vec<TemplateTask>,
@@ -204,15 +212,15 @@ pub struct Template {
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Session {
-    #[serde(deserialize_with = "deserialize_workspace_uuid")]
-    #[schema(value_type = Uuid)]
+    #[serde(deserialize_with = "deserialize_workspace_id")]
+    #[schema(schema_with = id_schema)]
     pub id: String,
-    #[serde(deserialize_with = "deserialize_optional_workspace_uuid")]
-    #[schema(value_type = Option<Uuid>, required)]
+    #[serde(deserialize_with = "deserialize_optional_workspace_id")]
+    #[schema(schema_with = nullable_id_schema, required)]
     pub task_id: Option<String>,
     pub task_title: String,
-    #[serde(deserialize_with = "deserialize_optional_workspace_uuid")]
-    #[schema(value_type = Option<Uuid>, required)]
+    #[serde(deserialize_with = "deserialize_optional_workspace_id")]
+    #[schema(schema_with = nullable_id_schema, required)]
     pub project_id: Option<String>,
     pub project_name: String,
     #[schema(minimum = -8640000000000000_i64, maximum = 8640000000000000_i64)]
@@ -279,8 +287,8 @@ pub struct Timer {
     #[serde(deserialize_with = "deserialize_optional_timestamp")]
     #[schema(required)]
     pub deadline_ms: Option<i64>,
-    #[serde(deserialize_with = "deserialize_optional_workspace_uuid")]
-    #[schema(value_type = Option<Uuid>, required)]
+    #[serde(deserialize_with = "deserialize_optional_workspace_id")]
+    #[schema(schema_with = nullable_id_schema, required)]
     pub run_id: Option<String>,
     #[serde(deserialize_with = "deserialize_optional_timestamp")]
     #[schema(required)]
@@ -288,8 +296,8 @@ pub struct Timer {
     #[schema(minimum = 0, maximum = 4294967295_u64, value_type = u64)]
     #[serde(deserialize_with = "deserialize_count")]
     pub completed_focus_count: u32,
-    #[serde(deserialize_with = "deserialize_optional_workspace_uuid")]
-    #[schema(value_type = Option<Uuid>, required)]
+    #[serde(deserialize_with = "deserialize_optional_workspace_id")]
+    #[schema(schema_with = nullable_id_schema, required)]
     pub selected_task_id: Option<String>,
 }
 
@@ -426,8 +434,9 @@ impl Workspace {
                 self.timer.selected_task_id.as_deref(),
             ]);
         for id in ids.flatten() {
-            parse_uuid::<serde::de::value::Error>(id)
-                .map_err(|_| ValidationError::InvalidField("id"))?;
+            if !is_valid_id(id) {
+                return Err(ValidationError::InvalidField("id"));
+            }
         }
         if self.schema_version != 1 {
             return Err(ValidationError::InvalidField("schema_version"));

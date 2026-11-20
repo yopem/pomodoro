@@ -1,5 +1,6 @@
 import { createLazyFileRoute } from "@tanstack/react-router"
 import { PlusIcon } from "lucide-react"
+import { nanoid } from "nanoid"
 import { useState } from "react"
 
 import type { Session } from "@/features/focus/schema"
@@ -87,11 +88,11 @@ export function ReportsRoute() {
 
   const [editorEvents] = useState(function createEditorEvents() {
     function addFocus() {
-      setEditing({ id: crypto.randomUUID(), session: null })
+      setEditing({ id: nanoid(), session: null })
     }
 
     function editFocus(session: Session) {
-      setEditing({ id: crypto.randomUUID(), session })
+      setEditing({ id: nanoid(), session })
     }
 
     function closeEditor(id: string) {

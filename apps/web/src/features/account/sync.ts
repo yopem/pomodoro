@@ -1,4 +1,5 @@
 import { type QueryClient, useQueryClient } from "@tanstack/react-query"
+import { nanoid } from "nanoid"
 import { useState, useSyncExternalStore } from "react"
 
 import type {
@@ -242,10 +243,7 @@ function createAccountController(client: QueryClient) {
     const prefix = `${userId ?? "guest"}:`
 
     if (!window.localStorage.getItem(ACCOUNT_MARKER_KEY)?.startsWith(prefix)) {
-      window.localStorage.setItem(
-        ACCOUNT_MARKER_KEY,
-        `${prefix}${crypto.randomUUID()}`,
-      )
+      window.localStorage.setItem(ACCOUNT_MARKER_KEY, `${prefix}${nanoid()}`)
     }
   }
 
@@ -964,7 +962,7 @@ function createAccountController(client: QueryClient) {
     const previous = journal
 
     const resolution = {
-      attemptId: crypto.randomUUID(),
+      attemptId: nanoid(),
       source: input.source,
       expectedRevision: latest.revision,
       baseHash,
@@ -1078,7 +1076,7 @@ function createAccountController(client: QueryClient) {
       throw new ImportPlanChangedError()
 
     return {
-      id: crypto.randomUUID(),
+      id: nanoid(),
       guest,
       expected,
       expectedRevision,

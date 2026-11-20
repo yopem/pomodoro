@@ -1,13 +1,18 @@
 import { publicConfig } from "@pomodoro/env/client"
 import handler, { createServerEntry } from "@tanstack/react-start/server-entry"
+import { customAlphabet, nanoid } from "nanoid"
+
+const createNonce = customAlphabet(
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+  24,
+)
 
 export default createServerEntry({
   async fetch(request, options) {
     const url = new URL(request.url)
     const path = url.pathname
-    const requestId = crypto.randomUUID()
-    const bytes = crypto.getRandomValues(new Uint8Array(18))
-    const nonce = btoa(String.fromCharCode(...bytes))
+    const requestId = nanoid()
+    const nonce = createNonce()
 
     const backendPath =
       path === "/api" ||

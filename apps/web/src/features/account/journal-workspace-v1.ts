@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-const id = z.string().uuid()
+const id = z.string()
 
 const count = z.number().int().min(0).max(4_294_967_295)
 

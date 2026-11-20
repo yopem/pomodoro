@@ -10,6 +10,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from "lucide-react"
+import { nanoid } from "nanoid"
 import { startTransition, useActionState, useState } from "react"
 
 import type { Task, Workspace } from "@/features/focus/schema"
@@ -371,11 +372,11 @@ export function TaskList({ workspace }: { workspace: Workspace }) {
     }
 
     function addTask() {
-      setEditing({ id: crypto.randomUUID(), task: "new" })
+      setEditing({ id: nanoid(), task: "new" })
     }
 
     function editTask(task: Task) {
-      setEditing({ id: crypto.randomUUID(), task })
+      setEditing({ id: nanoid(), task })
     }
 
     function closeEditor(id: string) {

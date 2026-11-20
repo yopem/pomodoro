@@ -1,5 +1,4 @@
 use sea_orm::{DatabaseConnection, EntityTrait, Set, sea_query::OnConflict};
-use uuid::Uuid;
 
 use crate::DbError;
 
@@ -10,7 +9,7 @@ mod entity {
     #[sea_orm(table_name = "users")]
     pub struct Model {
         #[sea_orm(primary_key, auto_increment = false)]
-        pub id: Uuid,
+        pub id: String,
         pub issuer: String,
         pub subject: String,
         pub name: Option<String>,
@@ -24,7 +23,7 @@ mod entity {
 
 #[derive(Clone)]
 pub struct User {
-    pub id: Uuid,
+    pub id: String,
     pub name: Option<String>,
     pub issuer: String,
     pub subject: String,
@@ -65,7 +64,7 @@ pub async fn provision(db: &DatabaseConnection, input: ProvisionUser) -> Result<
         return Err(DbError::InvalidData);
     }
     let user = entity::Entity::insert(entity::ActiveModel {
-        id: Set(Uuid::new_v4()),
+        id: Set(nid::Nanoid::<21>::new().to_string()),
         issuer: Set(input.issuer),
         subject: Set(input.subject),
         name: Set(input.name),
@@ -82,8 +81,8 @@ pub async fn provision(db: &DatabaseConnection, input: ProvisionUser) -> Result<
 
 #[tracing::instrument(skip_all, fields(operation = "users.find"))]
 
-pub async fn find(db: &DatabaseConnection, user_id: Uuid) -> Result<Option<User>, DbError> {
-    Ok(entity::Entity::find_by_id(user_id)
+pub async fn find(db: &DatabaseConnection, user_id: &str) -> Result<Option<User>, DbError> {
+    Ok(entity::Entity::find_by_id(user_id.to_owned())
         .one(db)
         .await?
         .map(User::from))

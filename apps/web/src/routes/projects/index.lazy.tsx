@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent } from "react"
 import { useForm } from "@tanstack/react-form"
 import { createLazyFileRoute } from "@tanstack/react-router"
 import { ArchiveIcon, FolderIcon, PencilIcon, PlusIcon } from "lucide-react"
+import { nanoid } from "nanoid"
 import { startTransition, useActionState, useState } from "react"
 import { z } from "zod"
 
@@ -321,7 +322,7 @@ export function ProjectForm({
           {
             expected: project,
             project: {
-              id: project?.id ?? crypto.randomUUID(),
+              id: project?.id ?? nanoid(),
               name: value.name.trim(),
               color: value.color,
               archived: project?.archived ?? false,

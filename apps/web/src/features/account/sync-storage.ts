@@ -17,7 +17,7 @@ export interface StoredSyncState {
 
 export const ACCOUNT_MARKER_KEY = "pomodoro:account-marker:v1"
 
-const userIdSchema = z.string().uuid()
+const userIdSchema = z.string()
 
 const hashSchema = z.string().regex(/^[0-9a-f]{64}$/)
 

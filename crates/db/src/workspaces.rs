@@ -7,7 +7,6 @@ use sea_orm::{
 };
 use serde_json::Value as Json;
 use sha2::{Digest, Sha256};
-use uuid::Uuid;
 
 use crate::DbError;
 
@@ -29,7 +28,7 @@ mod workspace_entity {
     #[sea_orm(table_name = "focus_workspaces")]
     pub struct Model {
         #[sea_orm(primary_key, auto_increment = false)]
-        pub user_id: Uuid,
+        pub user_id: String,
         pub revision: i64,
         #[sea_orm(column_type = "JsonBinary")]
         pub workspace: Json,
@@ -48,9 +47,9 @@ mod receipt_entity {
     #[sea_orm(table_name = "workspace_imports")]
     pub struct Model {
         #[sea_orm(primary_key, auto_increment = false)]
-        pub user_id: Uuid,
+        pub user_id: String,
         #[sea_orm(primary_key, auto_increment = false)]
-        pub import_id: Uuid,
+        pub import_id: String,
         pub expected_revision: i64,
         pub workspace_digest: String,
     }
@@ -94,19 +93,19 @@ fn stored(row: workspace_entity::Model) -> Result<StoredWorkspace, DbError> {
 
 async fn lock_workspace(
     tx: &DatabaseTransaction,
-    user_id: Uuid,
+    user_id: &str,
 ) -> Result<StoredWorkspace, DbError> {
     let default =
         ValidatedWorkspace::try_from(Workspace::default()).map_err(|_| DbError::InvalidData)?;
     workspace_entity::Entity::insert(workspace_entity::ActiveModel {
-        user_id: Set(user_id),
+        user_id: Set(user_id.to_owned()),
         revision: Set(0),
         workspace: Set(encode(&default)?),
     })
     .on_conflict_do_nothing()
     .exec(tx)
     .await?;
-    let row = workspace_entity::Entity::find_by_id(user_id)
+    let row = workspace_entity::Entity::find_by_id(user_id.to_owned())
         .lock_exclusive()
         .one(tx)
         .await?
@@ -129,12 +128,12 @@ fn next_revision(current: i64, expected: i64) -> Result<i64, DbError> {
 
 async fn write_workspace(
     tx: &DatabaseTransaction,
-    user_id: Uuid,
+    user_id: &str,
     revision: i64,
     workspace: &ValidatedWorkspace,
 ) -> Result<(), DbError> {
     workspace_entity::ActiveModel {
-        user_id: Set(user_id),
+        user_id: Set(user_id.to_owned()),
         revision: Set(revision),
         workspace: Set(encode(workspace)?),
     }
@@ -145,7 +144,7 @@ async fn write_workspace(
 
 #[tracing::instrument(skip_all, fields(operation = "workspace.load"))]
 
-pub async fn load(db: &DatabaseConnection, user_id: Uuid) -> Result<StoredWorkspace, DbError> {
+pub async fn load(db: &DatabaseConnection, user_id: &str) -> Result<StoredWorkspace, DbError> {
     let tx = db.begin().await?;
     let result = lock_workspace(&tx, user_id).await?;
     tx.commit().await?;
@@ -156,7 +155,7 @@ pub async fn load(db: &DatabaseConnection, user_id: Uuid) -> Result<StoredWorksp
 
 pub async fn save(
     db: &DatabaseConnection,
-    user_id: Uuid,
+    user_id: &str,
     expected_revision: i64,
     workspace: ValidatedWorkspace,
 ) -> Result<StoredWorkspace, DbError> {
@@ -233,9 +232,9 @@ fn merge(
 
 pub async fn r#import(
     db: &DatabaseConnection,
-    user_id: Uuid,
+    user_id: &str,
     expected_revision: i64,
-    import_id: Uuid,
+    import_id: &str,
     workspace: ValidatedWorkspace,
 ) -> Result<StoredWorkspace, DbError> {
     let tx = db.begin().await?;
@@ -244,7 +243,7 @@ pub async fn r#import(
         "{:x}",
         Sha256::digest(serde_json::to_vec(&workspace).map_err(|_| DbError::InvalidData)?)
     );
-    let receipt = receipt_entity::Entity::find_by_id((user_id, import_id))
+    let receipt = receipt_entity::Entity::find_by_id((user_id.to_owned(), import_id.to_owned()))
         .one(&tx)
         .await?;
     if let Some(receipt) = receipt {
@@ -262,8 +261,8 @@ pub async fn r#import(
     }
     write_workspace(&tx, user_id, revision, &merged).await?;
     receipt_entity::Entity::insert(receipt_entity::ActiveModel {
-        user_id: Set(user_id),
-        import_id: Set(import_id),
+        user_id: Set(user_id.to_owned()),
+        import_id: Set(import_id.to_owned()),
         expected_revision: Set(expected_revision),
         workspace_digest: Set(digest),
     })

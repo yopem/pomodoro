@@ -2,7 +2,6 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, DatabaseTransaction, EntityTrait,
     QueryFilter, QuerySelect, Set, TransactionTrait, sea_query::Expr,
 };
-use uuid::Uuid;
 
 use crate::DbError;
 
@@ -15,7 +14,7 @@ mod session {
     pub struct Model {
         #[sea_orm(primary_key, auto_increment = false)]
         pub id_hash: String,
-        pub user_id: Uuid,
+        pub user_id: String,
         pub sealed_tokens: String,
         pub expires_at_ms: i64,
     }
@@ -34,7 +33,7 @@ mod session {
 
 pub struct SessionRecord {
     pub id_hash: String,
-    pub user_id: Uuid,
+    pub user_id: String,
     pub sealed_tokens: String,
     pub expires_at_ms: i64,
 }

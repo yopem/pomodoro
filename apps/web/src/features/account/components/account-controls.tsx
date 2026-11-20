@@ -63,8 +63,8 @@ const conflictTargetSchema = z.strictObject({
   revision: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER),
   request: z
     .strictObject({
-      operationId: z.string().uuid(),
-      token: z.string().uuid(),
+      operationId: z.string(),
+      token: z.string(),
       kind: z.enum(["save", "import"]),
       phase: z.enum(["original", "resolution"]),
     })

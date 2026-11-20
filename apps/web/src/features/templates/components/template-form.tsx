@@ -1,6 +1,7 @@
 import type { ChangeEvent, FormEvent, MouseEvent, RefObject } from "react"
 
 import { useForm } from "@tanstack/react-form"
+import { nanoid } from "nanoid"
 import { useRef, useState } from "react"
 import { z } from "zod"
 
@@ -63,7 +64,7 @@ export function useTemplateForm({
   const [error, setError] = useState<string | null>(null)
 
   const [taskKeys, setTaskKeys] = useState(() =>
-    template.tasks.map(() => crypto.randomUUID()),
+    template.tasks.map(() => nanoid()),
   )
 
   const form = useForm({
@@ -140,7 +141,7 @@ export function useTemplateForm({
     }
 
     function addTask() {
-      setTaskKeys((keys) => [...keys, crypto.randomUUID()])
+      setTaskKeys((keys) => [...keys, nanoid()])
       form.pushFieldValue("tasks", {
         title: "",
         note: "",

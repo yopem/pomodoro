@@ -1,6 +1,7 @@
 import type { ChangeEvent, FormEvent } from "react"
 
 import { useForm } from "@tanstack/react-form"
+import { nanoid } from "nanoid"
 import { useRef, useState } from "react"
 import { z } from "zod"
 
@@ -101,7 +102,7 @@ export function TaskForm({
           {
             expected: task,
             task: {
-              id: task?.id ?? crypto.randomUUID(),
+              id: task?.id ?? nanoid(),
               title: value.title.trim(),
               note: value.note,
               estimate: Number(value.estimate),

@@ -9,6 +9,11 @@ use aes_gcm::{
     aead::{Aead, Payload},
 };
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};
+use nid::Nanoid;
+use rand::{
+    SeedableRng,
+    rngs::{StdRng, SysRng},
+};
 use rand_core::{OsRng, RngCore};
 use serde::{Serialize, de::DeserializeOwned};
 use sha2::{Digest, Sha256};
@@ -103,9 +108,8 @@ impl Write for LimitedBuffer {
 }
 
 pub fn random_token() -> Result<String, CryptoError> {
-    let mut bytes = [0; 32];
-    OsRng.try_fill_bytes(&mut bytes).map_err(|_| CryptoError)?;
-    Ok(URL_SAFE_NO_PAD.encode(bytes))
+    let rng = StdRng::try_from_rng(&mut SysRng).map_err(|_| CryptoError)?;
+    Ok(Nanoid::<43>::new_with(rng).to_string())
 }
 
 pub fn digest_token(value: &str) -> String {

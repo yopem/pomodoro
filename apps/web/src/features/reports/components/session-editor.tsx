@@ -1,6 +1,7 @@
 import type { ChangeEvent, FormEvent } from "react"
 
 import { useForm } from "@tanstack/react-form"
+import { nanoid } from "nanoid"
 import { useState } from "react"
 import { z } from "zod"
 
@@ -42,7 +43,7 @@ const entrySchema = z
     date: z.iso.date(),
     title: z.string().trim().min(1, "Enter a task name").max(500),
     minutes: z.number().int().min(1, "Enter at least 1 minute").max(1440),
-    project: z.union([z.literal(""), z.uuid()]),
+    project: z.string(),
     start: z.union([
       z.literal(""),
       z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
@@ -142,7 +143,7 @@ export function SessionEditor({
           {
             expected: session,
             session: {
-              id: session?.id ?? crypto.randomUUID(),
+              id: session?.id ?? nanoid(),
               task_id: session?.task_id ?? null,
               task_title: value.title.trim(),
               project_id: project?.id ?? null,

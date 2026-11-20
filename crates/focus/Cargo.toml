@@ -6,5 +6,5 @@ publish = false
 
 [dependencies]
 serde = { version = "=1.0.229", features = ["derive"] }
-utoipa = { version = "=5.4.0", features = ["uuid"] }
-uuid = { version = "=1.20.0", features = ["serde"] }
+nid = "=5.0.0"
+utoipa = "=5.4.0"

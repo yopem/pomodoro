@@ -1,6 +1,7 @@
 import type { MouseEvent } from "react"
 
 import { createLazyFileRoute, Link } from "@tanstack/react-router"
+import { nanoid } from "nanoid"
 import { startTransition, useActionState, useRef, useState } from "react"
 
 import type { Template } from "@/features/focus/schema"
@@ -54,7 +55,7 @@ export function TemplatesRoute() {
         if (action.kind === "create") {
           setIsNew(true)
           setEditing({
-            id: crypto.randomUUID(),
+            id: nanoid(),
             name: "",
             tasks: action.copyTasks
               ? workspace.tasks.map(

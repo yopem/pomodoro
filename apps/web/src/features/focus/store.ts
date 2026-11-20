@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid"
 import { useState, useSyncExternalStore } from "react"
 
 import {
@@ -586,7 +587,7 @@ function startTimerRun(workspace: Workspace, nowMs: number) {
 
   if (timer.remaining_seconds <= 0)
     throw new Error("Reset the timer before starting")
-  timer.run_id ??= crypto.randomUUID()
+  timer.run_id ??= nanoid()
   timer.started_at_ms ??= nowMs
   timer.deadline_ms = nowMs + Math.round(timer.remaining_seconds * 1000)
 }
@@ -1235,7 +1236,7 @@ export async function applyTemplate(
       workspace.tasks.push({
         ...item,
         project_id: project?.id ?? null,
-        id: crypto.randomUUID(),
+        id: nanoid(),
         actual: 0,
         completed: false,
       })

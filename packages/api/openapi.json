@@ -20,7 +20,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -39,7 +39,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -66,7 +66,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -85,7 +85,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -104,7 +104,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -131,7 +131,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "pattern": "^[A-Za-z0-9_-]{21}$"
             }
           }
         ],
@@ -142,7 +142,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -161,7 +161,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -180,7 +180,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -199,7 +199,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -218,7 +218,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -245,7 +245,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -264,7 +264,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -283,7 +283,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -313,7 +313,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "pattern": "^[A-Za-z0-9_-]{21}$"
             }
           }
         ],
@@ -334,7 +334,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -353,7 +353,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -372,7 +372,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -391,7 +391,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -410,7 +410,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -429,7 +429,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -448,7 +448,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -467,7 +467,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -494,7 +494,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -513,7 +513,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -532,7 +532,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -564,7 +564,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "pattern": "^[A-Za-z0-9_-]{21}$"
             }
           }
         ],
@@ -585,7 +585,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -604,7 +604,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -623,7 +623,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -642,7 +642,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -661,7 +661,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -680,7 +680,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -699,7 +699,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -718,7 +718,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -745,7 +745,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -764,7 +764,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -783,7 +783,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -825,7 +825,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -837,7 +837,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -864,7 +864,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -883,7 +883,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -902,7 +902,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -929,7 +929,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -941,7 +941,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -968,7 +968,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -987,7 +987,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1006,7 +1006,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1033,7 +1033,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "pattern": "^[A-Za-z0-9_-]{21}$"
             }
           }
         ],
@@ -1044,7 +1044,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1056,7 +1056,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1075,7 +1075,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1094,7 +1094,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1113,7 +1113,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1140,7 +1140,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1159,7 +1159,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1178,7 +1178,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1210,7 +1210,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1229,7 +1229,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1256,7 +1256,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1271,7 +1271,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1298,7 +1298,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1317,7 +1317,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1336,7 +1336,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1363,7 +1363,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1382,7 +1382,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1409,7 +1409,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1428,7 +1428,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1447,7 +1447,7 @@
               "X-Request-ID": {
                 "schema": {
                   "type": "string",
-                  "format": "uuid"
+                  "pattern": "^[A-Za-z0-9_-]{21}$"
                 },
                 "description": "Request correlation ID"
               }
@@ -1479,7 +1479,7 @@
           },
           "request_id": {
             "type": ["string", "null"],
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           }
         },
         "additionalProperties": false
@@ -1513,7 +1513,7 @@
           },
           "import_id": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "workspace": {
             "$ref": "#/components/schemas/Workspace"
@@ -1533,7 +1533,7 @@
           },
           "id": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "name": {
             "type": "string"
@@ -1585,11 +1585,11 @@
           },
           "id": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "project_id": {
             "type": ["string", "null"],
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "project_name": {
             "type": "string"
@@ -1602,7 +1602,7 @@
           },
           "task_id": {
             "type": ["string", "null"],
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "task_title": {
             "type": "string"
@@ -1773,14 +1773,14 @@
           },
           "id": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "note": {
             "type": "string"
           },
           "project_id": {
             "type": ["string", "null"],
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "title": {
             "type": "string"
@@ -1794,7 +1794,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "name": {
             "type": "string"
@@ -1823,7 +1823,7 @@
           },
           "project_id": {
             "type": ["string", "null"],
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "title": {
             "type": "string"
@@ -1868,11 +1868,11 @@
           },
           "run_id": {
             "type": ["string", "null"],
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "selected_task_id": {
             "type": ["string", "null"],
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "started_at_ms": {
             "type": ["integer", "null"],
@@ -1891,7 +1891,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "name": {
             "type": ["string", "null"]
@@ -1964,7 +1964,7 @@
           },
           "user_id": {
             "type": "string",
-            "format": "uuid"
+            "pattern": "^[A-Za-z0-9_-]{21}$"
           },
           "workspace": {
             "$ref": "#/components/schemas/Workspace"

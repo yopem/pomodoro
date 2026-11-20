@@ -25,9 +25,7 @@ impl Modify for HttpContract {
             .schema(
                 utoipa::openapi::schema::ObjectBuilder::new()
                     .schema_type(utoipa::openapi::schema::Type::String)
-                    .format(Some(utoipa::openapi::schema::SchemaFormat::KnownFormat(
-                        utoipa::openapi::schema::KnownFormat::Uuid,
-                    ))),
+                    .pattern(Some("^[A-Za-z0-9_-]{21}$")),
             )
             .description(Some("Request correlation ID"))
             .build();
@@ -49,6 +47,11 @@ impl Modify for HttpContract {
             .into_iter()
             .flatten()
             {
+                for parameter in operation.parameters.iter_mut().flatten() {
+                    if parameter.name == "X-Pomodoro-User" {
+                        parameter.schema = Some(pomodoro_focus::id_schema());
+                    }
+                }
                 for (status, response) in &mut operation.responses.responses {
                     if let utoipa::openapi::RefOr::T(response) = response {
                         response

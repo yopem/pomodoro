@@ -7,6 +7,7 @@ import {
   RotateCcwIcon,
   SkipForwardIcon,
 } from "lucide-react"
+import { nanoid } from "nanoid"
 import { startTransition, useActionState, useState } from "react"
 
 import type { Timer, Workspace } from "@/features/focus/schema"
@@ -187,7 +188,7 @@ export function FocusTimer({
       ...command,
       expected: Object.freeze({ ...timer }),
       owner,
-      id: crypto.randomUUID(),
+      id: nanoid(),
     })
 
     if (

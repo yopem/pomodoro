@@ -12,6 +12,7 @@ use axum::{
     response::{IntoResponse, Response},
     routing::{get, post},
 };
+use nid::Nanoid;
 use pomodoro_db::{
     challenges,
     sessions::{self, SessionRecord},
@@ -21,7 +22,6 @@ use reqwest::{Client, redirect::Policy};
 use sea_orm::DatabaseConnection;
 use serde::{Deserialize, Serialize};
 use url::Url;
-use uuid::Uuid;
 
 use crate::{
     config::AuthConfig,
@@ -146,12 +146,12 @@ impl AuthService {
         else {
             return Ok(None);
         };
-        let user_id = lease.record().user_id;
+        let user_id = lease.record().user_id.clone();
         if lease.record().expires_at_ms <= now_ms()? {
             lease.delete().await.map_err(|_| AuthError::Unavailable)?;
             return Ok(None);
         }
-        let purpose = session_purpose(&hash, user_id);
+        let purpose = session_purpose(&hash, &user_id);
         let mut tokens: Tokens = match self.vault.open(&lease.record().sealed_tokens, &purpose) {
             Ok(tokens) => tokens,
             Err(_) => {
@@ -215,7 +215,7 @@ impl AuthService {
             return Ok(None);
         }
         lease.commit().await.map_err(|_| AuthError::Unavailable)?;
-        let user = users::find(&self.db, user_id)
+        let user = users::find(&self.db, &user_id)
             .await
             .map_err(|_| AuthError::Unavailable)?;
         match user {
@@ -390,7 +390,7 @@ impl AuthService {
         };
         let sealed_tokens = self
             .vault
-            .seal(&tokens, &session_purpose(&session_hash, user.id))
+            .seal(&tokens, &session_purpose(&session_hash, &user.id))
             .map_err(|_| AuthError::Unavailable)?;
         let created_at_ms = now_ms()?;
         let expires_at_ms = created_at_ms
@@ -445,7 +445,7 @@ fn valid_capability(value: &str) -> bool {
 fn challenge_purpose(hash: &str) -> String {
     format!("challenge:{hash}")
 }
-fn session_purpose(hash: &str, id: Uuid) -> String {
+fn session_purpose(hash: &str, id: &str) -> String {
     format!("session:{hash}:{id}")
 }
 
@@ -526,10 +526,7 @@ fn validate_target_query(url: &Url) -> Result<(), AuthError> {
         seen.push(key.to_string());
         let valid = match key.as_ref() {
             "period" => matches!(value.as_ref(), "day" | "week" | "month" | "year"),
-            "project" => {
-                value == "none"
-                    || pomodoro_focus::parse_uuid::<serde::de::value::Error>(&value).is_ok()
-            }
+            "project" => value == "none" || pomodoro_focus::is_valid_id(&value),
             "page" => {
                 !value.is_empty()
                     && value.bytes().all(|byte| byte.is_ascii_digit())
@@ -621,12 +618,12 @@ pub fn clear_session_cookie(secure: bool) -> HeaderValue {
     }
 }
 
-fn failure(error: AuthError, id: Uuid) -> Response {
+fn failure(error: AuthError, id: Nanoid) -> Response {
     (
         error.status(),
         Json(ErrorResponse {
             error: error.public_message().to_owned(),
-            request_id: Some(id),
+            request_id: Some(id.to_string()),
         }),
     )
         .into_response()
@@ -643,7 +640,7 @@ pub fn router(service: Arc<AuthService>) -> Router<()> {
 #[utoipa::path(get, path = "/auth/authorize", params(("return_to" = Option<String>, Query)), responses((status = 303), (status = 400, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 pub async fn login(
     State(service): State<Arc<AuthService>>,
-    Extension(id): Extension<Uuid>,
+    Extension(id): Extension<Nanoid>,
     uri: Uri,
 ) -> Response {
     match service.login(&uri).await {
@@ -655,7 +652,7 @@ pub async fn login(
 #[utoipa::path(get, path = "/auth/callback", responses((status = 303), (status = 400, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 pub async fn callback(
     State(service): State<Arc<AuthService>>,
-    Extension(id): Extension<Uuid>,
+    Extension(id): Extension<Nanoid>,
     headers: HeaderMap,
     uri: Uri,
 ) -> Response {
@@ -669,11 +666,11 @@ pub async fn callback(
     response
 }
 
-#[utoipa::path(post, path = "/auth/logout", params(("X-Pomodoro-User" = Uuid, Header)), security(("account_cookie" = [])), responses((status = 204), (status = 400, body = ErrorResponse), (status = 401, body = ErrorResponse), (status = 403, body = ErrorResponse), (status = 409, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
+#[utoipa::path(post, path = "/auth/logout", params(("X-Pomodoro-User" = String, Header)), security(("account_cookie" = [])), responses((status = 204), (status = 400, body = ErrorResponse), (status = 401, body = ErrorResponse), (status = 403, body = ErrorResponse), (status = 409, body = ErrorResponse), (status = 503, body = ErrorResponse), (status = 429, body = ErrorResponse), (status = 504, body = ErrorResponse)))]
 #[tracing::instrument(skip_all, fields(operation = "auth.logout"))]
 pub async fn logout(
     State(service): State<Arc<AuthService>>,
-    Extension(id): Extension<Uuid>,
+    Extension(id): Extension<Nanoid>,
     headers: HeaderMap,
 ) -> Response {
     let origin = service.config.public_origin.origin().ascii_serialization();
