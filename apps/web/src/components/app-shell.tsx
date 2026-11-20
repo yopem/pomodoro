@@ -3,7 +3,7 @@ import type { ReactNode } from "react"
 
 import * as stylex from "@stylexjs/stylex"
 import { Link, useRouterState } from "@tanstack/react-router"
-import { CheckIcon, MenuIcon, TimerIcon } from "lucide-react"
+import { CheckIcon, MenuIcon } from "lucide-react"
 
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import { Box } from "@/components/ui/box"
@@ -23,7 +23,7 @@ import { useAccountController } from "@/features/account/sync"
 import { useFocusSnapshot } from "@/features/focus/store"
 import { PwaUpdates } from "@/features/pwa/updates"
 import { useBrowserFullscreen } from "@/features/timer/hooks/use-browser-fullscreen"
-import { tokens } from "@/styles/tokens.stylex"
+import { themeMarker, tokens } from "@/styles/tokens.stylex"
 
 const exactMatch = { exact: true }
 
@@ -69,12 +69,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link
               to="/"
               {...stylex.props(styles.brand)}
-              aria-label="Pomodoro timer"
+              aria-label="Pomodoro by Yopem"
             >
-              <TimerIcon
-                size={36}
-                aria-hidden="true"
-                {...stylex.props(styles.brandIcon)}
+              <img
+                src="/icons/favicon.svg"
+                width={36}
+                height={36}
+                alt=""
+                {...stylex.props(styles.brandMark)}
               />
               <Box render={<span>pomodoro</span>} variant="appBrandLabel" />
             </Link>
@@ -172,10 +174,10 @@ const styles = stylex.create({
     letterSpacing: "-0.02em",
     flexShrink: 0,
   },
-  brandIcon: {
-    padding: `calc(${tokens["--spacing"]} * 2)`,
-    borderRadius: tokens["--radius"],
-    backgroundColor: tokens["--secondary"],
-    color: tokens["--foreground"],
+  brandMark: {
+    filter: {
+      default: "none",
+      [stylex.when.ancestor('[data-theme="dark"]', themeMarker)]: "invert(1)",
+    },
   },
 })

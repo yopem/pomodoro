@@ -76,6 +76,9 @@ a:focus-visible {
     color: #f5f5f5;
     background: #090909;
   }
+  img {
+    filter: invert(1);
+  }
   p {
     color: #a3a3a3;
   }

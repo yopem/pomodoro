@@ -121,14 +121,7 @@ export default defineConfig(({ command }) => {
         registerType: "prompt",
         injectRegister: false,
         manifest: false,
-        includeAssets: [
-          "favicon.svg",
-          "icon-192.png",
-          "icon-512.png",
-          "icon-maskable.png",
-          "offline.html",
-          "offline.css",
-        ],
+        includeAssets: ["icons/favicon.ico", "icons/site.webmanifest", "offline.html"],
         injectManifest: {
           buildPlugins: { vite: [singleServiceWorkerOutput()] },
           globPatterns: ["**/*.{js,css,woff2,png,svg}"],
