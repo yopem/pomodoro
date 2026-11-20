@@ -126,9 +126,9 @@ whole-project test suite ran.
 The earlier handoff recorded 20 checked cases at the stated revision. Current
 counts are at the start of this file. The exact pending IDs and priorities are
 in `docs/qa-resumed-progress.md` and `docs/qa-resumed-pending.json`. Native
-`bun fmt --no-script --check QA.md` and `git diff --check` passed after this
-update. Root source checks were not rerun because no source changed; the
-exact-revision hosted checks passed as recorded under QA-121.
+`bun fmt --check QA.md` and `git diff --check` passed after this update. Root
+source checks were not rerun because no source changed; the exact-revision
+hosted checks passed as recorded under QA-121.
 
 ## Current full QA pass — 2026-11-11
 
@@ -311,8 +311,8 @@ the protected workspace or stop/restart a service.
 - **Steps:**
   1. Inspect published dependency metadata and plugin implementations.
   2. In the temporary package, install exact compatible versions with Bun.
-  3. Run `bun lint --no-script` on the selected probe files with a copied,
-     correctly mapped native Bun policy. Do not run standalone Oxlint.
+  3. Run `bun lint` on the selected probe files with a copied, correctly mapped
+     native Bun policy. Do not run standalone Oxlint.
   4. Compare accepted examples and rejected examples with expected rule IDs.
 - **Expected results:** accepted examples pass; rejected examples report their
   intended rules; no plugin load errors or missing parser-service errors occur.
@@ -349,9 +349,8 @@ the protected workspace or stop/restart a service.
   commas, and 80-column lines from the existing format policy.
 - **Steps:**
   1. In the temporary package, inspect native command help and preset files.
-  2. Run `bun check --no-script -p tsconfig.json` for accepted and rejected
-     input.
-  3. Run `bun fmt --no-script --check` for explicitly selected probe files.
+  2. Run `bun check -p tsconfig.json` for accepted and rejected input.
+  3. Run `bun fmt --check` for explicitly selected probe files.
 - **Expected results:** valid types pass and invalid types fail; format output
   matches supported root policy. Do not substitute `tsc` or another formatter.
 - **Evidence:** `qa-artifacts/QA-002-toolchain.txt`; inspect command versions,
@@ -1584,11 +1583,11 @@ failed-load privacy, and backup cases remain QA-017, QA-028, and QA-029.
   component implementation files from this caller inventory only. 2. Map each
   property to the unchanged default contract. Trace each finite source-owned
   prop to its implementation; reject arbitrary style passthrough. 3. Run
-  `bun lint --no-script`, `bun fmt --no-script --check`, and
-  `bun run typecheck`. Check added config sources explicitly if the configured
-  lint selection excludes them. 4. Review semantic tags, labels, responsive
-  values, and token colors against the previous source. 5. Check that theme
-  script and provider configuration match and retain workspace preferences.
+  `bun lint`, `bun fmt --check`, and `bun run typecheck`. Check added config
+  sources explicitly if the configured lint selection excludes them. 4. Review
+  semantic tags, labels, responsive values, and token colors against the
+  previous source. 5. Check that theme script and provider configuration match
+  and retain workspace preferences.
 - **Expected results:** Application code uses supported component defaults,
   composition, or finite implemented props. Remaining `xstyle` values contain
   only allowed properties. No rule, suppression, or generic escape hatch is
