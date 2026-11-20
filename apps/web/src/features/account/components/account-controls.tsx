@@ -45,6 +45,7 @@ import {
   MenuSeparator,
   MenuTrigger,
 } from "@/components/ui/menu"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Stack } from "@/components/ui/stack"
 import { Text } from "@/components/ui/text"
 import { ImportPlanChangedError } from "@/features/account/sync-contract"
@@ -127,12 +128,21 @@ export function AccountControls({
   const accountReady =
     state.user !== null && state.user.id === focus.owner.identity
 
-  const checking = state.status === "loading"
-
-  if (state.status !== "guest" && (!accountReady || checking)) {
+  if (state.status === "loading") {
     return (
-      <Button variant="outline" loading={checking} onClick={retryAccount}>
-        {checking ? "Checking account" : "Retry account"}
+      <Box>
+        <output {...stylex.props(styles.loadingStatus)}>
+          Checking account
+        </output>
+        <Skeleton aria-hidden="true" xstyle={styles.accountLoading} />
+      </Box>
+    )
+  }
+
+  if (state.status !== "guest" && !accountReady) {
+    return (
+      <Button variant="outline" onClick={retryAccount}>
+        Retry account
       </Button>
     )
   }
@@ -717,6 +727,18 @@ export function ImportContent({
 }
 
 const styles = stylex.create({
+  accountLoading: {
+    blockSize: "2.5rem",
+    inlineSize: { default: "9rem", "@media (min-width: 640px)": "8.75rem" },
+  },
+  loadingStatus: {
+    position: "absolute",
+    inlineSize: 1,
+    blockSize: 1,
+    overflow: "hidden",
+    clipPath: "inset(50%)",
+    whiteSpace: "nowrap",
+  },
   accountMenu: {
     inlineSize: "min(280px, calc(100vw - 32px))",
   },
