@@ -96,10 +96,10 @@
 
 ### Runtime and application layers
 
-- **Frontend runtime and package manager:** Bun, Bun workspaces, and
+- **Frontend runtime and package manager:** pinned Bun, Bun workspaces, and
   ESM for dependency installation, scripts, supported builds, and web SSR.
 - **TypeScript:** use `bun check` and compatible `@yopem/typescript-config`
-  presets. Verify the installed Bun version supports the required commands.
+  presets. Verify the pinned Bun version supports the required commands.
 - **Backend:** Rust with Axum and Tokio. Use Cargo workspaces for Rust crates;
   Bun workspaces and Turborepo continue to manage the frontend and app targets.
   Pin a Rust toolchain and compatible crate versions. Use typed Rust errors,
@@ -155,9 +155,9 @@
 
 ### Runtime and tool compatibility
 
-- Use the installed Bun canary while native lint, format and check require it.
-  Do not pin an exact Bun version/revision or add custom runtime gates for
-  developers, hooks, CI or containers. Verify command support and report gaps.
+- `bun lint` currently requires Bun canary. Pin an exact tested Bun version
+  and revision for developers, CI, and container images. Verify `bun lint`,
+  `bun check`, and `bun fmt` and their options before setup; report gaps.
   Do not change a user's global Bun installation without approval.
 - Pin compatible Rust, Axum, Tokio, SeaORM, SQLx, utoipa, Zod, OpenAPI tooling,
   and Turborepo versions. Check their documentation and feature flags before
@@ -211,17 +211,17 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
 
 ### Configuration ownership
 
-- Root `package.json` owns Bun workspaces, package-manager selection, root
+- Root `package.json` owns Bun workspaces, the pinned package manager, root
   scripts, and tooling dependencies. Commit one `bun.lock`. Do not add pnpm,
   npm, or Yarn lockfiles.
 - `bunfig.toml` owns native lint, format, and supported native check options.
-  Use only options documented for the installed Bun build. Prefer `[lint]`,
+  Use only options documented for the pinned Bun build. Prefer `[lint]`,
   `[lint.rules]`, and `[fmt]` where supported. Do not invent a `[check]` table.
   `tsconfig.json` owns TypeScript compiler options and file selection.
   `vite.config.ts` owns only required frontend plugins and builds. Cargo manifests
   and `rust-toolchain.toml` own Rust dependencies and toolchain. Do not
   install Vite+.
-- Verify how the installed `bun lint` reads existing ESLint or Oxlint configs
+- Verify how the pinned `bun lint` reads existing ESLint or Oxlint configs
   before migration. Move effective rules into the native Bun policy. Do not
   require standalone Oxlint/Oxfmt runners or keep competing config files.
   If a required rule or setting cannot migrate, report a blocker; do not
@@ -231,7 +231,7 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
 
 - Pin compatible shared preset and plugin versions when used.
 - Reuse `@yopem/oxlint-config` presets for React and TanStack Start
-  only when the installed Bun linter supports their config and plugin APIs.
+  only when the pinned Bun linter supports their config and plugin APIs.
   Verify shared type-aware settings, plugin registration, and overrides.
   Do not assume all Oxlint plugins run unchanged in Bun. Missing required
   preset or plugin support blocks setup; do not silently omit it.
@@ -281,7 +281,7 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
   Do not make a leaf task call the same root Turbo task recursively.
 - Use `turbo.json` for dependency ordering and caching. Build tasks depend on
   required upstream builds, normally `^build`. Declare actual outputs, not
-  guessed framework paths. Track source, lockfile, shared config, tool inputs,
+  guessed framework paths. Track source, lockfile, shared config, Bun revision,
   and environment inputs that affect results.
 - Keep development tasks `persistent: true` and `cache: false`. Disable caching
   for format writes, lint fixes, migrations, seeds, deployment, and every task
@@ -296,7 +296,7 @@ into desktop, mobile, or extension apps. Do not create a shared UI package.
   process; it does not make every Vite plugin a Bun bundler plugin.
 - Use Lefthook for staged and push checks as specified in Git hooks. Preserve
   existing hooks and partially staged changes. CI still runs workspace checks.
-- CI runs only lint, format checks and typechecks after tool/dependency setup. Run relevant
+- CI runs lint, format checks, `bun check`, and required builds. Run relevant
   lint, format, and typecheck commands locally by default, including type-aware
   lint and commands that enable typechecking indirectly.
 
@@ -1114,6 +1114,13 @@ Add Polar only when a requested feature needs payments or subscriptions.
   that satisfies the rule before considering a suppression. Do not weaken
   types, remove assertions, or change rule settings to hide failures.
 
+### IDs and random strings
+
+- In TypeScript, use [nanoid](https://www.npmjs.com/package/nanoid) to generate
+  IDs and strings of random characters.
+- In Rust, use [nid](https://docs.rs/nid/latest/nid/) to generate IDs and
+  strings of random characters.
+
 ## Build and deployment
 
 ### Build artifacts and server integration
@@ -1128,9 +1135,8 @@ Add Polar only when a requested feature needs payments or subscriptions.
 
 ### Runtime and release safety
 
-- Pin tested Rust build and compatible base images. Use the supplied Bun binary
-  for web SSR without an exact version/revision gate. Avoid floating `latest`
-  tags for Rust and base images. Install frontend dependencies with
+- Pin tested Rust build and compatible runtime images, plus the Bun revision for
+  web SSR. Avoid floating `latest` tags. Install frontend dependencies with
   `bun install --frozen-lockfile`; use Cargo's locked mode for Rust builds.
 - On termination, stop accepting requests, allow bounded draining, stop owned
   tasks, and close resources. Check container signal delivery during requested QA.
@@ -1156,24 +1162,34 @@ Add Polar only when a requested feature needs payments or subscriptions.
 
 ## Git hooks
 
-- Keep Lefthook as the root Git hook manager and its configuration in
-  `lefthook.yml`. Do not remove it when changing Bun runtime settings.
-- On pre-commit, lint and check formatting for every applicable staged file,
-  including root and nested configuration files. Typecheck full owning projects
-  and affected dependents; do not substitute individual-file type checks.
-- On pre-push, run lint, nonwriting format checks and typechecks for the full
-  repository checkout, covering applicable pushed files and Rust workspaces.
-- Use Lefthook's built-in staged-file handling. Preserve staged, unstaged,
-  partially staged and untracked content. Do not auto-fix, auto-stage unrelated
-  files, or replace user-managed hooks without review.
-- Do not add custom snapshot exports/checkers or exact Bun version/revision
-  gates. These standard hooks check the current checkout, not separate archives
-  of each arbitrary pushed ref tip; do not claim snapshot isolation.
-- Relevant failures must block commit or push. Keep type-aware zero-warning
-  frontend lint, Rust Clippy/Cargo checks and native formatter check modes.
-- CI runs only lint, format checks and typechecks after setup. Do not add
-  builds, audits, contract drift, tests or deployment without a request.
-
+- Install a pinned Lefthook version and keep its configuration in the root
+  `lefthook.yml`. Use Lefthook as the Git hook manager. Preserve existing hook
+  behavior when migrating it.
+- On `pre-commit`, lint and check formatting for every applicable staged file.
+  Use the staged snapshot, not unstaged edits. Typecheck the full owning
+  projects and affected dependents so the staged changes are covered with
+  their real project configuration. Do not pass individual files to a
+  project-based typechecker as a substitute for project checking.
+- On `pre-push` to `origin`, run lint, format checks, and typechecks for the
+  full repository at each distinct pushed ref tip. Check the actual pushed
+  commits, not just the current working tree. Detect `origin` from the Git
+  hook's remote name or matching URL. Handle new branches, multiple refs, and
+  tags that point to commits; a deletion-only push has no snapshot to check.
+  Report unsupported refs instead of claiming that they passed.
+- Run checks against isolated snapshots or an equivalent safe method. Preserve
+  the index, unstaged and partially staged edits, untracked files, and pushed
+  commits. Use formatter check mode; do not rewrite files during a push. If a
+  commit hook applies fixes, protect partially staged changes and stage only
+  intended fixes. Do not silently add unrelated changes.
+- Route each file to the applicable tools. Handle added, changed, renamed, and
+  deleted paths; never pass deleted paths as existing files. Report unsupported
+  files that require checks and unavailable tool capabilities instead of
+  claiming coverage. A failed check blocks the commit or push. Keep full CI
+  checks enabled.
+- Run lint, format, and typecheck locally by default as well as in hooks.
+  Other QA follows the approval rules in Validation workflow.
+- Use Bun checks for the frontend and Rustfmt, Clippy, and Cargo checks for
+  Rust. Cover both workspaces when a shared change affects them.
 
 ## Validation workflow
 
@@ -1384,3 +1400,4 @@ applicable category into concrete cases with the details required above.
 - Google Analytics 4: https://developers.google.com/analytics/devguides/collection/ga4.
 - Umami: https://umami.is/docs.
 - Polar: https://polar.sh/docs.
+
